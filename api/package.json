@@ -1,0 +1,24 @@
+{
+    "name": "knowyourmechanic-api",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "index.ts",
+    "scripts": {
+        "start": "npx tsx index.ts",
+        "dev": "npx tsx watch index.ts"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.5.1",
+        "express": "^5.1.0",
+        "firebase-admin": "^13.3.0",
+        "mongoose": "^8.12.1"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.2",
+        "@types/node": "^22.15.29",
+        "tsx": "^4.20.3",
+        "typescript": "^5.8.3"
+    }
+}

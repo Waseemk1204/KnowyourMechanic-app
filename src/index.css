@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+    --sat: env(safe-area-inset-top);
+    --sar: env(safe-area-inset-right);
+    --sab: env(safe-area-inset-bottom);
+    --sal: env(safe-area-inset-left);
+
+    /* Premium Blue Palette */
+    --primary-blue: #0A58CA;
+    --navy-blue: #0F172A;
+    --azure-blue: #3B82F6;
+    --soft-blue: #EFF6FF;
+    --slate-50: #F8FAFC;
+    --slate-100: #F1F5F9;
+}
+
+/* Safe area utilities */
+.pt-safe {
+    padding-top: max(var(--sat, 0px), 1rem);
+}
+
+.pb-safe {
+    padding-bottom: max(var(--sab, 0px), 1rem);
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--slate-50);
+    color: var(--navy-blue);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Premium Card Styles */
+.premium-card {
+    background: white;
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.03), 0 4px 6px -4px rgba(15, 23, 42, 0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-card:active {
+    transform: scale(0.98);
+}
+
+.glass-white {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Button Styles */
+.btn-premium {
+    background: var(--primary-blue);
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(10, 88, 202, 0.39);
+    transition: all 0.2s ease;
+}
+
+.btn-premium:active {
+    background: #084298;
+    box-shadow: 0 2px 4px 0 rgba(10, 88, 202, 0.3);
+}
+
+/* Typography */
+.text-navy {
+    color: var(--navy-blue);
+}
+
+.text-azure {
+    color: var(--azure-blue);
+}
+
+/* Animation */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Input Styles */
+input,
+textarea {
+    background: white;
+    border: 1.5px solid var(--slate-200);
+    transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--azure-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--slate-50);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--slate-200);
+    border-radius: 10px;
+}
