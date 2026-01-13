@@ -54,13 +54,12 @@ export default function AuthPage() {
 
             // Check if user exists in backend
             try {
-                const token = await user.getIdToken();
-                const response = await fetch('http://192.168.1.9:4001/api/auth/me', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                // Check if user exists in backend
+                const { getCurrentUserData } = await import('../lib/api');
+                const response = await getCurrentUserData();
 
-                if (response.ok) {
-                    const userData = await response.json();
+                if (response.data) {
+                    const userData = response.data;
                     setUserData(userData);
                     localStorage.setItem('userRole', userData.role);
                     localStorage.setItem('userData', JSON.stringify(userData));
@@ -71,12 +70,15 @@ export default function AuthPage() {
                         navigate('/customer');
                     }
                     return;
+                } else {
+                    // User not found in backend - proceed to role selection
+                    console.log('New user detected');
+                    setStep('role');
                 }
             } catch (e) {
-                console.log('New user detected');
+                console.log('Error checking user:', e);
+                setStep('role');
             }
-
-            setStep('role');
         } catch (err: any) {
             setError(err.message || 'Invalid OTP code');
         } finally {

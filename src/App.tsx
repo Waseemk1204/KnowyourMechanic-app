@@ -20,6 +20,8 @@ function LoadingScreen() {
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'customer' | 'garage' }) {
   const { user, userData, loading } = useAuth();
 
+  console.log('ProtectedRoute:', { loading, hasUser: !!user, role: userData?.role, requiredRole });
+
   if (loading) return <LoadingScreen />;
 
   if (!user) return <Navigate to="/auth" replace />;
@@ -28,6 +30,13 @@ function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode;
   const role = userData?.role || savedRole;
 
   if (requiredRole && role !== requiredRole) {
+    // If we have a user but no role (new user), and they are trying to access a protected route,
+    // we should probably let them through IF the route is for role selection, OR redirect to a role selection page.
+    // For now, if role is undefined, we simply WAIT (show loading) or if we want to force role selection:
+    if (!role) {
+      // If role is missing, redirect to auth page for role selection
+      return <Navigate to="/auth" replace />;
+    }
     return <Navigate to={role === 'garage' ? '/garage' : '/customer'} replace />;
   }
 
@@ -42,6 +51,12 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
   if (user) {
     const savedRole = localStorage.getItem('userRole');
     const role = userData?.role || savedRole;
+
+    // If logged in but no role, allow them to stay on AuthPage to select role
+    if (!role) {
+      return <>{children}</>;
+    }
+
     if (role === 'garage') {
       const onboarded = localStorage.getItem('garageOnboarded');
       return <Navigate to={onboarded ? '/garage' : '/garage/onboarding'} replace />;

@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+        "firebase-auth": {
+            "command": "node",
+            "args": [
+                "/Users/waseem/Desktop/KnowyourMechanic-Main/mcp-firebase-auth/dist/index.js"
+            ]
+        }
+    }
+}

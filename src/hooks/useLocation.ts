@@ -20,7 +20,13 @@ export function useLocation() {
     const requestLocation = async () => {
         setLoading(true);
         try {
-            const permission = await Geolocation.checkPermissions();
+            // Add a timeout race condition for permissions
+            const checkPermissionPromise = Geolocation.checkPermissions();
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Permission check timeout')), 2000)
+            );
+
+            const permission = await Promise.race([checkPermissionPromise, timeoutPromise]) as any;
 
             if (permission.location === 'denied') {
                 const requested = await Geolocation.requestPermissions();
@@ -31,9 +37,10 @@ export function useLocation() {
                 }
             }
 
+            // Get position with timeout
             const position = await Geolocation.getCurrentPosition({
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 5000, // 5 second timeout
             });
 
             setLocation({
@@ -42,8 +49,9 @@ export function useLocation() {
             });
             setPermissionDenied(false);
         } catch (error) {
-            console.error('Location error:', error);
-            setPermissionDenied(true);
+            console.error('Location error (fallback to default):', error);
+            // Don't set permission denied on timeout, just use default location
+            // setPermissionDenied(true); 
         } finally {
             setLoading(false);
         }

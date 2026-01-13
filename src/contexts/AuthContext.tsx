@@ -36,28 +36,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             setUser(firebaseUser);
-            setLoading(false);
 
             if (!firebaseUser) {
                 setUserData(null);
+                setLoading(false);
                 localStorage.removeItem('userRole');
                 localStorage.removeItem('userData');
             } else {
+                // Check local storage first
                 const savedUserData = localStorage.getItem('userData');
                 if (savedUserData) {
                     try {
-                        setUserData(JSON.parse(savedUserData));
+                        const parsed = JSON.parse(savedUserData);
+                        setUserData(parsed);
+                        setLoading(false);
                     } catch (e) {
                         console.error('Error parsing saved user data:', e);
+                        // If parse fails, fetch from API
+                        fetchUserProfile();
                     }
+                } else {
+                    // No local data, fetch from API
+                    fetchUserProfile();
                 }
             }
         });
 
         return () => unsubscribe();
     }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            // dynamic import to avoid circular dependency if possible, or just standard import
+            const { getCurrentUserData } = await import('../lib/api');
+            const result = await getCurrentUserData();
+
+            if (result.data) {
+                setUserData(result.data);
+                localStorage.setItem('userData', JSON.stringify(result.data));
+                localStorage.setItem('userRole', result.data.role);
+            } else {
+                console.log('User profile not found in backend (New User)');
+                // Ideally redirect to role selection, but for now we leave userData null
+                // effectively treating as "Need Onboarding"
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const logout = async () => {
         try {

@@ -27,9 +27,11 @@ router.post('/sync', authenticate, async (req: AuthRequest, res) => {
         }
 
         res.status(200).json(user);
-    } catch (error) {
-        console.error('Sync error:', error);
-        res.status(500).json({ message: 'Internal server error' });
+    } catch (error: any) {
+        console.error('Sync error details:', JSON.stringify(error, null, 2));
+        console.error('Sync error message:', error.message);
+        console.error('Sync error stack:', error.stack);
+        res.status(500).json({ message: 'Internal server error', details: error.message });
     }
 });
 

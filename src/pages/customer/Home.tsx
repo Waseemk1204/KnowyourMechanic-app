@@ -82,6 +82,8 @@ export default function CustomerHome() {
     const { location, loading, permissionDenied } = useLocation();
     const { logout } = useAuth();
 
+    console.log('CustomerHome render:', { loading, location, garagesCount: garages.length, isLoadingGarages });
+
     const handleLogout = async () => {
         await logout();
         navigate('/auth');
@@ -89,11 +91,14 @@ export default function CustomerHome() {
 
     useEffect(() => {
         const fetchGarages = async () => {
+            console.log('fetchGarages started', { loading });
             if (loading) return;
 
             setIsLoadingGarages(true);
             try {
+                console.log('Calling discoverGarages...');
                 const result = await discoverGarages(location.lat, location.lng, 10000);
+                console.log('discoverGarages result:', result);
 
                 if (result.data && result.data.length > 0) {
                     const transformed = result.data.map((g: GarageProfile) =>
@@ -104,6 +109,7 @@ export default function CustomerHome() {
                     setGarages(generateMockGarages(location.lat, location.lng));
                 }
             } catch (error) {
+                console.error('Error fetching garages:', error);
                 setGarages(generateMockGarages(location.lat, location.lng));
             } finally {
                 setIsLoadingGarages(false);
