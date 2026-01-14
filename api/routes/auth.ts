@@ -1,7 +1,7 @@
 import express from 'express';
-import { authenticate, AuthRequest } from '../middleware/auth';
-import User from '../models/User';
-import dbConnect from '../utils/dbConnect';
+import { authenticate, AuthRequest } from '../middleware/auth.js';
+import User from '../models/User.js';
+import dbConnect from '../utils/dbConnect.js';
 
 const router = express.Router();
 
