@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import garagesRoutes from './routes/garages.js';
+import bookingsRoutes from './routes/bookings.js';
+import servicesRoutes from './routes/services.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,6 +20,8 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/garages', garagesRoutes);
+app.use('/api/bookings', bookingsRoutes);
+app.use('/api/services', servicesRoutes);
 
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {

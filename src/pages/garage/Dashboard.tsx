@@ -1,23 +1,123 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Plus, Star, Users, TrendingUp, LogOut, Wrench, ArrowRight, User } from 'lucide-react';
+import {
+    Settings, Plus, Star, Users, TrendingUp, LogOut, Wrench, ArrowRight, User,
+    Calendar, Clock, Check, X, Loader2, AlertCircle, Phone
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import BottomNav from '../../components/BottomNav';
 
-type View = 'stats' | 'add_service' | 'edit_profile';
+interface Booking {
+    _id: string;
+    customerId: {
+        phoneNumber: string;
+    };
+    serviceId: {
+        name: string;
+        price: number;
+        duration: number;
+    };
+    scheduledDate: string;
+    scheduledTime: string;
+    status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+    totalPrice: number;
+    notes?: string;
+    vehicleInfo?: {
+        make: string;
+        model: string;
+        year: number;
+    };
+}
+
+type View = 'dashboard' | 'bookings' | 'services';
+
+const statusConfig = {
+    pending: { label: 'Pending', color: 'text-amber-600', bg: 'bg-amber-50' },
+    accepted: { label: 'Confirmed', color: 'text-green-600', bg: 'bg-green-50' },
+    rejected: { label: 'Rejected', color: 'text-red-600', bg: 'bg-red-50' },
+    completed: { label: 'Completed', color: 'text-blue-600', bg: 'bg-blue-50' },
+    cancelled: { label: 'Cancelled', color: 'text-slate-600', bg: 'bg-slate-100' },
+};
 
 export default function GarageDashboard() {
-    const [view, setView] = useState<View>('stats');
-    const [stats] = useState({ services: 48, rating: 4.8, earnings: '₹12,450' });
+    const [view, setView] = useState<View>('dashboard');
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({ pending: 0, completed: 0, rating: 4.8 });
 
     const navigate = useNavigate();
     const { userData, logout } = useAuth();
+
+    useEffect(() => {
+        fetchBookings();
+    }, []);
+
+    const getApiUrl = () => {
+        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
+    };
+
+    const fetchBookings = async () => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch(`${getApiUrl()}/bookings/garage-bookings`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setBookings(data);
+
+                // Calculate stats
+                const pending = data.filter((b: Booking) => b.status === 'pending').length;
+                const completed = data.filter((b: Booking) => b.status === 'completed').length;
+                setStats(prev => ({ ...prev, pending, completed }));
+            }
+        } catch (error) {
+            console.error('Error fetching bookings:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateStatus = async (bookingId: string, status: 'accepted' | 'rejected' | 'completed') => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch(`${getApiUrl()}/bookings/${bookingId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ status })
+            });
+
+            if (res.ok) {
+                fetchBookings();
+            } else {
+                alert('Failed to update booking');
+            }
+        } catch (error) {
+            console.error('Error updating booking:', error);
+        }
+    };
 
     const handleLogout = async () => {
         await logout();
         navigate('/auth');
     };
+
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    };
+
+    const pendingBookings = bookings.filter(b => b.status === 'pending');
+    const acceptedBookings = bookings.filter(b => b.status === 'accepted');
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-28 px-6 text-slate-900">
@@ -46,112 +146,143 @@ export default function GarageDashboard() {
             </header>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-10">
-                <div className="premium-card p-6 bg-white flex flex-col items-center">
-                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-4">
-                        <Users className="w-6 h-6" />
+            <div className="grid grid-cols-3 gap-3 mb-8">
+                <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-2">
+                        <Clock className="w-5 h-5" />
                     </div>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Customers</p>
-                    <p className="text-2xl font-black text-slate-900">{stats.services}</p>
+                    <p className="text-2xl font-black text-slate-900">{stats.pending}</p>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase">Pending</p>
                 </div>
-                <div className="premium-card p-6 bg-white flex flex-col items-center">
-                    <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-4">
-                        <Star className="w-6 h-6 fill-amber-500" />
+                <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-2">
+                        <Check className="w-5 h-5" />
                     </div>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Rating</p>
+                    <p className="text-2xl font-black text-slate-900">{stats.completed}</p>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase">Done</p>
+                </div>
+                <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 mb-2">
+                        <Star className="w-5 h-5 fill-amber-500" />
+                    </div>
                     <p className="text-2xl font-black text-slate-900">{stats.rating}</p>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase">Rating</p>
                 </div>
             </div>
 
-            {/* Main Action Card */}
-            <div className="bg-blue-600 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-blue-900/10 mb-10 relative overflow-hidden">
-                <div className="relative z-10">
-                    <h3 className="text-2xl font-black mb-2 leading-tight">Weekly Earnings</h3>
-                    <p className="text-blue-100 text-lg opacity-80 mb-6 font-medium">Performance summary</p>
-                    <div className="flex items-center justify-between">
-                        <span className="text-4xl font-black">{stats.earnings}</span>
-                        <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-2 text-sm font-bold">
-                            <TrendingUp className="w-4 h-4" />
-                            +12%
-                        </div>
+            {/* Pending Requests */}
+            {pendingBookings.length > 0 && (
+                <div className="mb-8">
+                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                        New Requests ({pendingBookings.length})
+                    </h4>
+                    <div className="space-y-3">
+                        {pendingBookings.map((booking) => (
+                            <motion.div
+                                key={booking._id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="premium-card p-5 bg-white"
+                            >
+                                <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h5 className="font-bold text-slate-900">{booking.serviceId?.name}</h5>
+                                        <p className="text-slate-400 text-sm">{formatDate(booking.scheduledDate)} • {booking.scheduledTime}</p>
+                                    </div>
+                                    <span className="text-lg font-bold text-blue-600">₹{booking.totalPrice}</span>
+                                </div>
+
+                                {booking.notes && (
+                                    <p className="text-slate-500 text-sm mb-3 bg-slate-50 p-3 rounded-xl">{booking.notes}</p>
+                                )}
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleUpdateStatus(booking._id, 'accepted')}
+                                        className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        Accept
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdateStatus(booking._id, 'rejected')}
+                                        className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+                                    >
+                                        <X className="w-4 h-4" />
+                                        Decline
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12" />
-            </div>
+            )}
+
+            {/* Upcoming Jobs */}
+            {acceptedBookings.length > 0 && (
+                <div className="mb-8">
+                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em] mb-4">
+                        Upcoming Jobs ({acceptedBookings.length})
+                    </h4>
+                    <div className="space-y-3">
+                        {acceptedBookings.map((booking) => (
+                            <div key={booking._id} className="premium-card p-5 bg-white flex items-center gap-4">
+                                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                                    <Wrench className="w-6 h-6 text-green-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <h5 className="font-bold text-slate-900">{booking.serviceId?.name}</h5>
+                                    <p className="text-slate-400 text-sm">{formatDate(booking.scheduledDate)} • {booking.scheduledTime}</p>
+                                </div>
+                                <button
+                                    onClick={() => handleUpdateStatus(booking._id, 'completed')}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Quick Actions */}
-            <div className="space-y-4">
-                <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Management</h4>
+            <div className="space-y-4 mb-6">
+                <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Management</h4>
 
                 <button
-                    onClick={() => setView('edit_profile')}
-                    className="w-full premium-card p-6 flex items-center gap-6 group hover:border-blue-300"
+                    onClick={() => navigate('/garage/onboarding')}
+                    className="w-full premium-card p-5 flex items-center gap-5 group hover:border-blue-300"
                 >
-                    <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
-                        <Settings className="w-7 h-7" />
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
+                        <Plus className="w-6 h-6" />
                     </div>
                     <div className="flex-1 text-left">
-                        <h5 className="font-black text-slate-900">Garage Profile</h5>
-                        <p className="text-slate-400 text-xs font-bold">Manage services & details</p>
+                        <h5 className="font-bold text-slate-900">Add Services</h5>
+                        <p className="text-slate-400 text-xs font-semibold">Offer new repair options</p>
                     </div>
-                    <ArrowRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600" />
-                </button>
-
-                <button
-                    onClick={() => setView('add_service')}
-                    className="w-full premium-card p-6 flex items-center gap-6 group hover:border-blue-300"
-                >
-                    <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
-                        <Plus className="w-7 h-7" />
-                    </div>
-                    <div className="flex-1 text-left">
-                        <h5 className="font-black text-slate-900">Add Service</h5>
-                        <p className="text-slate-400 text-xs font-bold">Offer new repair options</p>
-                    </div>
-                    <ArrowRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600" />
+                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600" />
                 </button>
             </div>
 
+            {loading && bookings.length === 0 && (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+            )}
+
+            {!loading && bookings.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-4">
+                        <Calendar className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-400">No bookings yet</h3>
+                    <p className="text-slate-300 text-sm">Customer requests will appear here</p>
+                </div>
+            )}
+
             <BottomNav role="garage" />
-
-            {/* Simple View Overlays */}
-            <AnimatePresence>
-                {view !== 'stats' && (
-                    <motion.div
-                        initial={{ y: '100%' }}
-                        animate={{ y: 0 }}
-                        exit={{ y: '100%' }}
-                        className="fixed inset-0 bg-white z-[70] pt-safe flex flex-col px-6"
-                    >
-                        <header className="flex items-center gap-6 py-8">
-                            <button
-                                onClick={() => setView('stats')}
-                                className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-400"
-                            >
-                                <ArrowRight className="w-5 h-5 rotate-180" />
-                            </button>
-                            <h2 className="text-2xl font-black text-slate-900">
-                                {view === 'add_service' ? 'New Service' : 'Edit Profile'}
-                            </h2>
-                        </header>
-
-                        <div className="flex-1 flex flex-col items-center justify-center text-center">
-                            <div className="w-32 h-32 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-8">
-                                <Wrench className="w-12 h-12 text-slate-200" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-400 mb-2">Section Coming Soon</h3>
-                            <p className="text-slate-300 font-medium">We are polishing this feature</p>
-                            <button
-                                onClick={() => setView('stats')}
-                                className="mt-12 h-14 px-8 btn-premium rounded-2xl font-black"
-                            >
-                                Take me back
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

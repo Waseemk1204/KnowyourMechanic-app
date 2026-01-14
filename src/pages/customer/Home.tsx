@@ -199,7 +199,7 @@ export default function CustomerHome() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             key={garage.id}
-                            onClick={() => setSelectedGarage(garage)}
+                            onClick={() => navigate(`/customer/garage/${garage.id}`)}
                             className="w-full premium-card p-4 flex items-center gap-5 text-left"
                         >
                             <div className="relative">
@@ -290,10 +290,28 @@ export default function CustomerHome() {
                                 </div>
                             </div>
 
-                            <div className="flex gap-4">
-                                <button className="flex-1 h-16 bg-blue-600 rounded-[1.25rem] text-white font-black flex items-center justify-center gap-3 shadow-xl shadow-blue-500/30 active:scale-95 transition-transform">
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedGarage.lat},${selectedGarage.lng}`;
+                                        window.open(url, '_blank');
+                                    }}
+                                    className="flex-1 h-16 bg-slate-100 rounded-[1.25rem] text-slate-700 font-black flex items-center justify-center gap-3 active:scale-95 transition-transform"
+                                >
+                                    <Navigation className="w-5 h-5" />
+                                    DIRECTIONS
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        // Generate unique room ID based on garage and timestamp
+                                        const roomId = `kym-${selectedGarage.id}-${Date.now()}`;
+                                        // Open Daily.co video call (will integrate properly later)
+                                        window.open(`https://knowyourmechanic.daily.co/${roomId}`, '_blank');
+                                    }}
+                                    className="flex-1 h-16 bg-blue-600 rounded-[1.25rem] text-white font-black flex items-center justify-center gap-3 shadow-xl shadow-blue-500/30 active:scale-95 transition-transform"
+                                >
                                     <Phone className="w-5 h-5" />
-                                    CALL NOW
+                                    VIDEO CALL
                                 </button>
                             </div>
                         </motion.div>

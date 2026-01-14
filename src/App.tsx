@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthPage from './pages/AuthPage';
 import CustomerHome from './pages/customer/Home';
 import CustomerActivity from './pages/customer/Activity';
+import GarageDetail from './pages/customer/GarageDetail';
+import VideoCall from './pages/customer/VideoCall';
 import CustomerSupport from './pages/customer/Support';
 import GarageOnboarding from './pages/garage/Onboarding';
 import GarageDashboard from './pages/garage/Dashboard';
@@ -78,6 +80,8 @@ export default function App() {
           {/* Customer Routes */}
           <Route path="/customer" element={<ProtectedRoute requiredRole="customer"><CustomerHome /></ProtectedRoute>} />
           <Route path="/customer/activity" element={<ProtectedRoute requiredRole="customer"><CustomerActivity /></ProtectedRoute>} />
+          <Route path="/customer/garage/:id" element={<ProtectedRoute requiredRole="customer"><GarageDetail /></ProtectedRoute>} />
+          <Route path="/customer/call/:roomId" element={<ProtectedRoute requiredRole="customer"><VideoCall /></ProtectedRoute>} />
           <Route path="/customer/support" element={<ProtectedRoute requiredRole="customer"><CustomerSupport /></ProtectedRoute>} />
 
           {/* Garage Routes */}
