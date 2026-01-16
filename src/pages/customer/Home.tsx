@@ -301,18 +301,13 @@ export default function CustomerHome() {
                                     <Navigation className="w-5 h-5" />
                                     DIRECTIONS
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        // Generate unique room ID based on garage and timestamp
-                                        const roomId = `kym-${selectedGarage.id}-${Date.now()}`;
-                                        // Open Daily.co video call (will integrate properly later)
-                                        window.open(`https://knowyourmechanic.daily.co/${roomId}`, '_blank');
-                                    }}
-                                    className="flex-1 h-16 bg-blue-600 rounded-[1.25rem] text-white font-black flex items-center justify-center gap-3 shadow-xl shadow-blue-500/30 active:scale-95 transition-transform"
+                                <a
+                                    href="tel:+919999999999"
+                                    className="flex-1 h-16 bg-green-600 rounded-[1.25rem] text-white font-black flex items-center justify-center gap-3 shadow-xl shadow-green-500/30 active:scale-95 transition-transform"
                                 >
                                     <Phone className="w-5 h-5" />
-                                    VIDEO CALL
-                                </button>
+                                    CALL NOW
+                                </a>
                             </div>
                         </motion.div>
                     </>
