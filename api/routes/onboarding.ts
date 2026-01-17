@@ -3,7 +3,6 @@ import { authenticate, AuthRequest } from '../middleware/auth.js';
 import Garage from '../models/Garage.js';
 import User from '../models/User.js';
 import dbConnect from '../utils/dbConnect.js';
-import { createLinkedAccount } from '../utils/razorpay.js';
 
 const router = express.Router();
 
@@ -109,28 +108,10 @@ router.post('/bank-details', authenticate, async (req: AuthRequest, res) => {
             bankName,
         };
 
-        // Try to create Razorpay linked account
-        try {
-            const razorpayAccountId = await createLinkedAccount({
-                email: garage.email,
-                phone: garage.phone,
-                businessName: garage.name,
-                businessType: garage.businessType as any,
-                legalBusinessName: garage.legalBusinessName || garage.name,
-                bankAccountNumber: accountNumber,
-                ifscCode,
-                beneficiaryName: accountHolderName,
-            });
-
-            garage.razorpayAccountId = razorpayAccountId;
-            garage.onboardingStatus = 'completed';
-            garage.isVerified = true;
-        } catch (razorpayError: any) {
-            console.error('Razorpay account creation failed:', razorpayError);
-            // Still save bank details, but mark as pending verification
-            garage.onboardingStatus = 'verification';
-            garage.isVerified = false;
-        }
+        // Skip Razorpay for now - will be added later
+        // Just mark as completed so garage can start using the app
+        garage.onboardingStatus = 'completed';
+        garage.isVerified = false; // Will be true once Razorpay is integrated
 
         await garage.save();
 
