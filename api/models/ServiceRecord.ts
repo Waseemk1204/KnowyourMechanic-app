@@ -22,7 +22,8 @@ export interface IServiceRecord extends Document {
     updatedAt: Date;
 }
 
-const PLATFORM_FEE_PERCENT = 5; // 5% platform fee
+// Static platform fee: ₹1.90 (in rupees)
+const PLATFORM_FEE = 1.9;
 
 const ServiceRecordSchema = new Schema<IServiceRecord>({
     garageId: { type: Schema.Types.ObjectId, ref: 'Garage', required: true },
@@ -50,9 +51,9 @@ ServiceRecordSchema.index({ garageId: 1, createdAt: -1 });
 ServiceRecordSchema.index({ customerPhone: 1 });
 ServiceRecordSchema.index({ status: 1 });
 
-// Static method to calculate fees
+// Static method to calculate fees (static ₹1.90)
 ServiceRecordSchema.statics.calculateFees = function (amount: number) {
-    const platformFee = Math.round(amount * PLATFORM_FEE_PERCENT / 100);
+    const platformFee = PLATFORM_FEE;
     const garageEarnings = amount - platformFee;
     return { platformFee, garageEarnings };
 };

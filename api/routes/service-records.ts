@@ -1,20 +1,23 @@
 import express from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
-import ServiceRecord, { PLATFORM_FEE_PERCENT } from '../models/ServiceRecord.js';
+import ServiceRecord from '../models/ServiceRecord.js';
 import Garage from '../models/Garage.js';
 import User from '../models/User.js';
 import dbConnect from '../utils/dbConnect.js';
 
 const router = express.Router();
 
+// Static platform fee: ₹1.90
+const PLATFORM_FEE = 1.9;
+
 // Generate 6-digit OTP
 function generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Calculate fees
+// Calculate fees (static ₹1.90)
 function calculateFees(amount: number) {
-    const platformFee = Math.round(amount * PLATFORM_FEE_PERCENT / 100);
+    const platformFee = PLATFORM_FEE;
     const garageEarnings = amount - platformFee;
     return { platformFee, garageEarnings };
 }

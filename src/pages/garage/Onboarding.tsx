@@ -1,287 +1,475 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Camera, Check, ChevronRight, Loader2, Wrench, Shield, ArrowLeft, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useLocation } from '../../hooks/useLocation';
-import { updateGarageProfile } from '../../lib/api';
+import {
+    Building2, MapPin, Clock, Phone, Mail, CreditCard,
+    CheckCircle, ArrowRight, ArrowLeft, Loader2, AlertTriangle,
+    Landmark, User, FileText
+} from 'lucide-react';
 
-type OnboardingStep = 'welcome' | 'location' | 'services' | 'photos';
+type Step = 'business' | 'bank' | 'review' | 'success';
 
-const SERVICES = [
-    { id: 'general', name: 'General Service', icon: Wrench },
-    { id: 'brakes', name: 'Brake Repair', icon: Shield },
-    { id: 'engine', name: 'Engine Diagnostics', icon: Wrench },
-    { id: 'tyres', name: 'Tyre & Alignment', icon: Wrench },
-    { id: 'ac', name: 'AC Service', icon: Wrench },
-    { id: 'paint', name: 'Body & Paint', icon: Wrench },
-];
+interface BusinessInfo {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    serviceHours: string;
+    workingDays: string;
+    businessType: string;
+    legalBusinessName: string;
+}
 
-export default function GarageOnboarding() {
-    const [step, setStep] = useState<OnboardingStep>('welcome');
-    const [garageName, setGarageName] = useState('');
-    const [address, setAddress] = useState('');
-    const [selectedServices, setSelectedServices] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [photos, setPhotos] = useState<string[]>([]);
+interface BankInfo {
+    accountNumber: string;
+    confirmAccountNumber: string;
+    ifscCode: string;
+    accountHolderName: string;
+    bankName: string;
+}
 
+export default function GarageOnboardingWizard() {
     const navigate = useNavigate();
-    const { location, loading: locating } = useLocation();
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [step, setStep] = useState<Step>('business');
+    const [loading, setLoading] = useState(false);
+    const [checkingStatus, setCheckingStatus] = useState(true);
+    const [error, setError] = useState('');
 
-    const handleNext = () => {
-        if (step === 'welcome') setStep('location');
-        else if (step === 'location') setStep('services');
-        else if (step === 'services') setStep('photos');
+    const [business, setBusiness] = useState<BusinessInfo>({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        serviceHours: '9:00 AM - 8:00 PM',
+        workingDays: 'Mon - Sat',
+        businessType: 'individual',
+        legalBusinessName: '',
+    });
+
+    const [bank, setBank] = useState<BankInfo>({
+        accountNumber: '',
+        confirmAccountNumber: '',
+        ifscCode: '',
+        accountHolderName: '',
+        bankName: '',
+    });
+
+    const getApiUrl = () => {
+        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
     };
 
-    const handleBack = () => {
-        if (step === 'location') setStep('welcome');
-        else if (step === 'services') setStep('location');
-        else if (step === 'photos') setStep('services');
+    const getToken = async () => {
+        const { auth } = await import('../lib/firebase');
+        return auth.currentUser?.getIdToken();
     };
 
-    const toggleService = (id: string) => {
-        setSelectedServices(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
+    useEffect(() => {
+        checkOnboardingStatus();
+    }, []);
 
-    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files[0]) {
-            // Mock preview
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                if (event.target?.result) {
-                    setPhotos(prev => [...prev, event.target!.result as string]);
+    const checkOnboardingStatus = async () => {
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/onboarding/status`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.onboardingStatus === 'completed') {
+                    navigate('/garage');
+                } else if (data.onboardingStatus === 'bank_details') {
+                    setStep('bank');
                 }
-            };
-            reader.readAsDataURL(files[0]);
+            }
+        } catch (err) {
+            console.error('Error checking status:', err);
+        } finally {
+            setCheckingStatus(false);
         }
     };
 
-    const handleSubmit = async () => {
-        setLoading(true);
-        try {
-            const profileData = {
-                name: garageName,
-                location: {
-                    address: address,
-                    coordinates: [location.lng, location.lat] as [number, number]
-                },
-                services: selectedServices,
-                workingDays: 'Mon-Sat',
-                serviceHours: '9:00 AM - 7:00 PM'
-            };
+    const handleBusinessSubmit = async () => {
+        if (!business.name || !business.email || !business.phone) {
+            setError('Name, email, and phone are required');
+            return;
+        }
 
-            await updateGarageProfile(profileData);
-            localStorage.setItem('onboardingComplete', 'true');
-            navigate('/garage');
-        } catch (error) {
-            console.error(error);
+        setLoading(true);
+        setError('');
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/onboarding/business-info`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ...business,
+                    legalBusinessName: business.legalBusinessName || business.name,
+                })
+            });
+
+            if (res.ok) {
+                setStep('bank');
+            } else {
+                const data = await res.json();
+                setError(data.message || 'Failed to save');
+            }
+        } catch (err) {
+            setError('Network error');
         } finally {
             setLoading(false);
         }
     };
 
-    return (
-        <div className="min-h-screen bg-slate-50 pt-safe px-6 pb-20 flex flex-col text-slate-900">
-            <AnimatePresence mode="wait">
-                {step === 'welcome' && (
-                    <motion.div
-                        key="welcome"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full"
-                    >
-                        <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl shadow-blue-200/50 flex items-center justify-center mb-10 mx-auto">
-                            <Star className="w-12 h-12 text-blue-600 fill-blue-600/10" />
-                        </div>
-                        <div className="text-center mb-12">
-                            <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tight">Register Garage</h1>
-                            <p className="text-slate-500 text-lg">Set up your premium garage profile in minutes</p>
-                        </div>
+    const handleBankSubmit = async () => {
+        if (bank.accountNumber !== bank.confirmAccountNumber) {
+            setError('Account numbers do not match');
+            return;
+        }
 
-                        <div className="space-y-6 mb-12">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Garage Business Name</label>
+        if (!bank.accountNumber || !bank.ifscCode || !bank.accountHolderName) {
+            setError('All bank details are required');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/onboarding/bank-details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(bank)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setStep('success');
+                setTimeout(() => navigate('/garage'), 2000);
+            } else {
+                setError(data.message || 'Failed to save');
+            }
+        } catch (err) {
+            setError('Network error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSkipBank = async () => {
+        setLoading(true);
+        try {
+            const token = await getToken();
+            await fetch(`${getApiUrl()}/onboarding/complete`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            navigate('/garage');
+        } catch (err) {
+            setError('Failed to skip');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (checkingStatus) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+        );
+    }
+
+    const stepIndicator = (
+        <div className="flex items-center justify-center gap-2 mb-8">
+            {['business', 'bank', 'success'].map((s, i) => (
+                <div key={s} className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                        ${step === s || ['business', 'bank', 'success'].indexOf(step) > i
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-200 text-slate-500'}`}
+                    >
+                        {i + 1}
+                    </div>
+                    {i < 2 && <div className={`w-8 h-0.5 ${['business', 'bank', 'success'].indexOf(step) > i ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+                </div>
+            ))}
+        </div>
+    );
+
+    return (
+        <div className="min-h-screen bg-slate-50 pt-safe pb-10 px-6">
+            <div className="max-w-md mx-auto pt-8">
+                {/* Header */}
+                <div className="text-center mb-6">
+                    <h1 className="text-2xl font-black text-slate-900 mb-2">
+                        {step === 'business' && 'Business Details'}
+                        {step === 'bank' && 'Bank Account'}
+                        {step === 'success' && 'All Set!'}
+                    </h1>
+                    <p className="text-slate-500">
+                        {step === 'business' && 'Tell us about your garage'}
+                        {step === 'bank' && 'For receiving payments'}
+                        {step === 'success' && 'Your garage is ready'}
+                    </p>
+                </div>
+
+                {stepIndicator}
+
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" />
+                        {error}
+                    </div>
+                )}
+
+                <AnimatePresence mode="wait">
+                    {/* Step: Business Info */}
+                    {step === 'business' && (
+                        <motion.div
+                            key="business"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-4"
+                        >
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Garage Name *</label>
+                                <div className="relative">
+                                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={business.name}
+                                        onChange={(e) => setBusiness({ ...business, name: e.target.value })}
+                                        placeholder="Your Garage Name"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Email *</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="email"
+                                        value={business.email}
+                                        onChange={(e) => setBusiness({ ...business, email: e.target.value })}
+                                        placeholder="garage@email.com"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
+                                <div className="relative">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="tel"
+                                        value={business.phone}
+                                        onChange={(e) => setBusiness({ ...business, phone: e.target.value })}
+                                        placeholder="9876543210"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Address</label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
+                                    <textarea
+                                        value={business.address}
+                                        onChange={(e) => setBusiness({ ...business, address: e.target.value })}
+                                        placeholder="Full address"
+                                        rows={2}
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 resize-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Hours</label>
+                                    <input
+                                        type="text"
+                                        value={business.serviceHours}
+                                        onChange={(e) => setBusiness({ ...business, serviceHours: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Days</label>
+                                    <input
+                                        type="text"
+                                        value={business.workingDays}
+                                        onChange={(e) => setBusiness({ ...business, workingDays: e.target.value })}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>
+                                <select
+                                    value={business.businessType}
+                                    onChange={(e) => setBusiness({ ...business, businessType: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="individual">Individual</option>
+                                    <option value="proprietorship">Proprietorship</option>
+                                    <option value="partnership">Partnership</option>
+                                    <option value="private_limited">Private Limited</option>
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={handleBusinessSubmit}
+                                disabled={loading}
+                                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 mt-6"
+                            >
+                                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                    <>Continue <ArrowRight className="w-5 h-5" /></>
+                                )}
+                            </button>
+                        </motion.div>
+                    )}
+
+                    {/* Step: Bank Details */}
+                    {step === 'bank' && (
+                        <motion.div
+                            key="bank"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-4"
+                        >
+                            <div className="bg-blue-50 p-4 rounded-xl mb-4">
+                                <p className="text-blue-800 text-sm">
+                                    💰 Your earnings will be transferred to this account automatically.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Account Holder Name *</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={bank.accountHolderName}
+                                        onChange={(e) => setBank({ ...bank, accountHolderName: e.target.value })}
+                                        placeholder="As per bank records"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Account Number *</label>
+                                <div className="relative">
+                                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={bank.accountNumber}
+                                        onChange={(e) => setBank({ ...bank, accountNumber: e.target.value })}
+                                        placeholder="Enter account number"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm Account Number *</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g. Sapphire Motors"
-                                    className="w-full h-16 rounded-2xl px-6 text-lg font-bold shadow-sm"
-                                    value={garageName}
-                                    onChange={(e) => setGarageName(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            disabled={!garageName}
-                            onClick={handleNext}
-                            className="w-full h-16 btn-premium rounded-2xl font-black text-lg flex items-center justify-center gap-2 disabled:opacity-40 transition-all shadow-xl shadow-blue-500/20"
-                        >
-                            Get Started
-                            <ChevronRight className="w-6 h-6" />
-                        </button>
-                    </motion.div>
-                )}
-
-                {step === 'location' && (
-                    <motion.div
-                        key="location"
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className="flex-1 flex flex-col pt-10"
-                    >
-                        <button onClick={handleBack} className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 mb-8 active:bg-slate-100">
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-
-                        <div className="mb-10">
-                            <h2 className="text-3xl font-black text-slate-900 mb-3">Shop Location</h2>
-                            <p className="text-slate-500">Enable GPS to find your precise coordinate</p>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="premium-card p-6 bg-white border border-slate-100">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${locating ? 'bg-slate-100' : 'bg-blue-50'}`}>
-                                        <MapPin className={`w-7 h-7 ${locating ? 'animate-bounce text-slate-400' : 'text-blue-600'}`} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-black text-slate-900">GPS Coordinates</h3>
-                                        <p className="text-slate-400 font-medium text-xs">
-                                            {locating ? 'Searching for satellites...' : `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}
-                                        </p>
-                                    </div>
-                                    {!locating && <div className="bg-green-100 p-1.5 rounded-full"><Check className="w-4 h-4 text-green-600" /></div>}
-                                </div>
-                                <div className="h-40 bg-slate-100 rounded-[1.5rem] flex items-center justify-center border-2 border-dashed border-slate-200">
-                                    <span className="text-slate-400 font-bold text-sm">MAP VIEW LOADED</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-600 ml-1">Street Address</label>
-                                <textarea
-                                    placeholder="Enter full address..."
-                                    className="w-full min-h-[120px] rounded-2xl p-6 text-lg font-bold shadow-sm"
-                                    value={address}
-                                    onChange={(e) => setAddress(e.target.value)}
+                                    value={bank.confirmAccountNumber}
+                                    onChange={(e) => setBank({ ...bank, confirmAccountNumber: e.target.value })}
+                                    placeholder="Re-enter account number"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
-                            <button
-                                disabled={!address || locating}
-                                onClick={handleNext}
-                                className="w-full h-16 btn-premium rounded-2xl font-black text-lg flex items-center justify-center gap-2 mt-4"
-                            >
-                                Continue
-                                <ChevronRight className="w-6 h-6" />
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">IFSC Code *</label>
+                                <div className="relative">
+                                    <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={bank.ifscCode}
+                                        onChange={(e) => setBank({ ...bank, ifscCode: e.target.value.toUpperCase() })}
+                                        placeholder="SBIN0001234"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 uppercase"
+                                    />
+                                </div>
+                            </div>
 
-                {step === 'services' && (
-                    <motion.div
-                        key="services"
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className="flex-1 flex flex-col pt-10"
-                    >
-                        <button onClick={handleBack} className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 mb-8">
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Bank Name</label>
+                                <input
+                                    type="text"
+                                    value={bank.bankName}
+                                    onChange={(e) => setBank({ ...bank, bankName: e.target.value })}
+                                    placeholder="State Bank of India"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
 
-                        <div className="mb-10">
-                            <h2 className="text-3xl font-black text-slate-900 mb-3">Service Expertise</h2>
-                            <p className="text-slate-500">Pick the services your garage specializes in</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            {SERVICES.map(service => (
+                            <div className="flex gap-3 mt-6">
                                 <button
-                                    key={service.id}
-                                    onClick={() => toggleService(service.id)}
-                                    className={`p-6 rounded-[2rem] border-2 transition-all text-center flex flex-col items-center gap-3 ${selectedServices.includes(service.id)
-                                        ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/20'
-                                        : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200'
-                                        }`}
+                                    onClick={() => setStep('business')}
+                                    className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
                                 >
-                                    <service.icon className={`w-8 h-8 ${selectedServices.includes(service.id) ? 'text-white' : 'text-blue-600'}`} />
-                                    <span className="text-xs font-bold leading-tight">{service.name}</span>
+                                    <ArrowLeft className="w-5 h-5" /> Back
                                 </button>
-                            ))}
-                        </div>
+                                <button
+                                    onClick={handleBankSubmit}
+                                    disabled={loading}
+                                    className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                        <>Complete <CheckCircle className="w-5 h-5" /></>
+                                    )}
+                                </button>
+                            </div>
 
-                        <div className="mt-12">
                             <button
-                                disabled={selectedServices.length === 0}
-                                onClick={handleNext}
-                                className="w-full h-16 btn-premium rounded-2xl font-black text-lg flex items-center justify-center gap-2"
+                                onClick={handleSkipBank}
+                                className="w-full text-slate-400 text-sm font-semibold mt-2"
                             >
-                                Next Step
-                                <ChevronRight className="w-6 h-6" />
+                                Skip for now (add later)
                             </button>
-                        </div>
-                    </motion.div>
-                )}
+                        </motion.div>
+                    )}
 
-                {step === 'photos' && (
-                    <motion.div
-                        key="photos"
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className="flex-1 flex flex-col pt-10"
-                    >
-                        <button onClick={handleBack} className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 mb-8">
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-
-                        <div className="mb-10">
-                            <h2 className="text-3xl font-black text-slate-900 mb-3">Shop Photos</h2>
-                            <p className="text-slate-500">Real photos increase customer trust by 80%</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mb-10">
-                            {photos.map((photo, i) => (
-                                <div key={i} className="aspect-square rounded-[2rem] overflow-hidden shadow-lg">
-                                    <img src={photo} alt="" className="w-full h-full object-cover" />
-                                </div>
-                            ))}
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="aspect-square rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-3 bg-white hover:bg-slate-50 transition-colors"
-                            >
-                                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                                    <Camera className="w-6 h-6" />
-                                </div>
-                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Add Photo</span>
-                            </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/*"
-                                onChange={handlePhotoUpload}
-                            />
-                        </div>
-
-                        <button
-                            disabled={loading || photos.length === 0}
-                            onClick={handleSubmit}
-                            className="w-full h-16 btn-premium rounded-2xl font-black text-lg flex items-center justify-center gap-2 shadow-xl shadow-blue-500/30"
+                    {/* Step: Success */}
+                    {step === 'success' && (
+                        <motion.div
+                            key="success"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-center py-12"
                         >
-                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Complete Setup'}
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle className="w-12 h-12 text-green-600" />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-900 mb-2">Welcome Aboard!</h2>
+                            <p className="text-slate-500 mb-8">Your garage is all set up and ready to go.</p>
+                            <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
+                            <p className="text-slate-400 text-sm mt-2">Redirecting to dashboard...</p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }
