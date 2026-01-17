@@ -33,7 +33,7 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
     };
 
     const getToken = async () => {
-        const { auth } = await import('../../lib/firebase');
+        const { auth } = await import('../lib/firebase');
         return auth.currentUser?.getIdToken();
     };
 
