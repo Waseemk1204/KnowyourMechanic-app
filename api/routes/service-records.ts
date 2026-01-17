@@ -15,11 +15,14 @@ function generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Calculate fees (static ₹1.90)
+// Calculate fees (static ₹1.90 added to customer payment)
+// Customer pays: amount + platform fee
+// Garage receives: original amount
 function calculateFees(amount: number) {
     const platformFee = PLATFORM_FEE;
-    const garageEarnings = amount - platformFee;
-    return { platformFee, garageEarnings };
+    const customerPays = amount + platformFee;  // Customer pays more
+    const garageEarnings = amount;              // Garage gets full amount
+    return { platformFee, customerPays, garageEarnings };
 }
 
 // Initiate service - sends OTP to customer

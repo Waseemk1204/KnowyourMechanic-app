@@ -172,87 +172,9 @@ export default function GarageDashboard() {
                 </div>
             </div>
 
-            {/* Pending Requests */}
-            {pendingBookings.length > 0 && (
-                <div className="mb-8">
-                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em] mb-4 flex items-center gap-2">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                        New Requests ({pendingBookings.length})
-                    </h4>
-                    <div className="space-y-3">
-                        {pendingBookings.map((booking) => (
-                            <motion.div
-                                key={booking._id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="premium-card p-5 bg-white"
-                            >
-                                <div className="flex items-start justify-between mb-3">
-                                    <div>
-                                        <h5 className="font-bold text-slate-900">{booking.serviceId?.name}</h5>
-                                        <p className="text-slate-400 text-sm">{formatDate(booking.scheduledDate)} • {booking.scheduledTime}</p>
-                                    </div>
-                                    <span className="text-lg font-bold text-blue-600">₹{booking.totalPrice}</span>
-                                </div>
 
-                                {booking.notes && (
-                                    <p className="text-slate-500 text-sm mb-3 bg-slate-50 p-3 rounded-xl">{booking.notes}</p>
-                                )}
-
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleUpdateStatus(booking._id, 'accepted')}
-                                        className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2"
-                                    >
-                                        <Check className="w-4 h-4" />
-                                        Accept
-                                    </button>
-                                    <button
-                                        onClick={() => handleUpdateStatus(booking._id, 'rejected')}
-                                        className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2"
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Decline
-                                    </button>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Upcoming Jobs */}
-            {acceptedBookings.length > 0 && (
-                <div className="mb-8">
-                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em] mb-4">
-                        Upcoming Jobs ({acceptedBookings.length})
-                    </h4>
-                    <div className="space-y-3">
-                        {acceptedBookings.map((booking) => (
-                            <div key={booking._id} className="premium-card p-5 bg-white flex items-center gap-4">
-                                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                                    <Wrench className="w-6 h-6 text-green-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <h5 className="font-bold text-slate-900">{booking.serviceId?.name}</h5>
-                                    <p className="text-slate-400 text-sm">{formatDate(booking.scheduledDate)} • {booking.scheduledTime}</p>
-                                </div>
-                                <button
-                                    onClick={() => handleUpdateStatus(booking._id, 'completed')}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold"
-                                >
-                                    Done
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="space-y-4 mb-6">
-                <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Management</h4>
-
+            {/* Add Service Button */}
+            <div className="mb-6">
                 <button
                     onClick={() => setShowAddService(true)}
                     className="w-full premium-card p-5 flex items-center gap-5 group hover:border-green-300 border-2 border-transparent"
