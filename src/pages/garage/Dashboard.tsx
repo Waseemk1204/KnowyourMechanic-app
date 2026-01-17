@@ -147,54 +147,21 @@ export default function GarageDashboard() {
                 </button>
             </header>
 
-            {/* Weekly Performance */}
-            <div className="premium-card p-5 bg-white mb-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-bold text-slate-900">Weekly Performance</h4>
-                    <div className="flex items-center gap-2 text-sm">
-                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                        <span className="font-bold text-slate-900">{stats.rating}</span>
-                        <span className="text-slate-400">rating</span>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-3 mb-8">
+                <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-2">
+                        <Check className="w-5 h-5" />
                     </div>
+                    <p className="text-2xl font-black text-slate-900">{stats.completed}</p>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase">Total Services</p>
                 </div>
-
-                {/* Services per Day Chart */}
-                <div className="flex items-end justify-between gap-2 h-24 mb-3">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => {
-                        // Mock data for now - will be replaced with real data
-                        const heights = [40, 65, 30, 80, 50, 90, 25];
-                        const services = [2, 4, 1, 5, 3, 6, 1];
-                        const isToday = new Date().getDay() === (i + 1) % 7;
-                        return (
-                            <div key={day} className="flex-1 flex flex-col items-center gap-1">
-                                <div
-                                    className={`w-full rounded-lg ${isToday ? 'bg-blue-500' : 'bg-blue-100'}`}
-                                    style={{ height: `${heights[i]}%` }}
-                                />
-                                <span className={`text-[10px] font-bold ${isToday ? 'text-blue-600' : 'text-slate-400'}`}>
-                                    {day}
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {/* Stats Row */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <div className="text-center">
-                        <p className="text-2xl font-black text-slate-900">{stats.completed}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Total Services</p>
+                <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 mb-2">
+                        <Star className="w-5 h-5 fill-amber-500" />
                     </div>
-                    <div className="h-8 w-px bg-slate-100" />
-                    <div className="text-center">
-                        <p className="text-2xl font-black text-green-600">₹{(stats.completed * 450).toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Total Earnings</p>
-                    </div>
-                    <div className="h-8 w-px bg-slate-100" />
-                    <div className="text-center">
-                        <p className="text-2xl font-black text-slate-900">{Math.round(stats.completed / 7)}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Avg/Day</p>
-                    </div>
+                    <p className="text-2xl font-black text-slate-900">{stats.rating}</p>
+                    <p className="text-slate-400 text-[10px] font-bold uppercase">Rating</p>
                 </div>
             </div>
 
