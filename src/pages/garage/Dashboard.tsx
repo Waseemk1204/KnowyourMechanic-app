@@ -7,6 +7,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import BottomNav from '../../components/BottomNav';
+import AddServiceModal from '../../components/AddServiceModal';
 
 interface Booking {
     _id: string;
@@ -45,6 +46,7 @@ export default function GarageDashboard() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ pending: 0, completed: 0, rating: 4.8 });
+    const [showAddService, setShowAddService] = useState(false);
 
     const navigate = useNavigate();
     const { userData, logout } = useAuth();
@@ -252,17 +254,17 @@ export default function GarageDashboard() {
                 <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Management</h4>
 
                 <button
-                    onClick={() => navigate('/garage/onboarding')}
-                    className="w-full premium-card p-5 flex items-center gap-5 group hover:border-blue-300"
+                    onClick={() => setShowAddService(true)}
+                    className="w-full premium-card p-5 flex items-center gap-5 group hover:border-green-300 border-2 border-transparent"
                 >
-                    <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
+                    <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
                         <Plus className="w-6 h-6" />
                     </div>
                     <div className="flex-1 text-left">
-                        <h5 className="font-bold text-slate-900">Add Services</h5>
-                        <p className="text-slate-400 text-xs font-semibold">Offer new repair options</p>
+                        <h5 className="font-bold text-slate-900">Record a Service</h5>
+                        <p className="text-slate-400 text-xs font-semibold">Add completed work to portfolio</p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600" />
+                    <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-green-600" />
                 </button>
             </div>
 
@@ -283,6 +285,16 @@ export default function GarageDashboard() {
             )}
 
             <BottomNav role="garage" />
+
+            {/* Add Service Modal */}
+            <AddServiceModal
+                isOpen={showAddService}
+                onClose={() => setShowAddService(false)}
+                onSuccess={() => {
+                    setShowAddService(false);
+                    fetchBookings(); // Refresh stats
+                }}
+            />
         </div>
     );
 }
