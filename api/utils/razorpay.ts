@@ -1,13 +1,32 @@
 import Razorpay from 'razorpay';
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || '',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
+// Lazy initialization - only create instance when needed
+let razorpayInstance: Razorpay | null = null;
+
+function getRazorpay(): Razorpay {
+    if (!razorpayInstance) {
+        const keyId = process.env.RAZORPAY_KEY_ID;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+        if (!keyId || !keySecret) {
+            throw new Error('Razorpay API keys not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.');
+        }
+
+        razorpayInstance = new Razorpay({
+            key_id: keyId,
+            key_secret: keySecret,
+        });
+    }
+    return razorpayInstance;
+}
 
 // Platform fee in paise (₹1.90 = 190 paise)
 export const PLATFORM_FEE_PAISE = 190;
+
+// Check if Razorpay is configured
+export function isRazorpayConfigured(): boolean {
+    return !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+}
 
 interface CreateLinkedAccountParams {
     email: string;
@@ -25,6 +44,8 @@ interface CreateLinkedAccountParams {
  * This allows automatic payment splits via Route
  */
 export async function createLinkedAccount(params: CreateLinkedAccountParams): Promise<string> {
+    const razorpay = getRazorpay();
+
     try {
         const account = await razorpay.accounts.create({
             email: params.email,
@@ -84,6 +105,7 @@ interface CreateOrderWithRouteParams {
  * Platform keeps ₹1.90, rest goes to garage
  */
 export async function createOrderWithRoute(params: CreateOrderWithRouteParams) {
+    const razorpay = getRazorpay();
     const garageAmount = params.amount - PLATFORM_FEE_PAISE;
 
     if (garageAmount < 100) {
@@ -136,5 +158,3 @@ export function verifyPaymentSignature(
 
     return expectedSignature === signature;
 }
-
-export default razorpay;
