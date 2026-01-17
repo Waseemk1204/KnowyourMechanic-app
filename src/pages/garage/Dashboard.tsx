@@ -31,6 +31,19 @@ interface Booking {
     };
 }
 
+interface ServiceRecord {
+    _id: string;
+    customerPhone: string;
+    description: string;
+    amount: number;
+    platformFee: number;
+    garageEarnings: number;
+    paymentMethod: 'cash' | 'razorpay';
+    status: string;
+    isReliable: boolean;
+    createdAt: string;
+}
+
 type View = 'dashboard' | 'bookings' | 'services';
 
 const statusConfig = {
@@ -44,6 +57,8 @@ const statusConfig = {
 export default function GarageDashboard() {
     const [view, setView] = useState<View>('dashboard');
     const [bookings, setBookings] = useState<Booking[]>([]);
+    const [services, setServices] = useState<ServiceRecord[]>([]);
+    const [showAllServices, setShowAllServices] = useState(false);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ pending: 0, completed: 0, rating: 4.8 });
     const [showAddService, setShowAddService] = useState(false);
@@ -53,6 +68,7 @@ export default function GarageDashboard() {
 
     useEffect(() => {
         fetchBookings();
+        fetchServices();
     }, []);
 
     const getApiUrl = () => {
@@ -81,6 +97,27 @@ export default function GarageDashboard() {
             console.error('Error fetching bookings:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchServices = async () => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch(`${getApiUrl()}/service-records/history`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setServices(data.services || []);
+                if (data.stats) {
+                    setStats(prev => ({ ...prev, completed: data.stats.totalServices }));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching services:', error);
         }
     };
 
@@ -183,6 +220,44 @@ export default function GarageDashboard() {
                 </button>
             </div>
 
+            {/* Recent Services */}
+            {services.length > 0 && (
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Recent Services</h4>
+                        {services.length > 3 && (
+                            <button
+                                onClick={() => setShowAllServices(!showAllServices)}
+                                className="text-blue-600 text-xs font-bold"
+                            >
+                                {showAllServices ? 'Show Less' : 'Show All'}
+                            </button>
+                        )}
+                    </div>
+                    <div className="space-y-3">
+                        {(showAllServices ? services : services.slice(0, 3)).map((service) => (
+                            <div key={service._id} className="premium-card p-4 bg-white">
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex-1">
+                                        <p className="font-bold text-slate-900 text-sm">{service.description}</p>
+                                        <p className="text-slate-400 text-xs">{service.customerPhone}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-green-600">₹{service.garageEarnings}</p>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${service.paymentMethod === 'razorpay' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
+                                            {service.paymentMethod === 'razorpay' ? 'Online' : 'Cash'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p className="text-slate-300 text-[10px]">
+                                    {new Date(service.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
 
 
             <BottomNav role="garage" />
@@ -193,7 +268,7 @@ export default function GarageDashboard() {
                 onClose={() => setShowAddService(false)}
                 onSuccess={() => {
                     setShowAddService(false);
-                    fetchBookings(); // Refresh stats
+                    fetchServices(); // Refresh services list
                 }}
             />
         </div>
