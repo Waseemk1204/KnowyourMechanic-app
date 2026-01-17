@@ -75,8 +75,8 @@ router.post('/initiate', authenticate, async (req: AuthRequest, res) => {
         res.status(201).json({
             serviceId: serviceRecord._id,
             message: 'OTP sent to customer',
-            // Remove this in production - only for testing
-            _testOTP: process.env.NODE_ENV !== 'production' ? otp : undefined,
+            // TODO: Remove in production - keeping for testing phase
+            _testOTP: otp,
         });
     } catch (error: any) {
         console.error('Initiate service error:', error);

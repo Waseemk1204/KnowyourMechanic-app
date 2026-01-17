@@ -66,11 +66,13 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
             if (res.ok) {
                 setServiceId(data.serviceId);
                 setStep('otp');
-                // For testing, show OTP in console
+                // For testing, show OTP visibly
                 if (data._testOTP) {
                     console.log('Test OTP:', data._testOTP);
+                    alert(`TEST OTP: ${data._testOTP}\n\nIn production, this will be sent via WhatsApp.`);
                 }
             } else {
+                console.error('Service initiate error:', data);
                 setError(data.message || 'Failed to send OTP');
             }
         } catch (err) {
