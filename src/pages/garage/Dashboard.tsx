@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Settings, Plus, Star, Users, TrendingUp, LogOut, Wrench, ArrowRight, User,
-    Calendar, Clock, Check, X, Loader2, AlertCircle, Phone
+    Calendar, Clock, Check, X, Loader2, AlertCircle, Phone, Headphones, Edit, ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -59,6 +59,7 @@ export default function GarageDashboard() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [services, setServices] = useState<ServiceRecord[]>([]);
     const [showAllServices, setShowAllServices] = useState(false);
+    const [showProfilePanel, setShowProfilePanel] = useState(false);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({ pending: 0, completed: 0, rating: 4.8 });
     const [showAddService, setShowAddService] = useState(false);
@@ -177,12 +178,106 @@ export default function GarageDashboard() {
                     </div>
                 </div>
                 <button
-                    onClick={handleLogout}
-                    className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl border border-slate-100 text-slate-400 active:bg-slate-50"
+                    onClick={() => setShowProfilePanel(true)}
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white overflow-hidden border-2 border-white"
                 >
-                    <LogOut className="w-5.5 h-5.5" />
+                    <User className="w-7 h-7" />
                 </button>
             </header>
+
+            {/* Profile Slider Panel */}
+            <AnimatePresence>
+                {showProfilePanel && (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowProfilePanel(false)}
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+                        />
+                        {/* Panel */}
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 flex flex-col"
+                        >
+                            {/* Panel Header */}
+                            <div className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+                                <button
+                                    onClick={() => setShowProfilePanel(false)}
+                                    className="absolute top-4 right-4 text-white/70 hover:text-white"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                                <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-4 border-4 border-white/30">
+                                    <User className="w-10 h-10 text-white" />
+                                </div>
+                                <h3 className="text-xl font-black">{(userData as any)?.name || 'My Garage'}</h3>
+                                <p className="text-blue-200 text-sm font-medium flex items-center gap-2 mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-green-400" />
+                                    Premium Partner
+                                </p>
+                            </div>
+
+                            {/* Panel Menu */}
+                            <div className="flex-1 p-4 space-y-2">
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
+                                        // Navigate to profile settings
+                                        navigate('/garage/settings');
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                        <Edit className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-bold text-slate-900">Profile Settings</p>
+                                        <p className="text-slate-400 text-xs">Edit garage details & photo</p>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
+                                        window.open('mailto:support@knowyourmechanic.com', '_blank');
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                                        <Headphones className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-bold text-slate-900">Support</p>
+                                        <p className="text-slate-400 text-xs">Get help & contact us</p>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500" />
+                                </button>
+                            </div>
+
+                            {/* Logout Button */}
+                            <div className="p-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
+                                        handleLogout();
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    <span className="font-bold">Logout</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-3 mb-8">
