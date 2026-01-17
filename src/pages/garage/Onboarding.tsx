@@ -59,7 +59,7 @@ export default function GarageOnboardingWizard() {
     };
 
     const getToken = async () => {
-        const { auth } = await import('../lib/firebase');
+        const { auth } = await import('../../lib/firebase');
         return auth.currentUser?.getIdToken();
     };
 
