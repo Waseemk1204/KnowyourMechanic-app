@@ -59,4 +59,4 @@ ServiceRecordSchema.statics.calculateFees = function (amount: number) {
 };
 
 export default mongoose.models.ServiceRecord || mongoose.model<IServiceRecord>('ServiceRecord', ServiceRecordSchema);
-export { PLATFORM_FEE_PERCENT };
+export { PLATFORM_FEE };
