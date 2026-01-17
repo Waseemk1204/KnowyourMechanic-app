@@ -183,21 +183,7 @@ export default function GarageDashboard() {
                 </button>
             </div>
 
-            {loading && bookings.length === 0 && (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                </div>
-            )}
 
-            {!loading && bookings.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-4">
-                        <Calendar className="w-10 h-10" />
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-400">No bookings yet</h3>
-                    <p className="text-slate-300 text-sm">Customer requests will appear here</p>
-                </div>
-            )}
 
             <BottomNav role="garage" />
 
