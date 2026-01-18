@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import BottomNav from '../../components/BottomNav';
+
 import AddServiceModal from '../../components/AddServiceModal';
 
 interface Booking {
@@ -160,7 +160,7 @@ export default function GarageDashboard() {
     const acceptedBookings = bookings.filter(b => b.status === 'accepted');
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-28 px-6 text-slate-900">
+        <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 px-6 text-slate-900">
             {/* Header */}
             <header className="flex items-center justify-between py-6 mb-4">
                 <div className="flex items-center gap-4">
@@ -355,7 +355,7 @@ export default function GarageDashboard() {
 
 
 
-            <BottomNav role="garage" />
+
 
             {/* Add Service Modal */}
             <AddServiceModal
