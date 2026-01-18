@@ -112,10 +112,11 @@ export default function GarageDashboard() {
 
             if (res.ok) {
                 const data = await res.json();
-                setServices(data.services || []);
-                if (data.stats) {
-                    setStats(prev => ({ ...prev, completed: data.stats.totalServices }));
-                }
+                const servicesList = data.services || [];
+                setServices(servicesList);
+                // Update stats from API or use array length as fallback
+                const totalCount = data.stats?.totalServices ?? servicesList.length;
+                setStats(prev => ({ ...prev, completed: totalCount }));
             }
         } catch (error) {
             console.error('Error fetching services:', error);
