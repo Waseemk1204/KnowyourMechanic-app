@@ -137,7 +137,7 @@ export default function AuthPage() {
 
                             <div className="text-center mb-10">
                                 <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
-                                    KnowYourMechanic
+                                    KnowyourMechanic
                                 </h1>
                                 <p className="text-slate-500 text-lg">
                                     Trusted mechanics at your fingertips
