@@ -282,8 +282,8 @@ export default function GarageDashboard() {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-3 mb-8">
                 <div className="premium-card p-4 bg-white flex flex-col items-center">
-                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 mb-2">
-                        <Check className="w-5 h-5" />
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-2">
+                        <Wrench className="w-5 h-5" />
                     </div>
                     <p className="text-2xl font-black text-slate-900">{stats.completed}</p>
                     <p className="text-slate-400 text-[10px] font-bold uppercase">Total Services</p>
