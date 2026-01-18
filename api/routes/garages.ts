@@ -82,7 +82,100 @@ router.get('/discovery', async (req, res) => {
     }
 });
 
-// Get specific garage
+// Get current garage's profile (for settings)
+router.get('/profile', authenticate, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const user = await User.findOne({ firebaseUid: req.user!.uid });
+        if (!user || user.role !== 'garage') {
+            return res.status(403).json({ message: 'Only garages can access profile' });
+        }
+
+        const garage = await Garage.findOne({ userId: user._id });
+        if (!garage) {
+            return res.status(404).json({ message: 'Garage not found' });
+        }
+
+        res.json(garage);
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Update garage profile (for settings)
+router.put('/profile', authenticate, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const user = await User.findOne({ firebaseUid: req.user!.uid });
+        if (!user || user.role !== 'garage') {
+            return res.status(403).json({ message: 'Only garages can update profile' });
+        }
+
+        const garage = await Garage.findOne({ userId: user._id });
+        if (!garage) {
+            return res.status(404).json({ message: 'Garage not found' });
+        }
+
+        const {
+            name, email, phone, address, coordinates,
+            serviceHours, workingDays, businessType, legalBusinessName
+        } = req.body;
+
+        if (name) garage.name = name;
+        if (email) garage.email = email;
+        if (phone) garage.phone = phone;
+        if (address) garage.location.address = address;
+        if (coordinates) garage.location.coordinates = coordinates;
+        if (serviceHours) garage.serviceHours = serviceHours;
+        if (workingDays) garage.workingDays = workingDays;
+        if (businessType) garage.businessType = businessType;
+        if (legalBusinessName) garage.legalBusinessName = legalBusinessName;
+
+        await garage.save();
+        res.json({ message: 'Profile updated', garage });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Update bank details
+router.put('/bank-details', authenticate, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const user = await User.findOne({ firebaseUid: req.user!.uid });
+        if (!user || user.role !== 'garage') {
+            return res.status(403).json({ message: 'Only garages can update bank details' });
+        }
+
+        const garage = await Garage.findOne({ userId: user._id });
+        if (!garage) {
+            return res.status(404).json({ message: 'Garage not found' });
+        }
+
+        const { accountNumber, ifscCode, accountHolderName, bankName } = req.body;
+
+        if (!accountNumber || !ifscCode || !accountHolderName) {
+            return res.status(400).json({ message: 'Account number, IFSC code, and account holder name are required' });
+        }
+
+        garage.bankDetails = {
+            accountNumber,
+            ifscCode,
+            accountHolderName,
+            bankName: bankName || '',
+        };
+
+        await garage.save();
+        res.json({ message: 'Bank details updated successfully' });
+    } catch (error) {
+        console.error('Update bank details error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get specific garage (MUST be last - catches all IDs)
 router.get('/:id', async (req, res) => {
     await dbConnect();
     try {

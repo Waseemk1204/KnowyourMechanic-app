@@ -8,6 +8,7 @@ import VideoCall from './pages/customer/VideoCall';
 import CustomerSupport from './pages/customer/Support';
 import GarageOnboarding from './pages/garage/Onboarding';
 import GarageDashboard from './pages/garage/Dashboard';
+import GarageSettings from './pages/garage/Settings';
 import GarageSupport from './pages/garage/Support';
 import './index.css';
 
@@ -87,6 +88,7 @@ export default function App() {
           {/* Garage Routes */}
           <Route path="/garage/onboarding" element={<ProtectedRoute requiredRole="garage"><GarageOnboarding /></ProtectedRoute>} />
           <Route path="/garage" element={<ProtectedRoute requiredRole="garage"><GarageDashboard /></ProtectedRoute>} />
+          <Route path="/garage/settings" element={<ProtectedRoute requiredRole="garage"><GarageSettings /></ProtectedRoute>} />
           <Route path="/garage/support" element={<ProtectedRoute requiredRole="garage"><GarageSupport /></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/auth" replace />} />
