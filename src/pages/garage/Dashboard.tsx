@@ -339,7 +339,7 @@ export default function GarageDashboard() {
                                         <p className="text-slate-400 text-xs">{service.customerPhone}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-green-600">₹{service.garageEarnings}</p>
+                                        <p className="font-bold text-slate-900">₹{service.garageEarnings}</p>
                                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${service.paymentMethod === 'razorpay' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
                                             {service.paymentMethod === 'razorpay' ? 'Online' : 'Cash'}
                                         </span>
