@@ -119,7 +119,7 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
 
         const {
             name, email, phone, address, coordinates,
-            serviceHours, workingDays, businessType, legalBusinessName
+            serviceHours, workingDays, businessType, legalBusinessName, photoUrl
         } = req.body;
 
         if (name) garage.name = name;
@@ -131,6 +131,7 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
         if (workingDays) garage.workingDays = workingDays;
         if (businessType) garage.businessType = businessType;
         if (legalBusinessName) garage.legalBusinessName = legalBusinessName;
+        if (photoUrl) garage.photoUrl = photoUrl;
 
         await garage.save();
         res.json({ message: 'Profile updated', garage });
