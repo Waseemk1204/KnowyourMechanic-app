@@ -338,12 +338,8 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                                     <span className="text-slate-500">+₹{serviceDetails.platformFee}</span>
                                 </div>
                                 <div className="flex justify-between pt-2 border-t border-slate-200">
-                                    <span className="font-bold">Customer Pays</span>
+                                    <span className="font-bold">Total Amount</span>
                                     <span className="font-bold text-blue-600">₹{(parseFloat(serviceDetails.garageEarnings) + parseFloat(serviceDetails.platformFee)).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between mt-2 pt-2 border-t border-green-200 bg-green-50 -mx-4 -mb-4 p-4 rounded-b-2xl">
-                                    <span className="font-bold text-green-700">You Receive</span>
-                                    <span className="font-bold text-green-600">₹{serviceDetails.garageEarnings}</span>
                                 </div>
                             </div>
 
