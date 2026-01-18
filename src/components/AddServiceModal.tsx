@@ -27,6 +27,7 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
     const [serviceId, setServiceId] = useState('');
     const [otp, setOtp] = useState('');
     const [serviceDetails, setServiceDetails] = useState<any>(null);
+    const [showCashWarning, setShowCashWarning] = useState(false);
 
     const getApiUrl = () => {
         return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
@@ -353,18 +354,72 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                             </button>
 
                             <button
-                                onClick={() => handlePayment('cash')}
+                                onClick={() => setShowCashWarning(true)}
                                 disabled={loading}
                                 className="w-full bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 disabled:opacity-50"
                             >
                                 <Banknote className="w-5 h-5" />
                                 Cash Payment
-                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                                    Less Reliable
-                                </span>
                             </button>
                         </div>
                     )}
+
+                    {/* Cash Payment Warning Modal */}
+                    <AnimatePresence>
+                        {showCashWarning && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-white z-10 flex flex-col"
+                            >
+                                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                                    <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+                                        <AlertTriangle className="w-12 h-12 text-amber-600" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-900 mb-4">Cash Payment Warning</h3>
+                                    <p className="text-slate-600 mb-6 text-lg">
+                                        Services recorded with cash payment will be marked as <span className="font-bold text-amber-600">"Less Reliable"</span> in your portfolio.
+                                    </p>
+                                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 text-left">
+                                        <p className="text-amber-800 text-sm">
+                                            <strong>This affects:</strong>
+                                        </p>
+                                        <ul className="text-amber-700 text-sm mt-2 space-y-1">
+                                            <li>• Your services will show a "Less Reliable" badge</li>
+                                            <li>• Customers may trust online payments more</li>
+                                            <li>• Your reliability score could be affected</li>
+                                        </ul>
+                                    </div>
+                                    <p className="text-slate-500 text-sm mb-8">
+                                        We recommend using QR/Razorpay for better credibility.
+                                    </p>
+                                </div>
+                                <div className="p-6 space-y-3 border-t border-slate-100">
+                                    <button
+                                        onClick={() => setShowCashWarning(false)}
+                                        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold"
+                                    >
+                                        Use QR / Razorpay Instead
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowCashWarning(false);
+                                            handlePayment('cash');
+                                        }}
+                                        disabled={loading}
+                                        className="w-full bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold disabled:opacity-50"
+                                    >
+                                        {loading ? (
+                                            <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                                        ) : (
+                                            'Continue with Cash Anyway'
+                                        )}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Step: Success */}
                     {step === 'success' && (
