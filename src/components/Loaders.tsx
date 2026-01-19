@@ -1,30 +1,31 @@
 import { motion } from 'framer-motion';
+import { Wrench } from 'lucide-react';
 
 export const CustomLoader = () => (
     <div className="flex flex-col items-center gap-4">
-        <div className="relative w-16 h-16">
+        <div className="relative w-16 h-16 flex items-center justify-center">
+            {/* Spinning Tire/Ring */}
             <motion.div
-                className="absolute inset-0 border-4 border-blue-200 rounded-full"
-                initial={{ opacity: 0.2 }}
-            />
-            <motion.div
-                className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full"
+                className="absolute inset-0 border-[6px] border-slate-200 border-t-blue-600 rounded-full"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             />
+
+            {/* Wrench Icon */}
             <motion.div
-                className="absolute inset-0 flex items-center justify-center"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+                animate={{
+                    rotate: [-15, 15, -15],
+                    scale: [0.9, 1.1, 0.9]
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="text-blue-600 drop-shadow-sm"
             >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full" />
-                </div>
+                <Wrench className="w-7 h-7 fill-blue-100" />
             </motion.div>
         </div>
         <motion.p
-            className="text-blue-600 font-medium text-sm"
-            animate={{ opacity: [0.5, 1, 0.5] }}
+            className="text-blue-600 font-bold text-xs uppercase tracking-widest"
+            animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.5, repeat: Infinity }}
         >
             Revving up...
