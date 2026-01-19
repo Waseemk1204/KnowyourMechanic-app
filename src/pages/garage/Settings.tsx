@@ -37,6 +37,8 @@ export default function GarageSettings() {
     const [success, setSuccess] = useState('');
     const [showBankNumber, setShowBankNumber] = useState(false);
     const [editingBank, setEditingBank] = useState(false);
+    const [bankError, setBankError] = useState('');
+    const [fetchingBank, setFetchingBank] = useState(false);
     const [photoUrl, setPhotoUrl] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -164,17 +166,17 @@ export default function GarageSettings() {
 
     const handleSaveBank = async () => {
         if (newBank.accountNumber !== newBank.confirmAccountNumber) {
-            setError('Account numbers do not match');
+            setBankError('Account numbers do not match');
             return;
         }
 
         if (!newBank.accountNumber || !newBank.ifscCode || !newBank.accountHolderName) {
-            setError('All bank details are required');
+            setBankError('All bank details are required');
             return;
         }
 
         setSaving(true);
-        setError('');
+        setBankError('');
         setSuccess('');
 
         try {
@@ -212,10 +214,10 @@ export default function GarageSettings() {
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 const data = await res.json();
-                setError(data.message || 'Failed to save bank details');
+                setBankError(data.message || 'Failed to save bank details');
             }
         } catch (err) {
-            setError('Network error');
+            setBankError('Network error');
         } finally {
             setSaving(false);
         }
@@ -224,6 +226,28 @@ export default function GarageSettings() {
     const maskAccountNumber = (num: string) => {
         if (!num || num.length < 4) return num;
         return '••••••' + num.slice(-4);
+    };
+
+    // Fetch bank details from IFSC code
+    const fetchBankFromIFSC = async (ifsc: string) => {
+        if (ifsc.length !== 11) return;
+
+        setFetchingBank(true);
+        try {
+            const res = await fetch(`https://ifsc.razorpay.com/${ifsc}`);
+            if (res.ok) {
+                const data = await res.json();
+                setNewBank(prev => ({ ...prev, bankName: data.BANK || '' }));
+                setBankError('');
+            } else {
+                setBankError('Invalid IFSC code');
+                setNewBank(prev => ({ ...prev, bankName: '' }));
+            }
+        } catch {
+            setBankError('Could not verify IFSC');
+        } finally {
+            setFetchingBank(false);
+        }
     };
 
     const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -569,22 +593,39 @@ export default function GarageSettings() {
                                 <input
                                     type="text"
                                     value={newBank.ifscCode}
-                                    onChange={(e) => setNewBank({ ...newBank, ifscCode: e.target.value.toUpperCase() })}
+                                    onChange={(e) => {
+                                        const ifsc = e.target.value.toUpperCase();
+                                        setNewBank({ ...newBank, ifscCode: ifsc });
+                                        if (ifsc.length === 11) {
+                                            fetchBankFromIFSC(ifsc);
+                                        }
+                                    }}
                                     placeholder="SBIN0001234"
+                                    maxLength={11}
                                     className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white uppercase"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Bank Name</label>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    Bank Name {fetchingBank && <span className="text-blue-500 text-xs ml-2">Loading...</span>}
+                                </label>
                                 <input
                                     type="text"
                                     value={newBank.bankName}
-                                    onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })}
-                                    placeholder="State Bank of India"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                    readOnly
+                                    placeholder="Auto-filled from IFSC"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-200 border-2 border-slate-300 text-slate-600 cursor-not-allowed"
                                 />
                             </div>
+
+                            {/* Bank Error Message */}
+                            {bankError && (
+                                <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                    {bankError}
+                                </div>
+                            )}
 
                             <div className="flex gap-3">
                                 <button
@@ -597,7 +638,7 @@ export default function GarageSettings() {
                                             accountHolderName: '',
                                             bankName: '',
                                         });
-                                        setError('');
+                                        setBankError('');
                                     }}
                                     className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold"
                                 >
