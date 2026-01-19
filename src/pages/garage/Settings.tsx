@@ -338,7 +338,7 @@ export default function GarageSettings() {
                     </div>
                     <div>
                         <h2 className="text-2xl font-black">{business.name || 'Your Garage'}</h2>
-                        <p className="text-blue-200 text-sm">{business.email}</p>
+                        <p className="text-blue-200 text-sm">{business.phone}</p>
                         <p className="text-blue-300 text-xs mt-1">Tap photo to change</p>
                     </div>
                 </div>
