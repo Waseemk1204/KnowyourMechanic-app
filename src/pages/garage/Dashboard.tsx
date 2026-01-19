@@ -362,17 +362,17 @@ export default function GarageDashboard() {
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
                             <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Recent Services</h4>
-                            {services.length > 3 && (
+                            {services.length > 2 && (
                                 <button
                                     onClick={() => setShowAllServices(!showAllServices)}
                                     className="text-blue-600 text-xs font-bold"
                                 >
-                                    {showAllServices ? 'Show Less' : 'Show All'}
+                                    {showAllServices ? 'Show Less' : 'See More'}
                                 </button>
                             )}
                         </div>
                         <div className="space-y-3">
-                            {(showAllServices ? services : services.slice(0, 3)).map((service) => (
+                            {(showAllServices ? services : services.slice(0, 2)).map((service) => (
                                 <div key={service._id} className="premium-card p-4 bg-white">
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1">
