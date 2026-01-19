@@ -66,6 +66,8 @@ export default function GarageDashboard() {
     const [showAddService, setShowAddService] = useState(false);
     const [garagePhotoUrl, setGaragePhotoUrl] = useState('');
     const [garageName, setGarageName] = useState('');
+    const [serviceHours, setServiceHours] = useState('9:00 AM - 8:00 PM');
+    const [workingDays, setWorkingDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
     const navigate = useNavigate();
     const { userData, logout } = useAuth();
@@ -176,9 +178,38 @@ export default function GarageDashboard() {
                 const data = await res.json();
                 if (data.photoUrl) setGaragePhotoUrl(data.photoUrl);
                 if (data.name) setGarageName(data.name);
+                if (data.serviceHours) setServiceHours(data.serviceHours);
+                if (data.workingDays) setWorkingDays(Array.isArray(data.workingDays) ? data.workingDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
             }
         } catch (err) {
             console.error('Error fetching garage profile:', err);
+        }
+    };
+
+    // Check if garage is currently open
+    const isGarageOpen = () => {
+        const now = new Date();
+        const currentDay = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
+
+        if (!workingDays.includes(currentDay)) return false;
+
+        try {
+            const [openStr, closeStr] = serviceHours.split(' - ');
+            const parseTime = (str: string) => {
+                const [time, period] = str.trim().split(' ');
+                let [hours, minutes] = time.split(':').map(Number);
+                if (period === 'PM' && hours !== 12) hours += 12;
+                if (period === 'AM' && hours === 12) hours = 0;
+                return hours * 60 + minutes;
+            };
+
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const openMinutes = parseTime(openStr);
+            const closeMinutes = parseTime(closeStr);
+
+            return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+        } catch {
+            return true; // Default to open if parsing fails
         }
     };
 
@@ -215,10 +246,17 @@ export default function GarageDashboard() {
                         {garageName || (userData as any)?.name || 'Your Garage'}
                     </h1>
                     <div className="flex items-center gap-3">
-                        <div className="px-3 py-1 rounded-full bg-green-500/20 backdrop-blur-sm border border-green-500/30 text-green-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                            Open Now
-                        </div>
+                        {isGarageOpen() ? (
+                            <div className="px-3 py-1 rounded-full bg-green-500/20 backdrop-blur-sm border border-green-500/30 text-green-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                Open Now
+                            </div>
+                        ) : (
+                            <div className="px-3 py-1 rounded-full bg-red-500/20 backdrop-blur-sm border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                                Closed
+                            </div>
+                        )}
                         <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/90 text-xs font-bold flex items-center gap-1.5">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                             4.8 Rating

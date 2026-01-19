@@ -6,6 +6,8 @@ import {
     CheckCircle, ArrowRight, ArrowLeft, Loader2, AlertTriangle,
     Landmark, User, FileText
 } from 'lucide-react';
+import TimeRangePicker from '../../components/TimeRangePicker';
+import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 
 type Step = 'business' | 'bank' | 'review' | 'success';
 
@@ -15,7 +17,7 @@ interface BusinessInfo {
     phone: string;
     address: string;
     serviceHours: string;
-    workingDays: string;
+    workingDays: string[];
     businessType: string;
     legalBusinessName: string;
 }
@@ -41,7 +43,7 @@ export default function GarageOnboardingWizard() {
         phone: '',
         address: '',
         serviceHours: '9:00 AM - 8:00 PM',
-        workingDays: 'Mon - Sat',
+        workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         businessType: 'individual',
         legalBusinessName: '',
     });
@@ -298,26 +300,15 @@ export default function GarageOnboardingWizard() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Hours</label>
-                                    <input
-                                        type="text"
-                                        value={business.serviceHours}
-                                        onChange={(e) => setBusiness({ ...business, serviceHours: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Days</label>
-                                    <input
-                                        type="text"
-                                        value={business.workingDays}
-                                        onChange={(e) => setBusiness({ ...business, workingDays: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
+                            <TimeRangePicker
+                                value={business.serviceHours}
+                                onChange={(value) => setBusiness({ ...business, serviceHours: value })}
+                            />
+
+                            <WorkingDaysPicker
+                                value={business.workingDays}
+                                onChange={(value) => setBusiness({ ...business, workingDays: value })}
+                            />
 
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>

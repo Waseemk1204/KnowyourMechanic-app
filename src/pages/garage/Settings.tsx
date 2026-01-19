@@ -6,6 +6,8 @@ import {
     Loader2, AlertTriangle, Landmark, User, Save, Eye, EyeOff, Check, Camera
 } from 'lucide-react';
 import { CustomLoader } from '../../components/Loaders';
+import TimeRangePicker from '../../components/TimeRangePicker';
+import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 
 
 interface BusinessInfo {
@@ -14,7 +16,7 @@ interface BusinessInfo {
     phone: string;
     address: string;
     serviceHours: string;
-    workingDays: string;
+    workingDays: string[];
     businessType: string;
     legalBusinessName: string;
 }
@@ -44,7 +46,7 @@ export default function GarageSettings() {
         phone: '',
         address: '',
         serviceHours: '9:00 AM - 8:00 PM',
-        workingDays: 'Mon - Sat',
+        workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         businessType: 'individual',
         legalBusinessName: '',
     });
@@ -92,7 +94,7 @@ export default function GarageSettings() {
                     phone: data.phone || '',
                     address: data.location?.address || '',
                     serviceHours: data.serviceHours || '9:00 AM - 8:00 PM',
-                    workingDays: data.workingDays || 'Mon - Sat',
+                    workingDays: Array.isArray(data.workingDays) ? data.workingDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                     businessType: data.businessType || 'individual',
                     legalBusinessName: data.legalBusinessName || '',
                 });
@@ -410,26 +412,15 @@ export default function GarageSettings() {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Service Hours</label>
-                                <input
-                                    type="text"
-                                    value={business.serviceHours}
-                                    onChange={(e) => setBusiness({ ...business, serviceHours: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Working Days</label>
-                                <input
-                                    type="text"
-                                    value={business.workingDays}
-                                    onChange={(e) => setBusiness({ ...business, workingDays: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
-                                />
-                            </div>
-                        </div>
+                        <TimeRangePicker
+                            value={business.serviceHours}
+                            onChange={(value) => setBusiness({ ...business, serviceHours: value })}
+                        />
+
+                        <WorkingDaysPicker
+                            value={business.workingDays}
+                            onChange={(value) => setBusiness({ ...business, workingDays: value })}
+                        />
 
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>
