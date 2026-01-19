@@ -371,38 +371,38 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-10 flex flex-col"
+                                className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-10 flex items-center justify-center p-6"
                             >
-                                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                                <div className="flex flex-col items-center text-center w-full max-w-xs">
                                     <div className="w-28 h-28 bg-amber-500/20 rounded-full flex items-center justify-center mb-6">
                                         <AlertTriangle className="w-14 h-14 text-amber-400" />
                                     </div>
                                     <h3 className="text-2xl font-black text-white mb-2">Cash Payment</h3>
-                                    <p className="text-white/70 text-base">
+                                    <p className="text-white/70 text-base mb-8">
                                         Will be marked as less reliable
                                     </p>
-                                </div>
-                                <div className="p-6 space-y-3">
-                                    <button
-                                        onClick={() => setShowCashWarning(false)}
-                                        className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold"
-                                    >
-                                        Use QR / Razorpay
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowCashWarning(false);
-                                            handlePayment('cash');
-                                        }}
-                                        disabled={loading}
-                                        className="w-full bg-white/10 text-white/80 py-4 rounded-2xl font-medium disabled:opacity-50"
-                                    >
-                                        {loading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                                        ) : (
-                                            'Continue with Cash'
-                                        )}
-                                    </button>
+                                    <div className="w-full space-y-3">
+                                        <button
+                                            onClick={() => setShowCashWarning(false)}
+                                            className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold"
+                                        >
+                                            Use QR / Razorpay
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowCashWarning(false);
+                                                handlePayment('cash');
+                                            }}
+                                            disabled={loading}
+                                            className="w-full bg-white/10 text-white/80 py-4 rounded-2xl font-medium disabled:opacity-50"
+                                        >
+                                            {loading ? (
+                                                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                                            ) : (
+                                                'Continue with Cash'
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
