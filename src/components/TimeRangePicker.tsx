@@ -19,6 +19,15 @@ const timeOptions = [
     '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM',
 ];
 
+// Convert time string to minutes for comparison
+const timeToMinutes = (timeStr: string): number => {
+    const [time, period] = timeStr.trim().split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    if (period === 'PM' && hours !== 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+};
+
 export default function TimeRangePicker({ value, onChange }: TimeRangePickerProps) {
     const [openTime, setOpenTime] = useState('9:00 AM');
     const [closeTime, setCloseTime] = useState('8:00 PM');
@@ -32,10 +41,26 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
         }
     }, []);
 
+    // Filter closing times to only show times after opening time
+    const getCloseTimeOptions = () => {
+        const openMinutes = timeToMinutes(openTime);
+        return timeOptions.filter(time => timeToMinutes(time) > openMinutes);
+    };
+
     const handleChange = (type: 'open' | 'close', time: string) => {
         if (type === 'open') {
             setOpenTime(time);
-            onChange(`${time} - ${closeTime}`);
+            // If current close time is before new open time, auto-adjust
+            const openMinutes = timeToMinutes(time);
+            const closeMinutes = timeToMinutes(closeTime);
+            if (closeMinutes <= openMinutes) {
+                // Find next available time slot (at least 30 min after open)
+                const nextValidClose = timeOptions.find(t => timeToMinutes(t) > openMinutes) || '11:30 PM';
+                setCloseTime(nextValidClose);
+                onChange(`${time} - ${nextValidClose}`);
+            } else {
+                onChange(`${time} - ${closeTime}`);
+            }
         } else {
             setCloseTime(time);
             onChange(`${openTime} - ${time}`);
@@ -69,7 +94,7 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
                         onChange={(e) => handleChange('close', e.target.value)}
                         className="w-full px-3 py-3 rounded-xl bg-slate-100 border-2 border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white text-sm font-medium"
                     >
-                        {timeOptions.map((time) => (
+                        {getCloseTimeOptions().map((time) => (
                             <option key={time} value={time}>{time}</option>
                         ))}
                     </select>
