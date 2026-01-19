@@ -5,7 +5,7 @@ import {
     ArrowLeft, Building2, MapPin, Clock, Phone, Mail, CreditCard,
     Loader2, AlertTriangle, Landmark, User, Save, Eye, EyeOff, Check, Camera
 } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 
 interface BusinessInfo {
     name: string;
@@ -227,13 +227,13 @@ export default function GarageSettings() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type and size
+        // Validate file type and size (limit to 1MB for Base64 storage)
         if (!file.type.startsWith('image/')) {
             setError('Please select an image file');
             return;
         }
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image must be less than 5MB');
+        if (file.size > 1 * 1024 * 1024) {
+            setError('Image must be less than 1MB');
             return;
         }
 
@@ -241,40 +241,50 @@ export default function GarageSettings() {
         setError('');
 
         try {
-            const { storage, auth } = await import('../../lib/firebase');
-            const userId = auth.currentUser?.uid;
-            if (!userId) throw new Error('Not authenticated');
+            // Convert file to Base64
+            const reader = new FileReader();
+            reader.onload = async () => {
+                try {
+                    const base64String = reader.result as string;
 
-            // Upload to Firebase Storage
-            const storageRef = ref(storage, `garages/${userId}/profile.${file.name.split('.').pop()}`);
-            await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(storageRef);
+                    // Save Base64 to backend
+                    const token = await getToken();
+                    const res = await fetch(`${getApiUrl()}/garages/profile`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ photoUrl: base64String })
+                    });
 
-            // Save URL to backend
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/garages/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ photoUrl: url })
-            });
-
-            if (res.ok) {
-                setPhotoUrl(url);
-                setSuccess('Photo updated successfully!');
-                setTimeout(() => setSuccess(''), 3000);
-            } else {
-                throw new Error('Failed to save photo URL');
-            }
+                    if (res.ok) {
+                        setPhotoUrl(base64String);
+                        setSuccess('Photo updated successfully!');
+                        setTimeout(() => setSuccess(''), 3000);
+                    } else {
+                        throw new Error('Failed to save photo');
+                    }
+                } catch (err: any) {
+                    console.error('Photo save error:', err);
+                    setError(err.message || 'Failed to save photo');
+                } finally {
+                    setUploadingPhoto(false);
+                }
+            };
+            reader.onerror = () => {
+                setError('Failed to read image file');
+                setUploadingPhoto(false);
+            };
+            reader.readAsDataURL(file);
         } catch (err: any) {
             console.error('Photo upload error:', err);
             setError(err.message || 'Failed to upload photo');
-        } finally {
             setUploadingPhoto(false);
         }
     };
+
+
 
     if (loading) {
         return (
