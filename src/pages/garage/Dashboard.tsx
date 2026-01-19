@@ -332,7 +332,7 @@ export default function GarageDashboard() {
                                     <button
                                         onClick={() => {
                                             setShowProfilePanel(false);
-                                            window.location.href = 'mailto:support@knowyourmechanic.com';
+                                            navigate('/garage/support');
                                         }}
                                         className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
                                     >
