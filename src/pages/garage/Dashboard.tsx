@@ -350,16 +350,10 @@ export default function GarageDashboard() {
                 <div className="mb-6">
                     <button
                         onClick={() => setShowAddService(true)}
-                        className="w-full premium-card p-5 flex items-center gap-5 group hover:border-green-300 border-2 border-transparent"
+                        className="w-full bg-blue-600 text-white p-4 rounded-2xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
                     >
-                        <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
-                            <Plus className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1 text-left">
-                            <h5 className="font-bold text-slate-900">Record a Service</h5>
-                            <p className="text-slate-400 text-xs font-semibold">Add completed work to portfolio</p>
-                        </div>
-                        <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-green-600" />
+                        <Plus className="w-6 h-6" />
+                        <span className="font-bold text-lg">Add Service</span>
                     </button>
                 </div>
 
