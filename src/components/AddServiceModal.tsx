@@ -193,7 +193,7 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                     animate={{ y: 0 }}
                     exit={{ y: '100%' }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                    className="bg-white/80 backdrop-blur-xl border-t border-white/20 shadow-2xl rounded-t-3xl w-full max-w-md p-6 pb-10"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -224,49 +224,40 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                     {step === 'form' && (
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                    Customer Phone
-                                </label>
                                 <div className="relative">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
                                         type="tel"
                                         value={customerPhone}
                                         onChange={(e) => setCustomerPhone(e.target.value)}
-                                        placeholder="9876543210"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Customer Phone Number"
+                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 font-medium"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                    Service Description
-                                </label>
                                 <div className="relative">
-                                    <FileText className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
+                                    <FileText className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Oil change, brake repair, etc."
+                                        placeholder="Service Description"
                                         rows={3}
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder:text-slate-400 font-medium"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                    Amount (₹)
-                                </label>
                                 <div className="relative">
-                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
                                         type="number"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
-                                        placeholder="500"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Amount"
+                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 font-bold text-lg"
                                     />
                                 </div>
                             </div>
