@@ -215,10 +215,22 @@ router.get('/history', authenticate, async (req: AuthRequest, res) => {
             status: 'completed'
         }).sort({ createdAt: -1 }).limit(50);
 
+        // Get total count (not limited)
+        const totalCount = await ServiceRecord.countDocuments({
+            garageId: garage._id,
+            status: 'completed'
+        });
+
+        // Get earnings from all services for accurate stats
+        const allServicesForStats = await ServiceRecord.find({
+            garageId: garage._id,
+            status: 'completed'
+        }).select('garageEarnings isReliable');
+
         const stats = {
-            totalServices: services.length,
-            totalEarnings: services.reduce((sum, s) => sum + s.garageEarnings, 0),
-            reliableServices: services.filter(s => s.isReliable).length,
+            totalServices: totalCount,
+            totalEarnings: allServicesForStats.reduce((sum, s) => sum + s.garageEarnings, 0),
+            reliableServices: allServicesForStats.filter(s => s.isReliable).length,
         };
 
         res.json({ services, stats });
