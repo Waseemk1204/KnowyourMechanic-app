@@ -401,7 +401,7 @@ export default function GarageDashboard() {
                         </div>
                         <div className="space-y-3">
                             {(showAllServices ? services : services.slice(0, 2)).map((service) => (
-                                <div key={service._id} className="premium-card p-4 bg-white">
+                                <div key={service._id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1">
                                             <p className="font-bold text-slate-900 text-sm">{service.description}</p>
