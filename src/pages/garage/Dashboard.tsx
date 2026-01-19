@@ -165,7 +165,9 @@ export default function GarageDashboard() {
 
     const fetchGarageProfile = async () => {
         try {
-            const token = await getToken();
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
             const res = await fetch(`${getApiUrl()}/garages/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -182,37 +184,46 @@ export default function GarageDashboard() {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 text-slate-900">
             {/* Hero Header with Large Photo */}
-            <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 px-6 pt-4 pb-8">
-                {/* Top bar with settings button */}
-                <div className="flex justify-end mb-4">
+            {/* Hero Header with Full Width Photo */}
+            <div className="relative h-72 w-full bg-slate-900 overflow-hidden mb-6">
+                {garagePhotoUrl ? (
+                    <img src={garagePhotoUrl} alt="Cover" className="w-full h-full object-cover opacity-70" />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800" />
+                )}
+
+                {/* Gradient-to-top overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-black/20" />
+
+                {/* Top Settings Button */}
+                <div className="absolute top-4 right-6 z-10">
                     <button
                         onClick={() => setShowProfilePanel(true)}
-                        className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"
+                        className="w-10 h-10 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 hover:bg-black/30 transition-colors"
                     >
                         <Settings className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Large Photo and Name */}
-                <div className="flex flex-col items-center text-center">
-                    <div className="w-28 h-28 rounded-full bg-white/20 flex items-center justify-center border-4 border-white/40 overflow-hidden shadow-xl mb-4">
-                        {garagePhotoUrl ? (
-                            <img src={garagePhotoUrl} alt="Garage" className="w-full h-full object-cover" />
-                        ) : (
-                            <User className="w-14 h-14 text-white/80" />
-                        )}
-                    </div>
-                    <h1 className="text-2xl font-black text-white mb-1">
+                {/* Bottom Text Content */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                    <h1 className="text-3xl font-black text-white mb-2 leading-tight">
                         {garageName || (userData as any)?.name || 'Your Garage'}
                     </h1>
-                    <div className="flex items-center gap-2 text-white/80 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        Open Now
+                    <div className="flex items-center gap-3">
+                        <div className="px-3 py-1 rounded-full bg-green-500/20 backdrop-blur-sm border border-green-500/30 text-green-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                            Open Now
+                        </div>
+                        <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/90 text-xs font-bold flex items-center gap-1.5">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            4.8 Rating
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="px-6 -mt-4">
+            <div className="px-6">
 
                 {/* Profile Slider Panel */}
                 <AnimatePresence>
