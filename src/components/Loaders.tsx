@@ -1,35 +1,9 @@
-import { motion } from 'framer-motion';
-import { Wrench } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export const CustomLoader = () => (
-    <div className="flex flex-col items-center gap-4">
-        <div className="relative w-16 h-16 flex items-center justify-center">
-            {/* Spinning Tire/Ring */}
-            <motion.div
-                className="absolute inset-0 border-[6px] border-slate-200 border-t-blue-600 rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            />
-
-            {/* Wrench Icon */}
-            <motion.div
-                animate={{
-                    rotate: [-15, 15, -15],
-                    scale: [0.9, 1.1, 0.9]
-                }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="text-blue-600 drop-shadow-sm"
-            >
-                <Wrench className="w-7 h-7 fill-blue-100" />
-            </motion.div>
-        </div>
-        <motion.p
-            className="text-blue-600 font-bold text-xs uppercase tracking-widest"
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-        >
-            Revving up...
-        </motion.p>
+    <div className="flex flex-col items-center justify-center gap-3 p-4">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+        <p className="text-slate-500 text-sm font-medium">Loading...</p>
     </div>
 );
 
