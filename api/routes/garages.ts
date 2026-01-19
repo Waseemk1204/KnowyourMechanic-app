@@ -122,16 +122,16 @@ router.put('/profile', authenticate, async (req: AuthRequest, res) => {
             serviceHours, workingDays, businessType, legalBusinessName, photoUrl
         } = req.body;
 
-        if (name) garage.name = name;
-        if (email) garage.email = email;
-        if (phone) garage.phone = phone;
-        if (address) garage.location.address = address;
-        if (coordinates) garage.location.coordinates = coordinates;
-        if (serviceHours) garage.serviceHours = serviceHours;
-        if (workingDays) garage.workingDays = workingDays;
-        if (businessType) garage.businessType = businessType;
-        if (legalBusinessName) garage.legalBusinessName = legalBusinessName;
-        if (photoUrl) garage.photoUrl = photoUrl;
+        if (name !== undefined) garage.name = name;
+        if (email !== undefined) garage.email = email;
+        if (phone !== undefined) garage.phone = phone;
+        if (address !== undefined) garage.location.address = address;
+        if (coordinates !== undefined) garage.location.coordinates = coordinates;
+        if (serviceHours !== undefined) garage.serviceHours = serviceHours;
+        if (workingDays !== undefined) garage.workingDays = workingDays;
+        if (businessType !== undefined) garage.businessType = businessType;
+        if (legalBusinessName !== undefined) garage.legalBusinessName = legalBusinessName;
+        if (photoUrl !== undefined) garage.photoUrl = photoUrl;
 
         await garage.save();
         res.json({ message: 'Profile updated', garage });
