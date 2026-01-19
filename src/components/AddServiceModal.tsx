@@ -371,47 +371,39 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex items-center justify-center p-6"
+                                className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-10 flex flex-col"
                             >
-                                <motion.div
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.9, opacity: 0 }}
-                                    className="bg-white/95 backdrop-blur-xl rounded-3xl p-6 w-full max-w-sm shadow-2xl"
-                                >
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <AlertTriangle className="w-6 h-6 text-amber-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-slate-900">Cash Payment</h3>
-                                            <p className="text-slate-500 text-sm">Will be marked as less reliable</p>
-                                        </div>
+                                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                                    <div className="w-28 h-28 bg-amber-500/20 rounded-full flex items-center justify-center mb-6">
+                                        <AlertTriangle className="w-14 h-14 text-amber-400" />
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <button
-                                            onClick={() => setShowCashWarning(false)}
-                                            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm"
-                                        >
-                                            Use QR / Razorpay
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setShowCashWarning(false);
-                                                handlePayment('cash');
-                                            }}
-                                            disabled={loading}
-                                            className="w-full bg-slate-100 text-slate-500 py-3 rounded-xl font-medium text-sm disabled:opacity-50"
-                                        >
-                                            {loading ? (
-                                                <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                                            ) : (
-                                                'Continue with Cash'
-                                            )}
-                                        </button>
-                                    </div>
-                                </motion.div>
+                                    <h3 className="text-2xl font-black text-white mb-2">Cash Payment</h3>
+                                    <p className="text-white/70 text-base">
+                                        Will be marked as less reliable
+                                    </p>
+                                </div>
+                                <div className="p-6 space-y-3">
+                                    <button
+                                        onClick={() => setShowCashWarning(false)}
+                                        className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold"
+                                    >
+                                        Use QR / Razorpay
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowCashWarning(false);
+                                            handlePayment('cash');
+                                        }}
+                                        disabled={loading}
+                                        className="w-full bg-white/10 text-white/80 py-4 rounded-2xl font-medium disabled:opacity-50"
+                                    >
+                                        {loading ? (
+                                            <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                                        ) : (
+                                            'Continue with Cash'
+                                        )}
+                                    </button>
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
