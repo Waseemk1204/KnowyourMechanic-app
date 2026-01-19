@@ -358,51 +358,6 @@ export default function GarageDashboard() {
                                         <span className="font-bold">Logout</span>
                                     </button>
                                 </div>
-
-                                {/* Logout Confirmation Modal */}
-                                <AnimatePresence>
-                                    {showLogoutConfirm && (
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-20"
-                                        >
-                                            <motion.div
-                                                initial={{ scale: 0.9, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                exit={{ scale: 0.9, opacity: 0 }}
-                                                className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl"
-                                            >
-                                                <div className="text-center mb-6">
-                                                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                        <LogOut className="w-8 h-8 text-red-600" />
-                                                    </div>
-                                                    <h3 className="text-xl font-black text-slate-900 mb-2">Logout?</h3>
-                                                    <p className="text-slate-500 text-sm">Are you sure you want to logout?</p>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowLogoutConfirm(false);
-                                                            setShowProfilePanel(false);
-                                                            handleLogout();
-                                                        }}
-                                                        className="w-full bg-red-600 text-white py-3 rounded-xl font-bold"
-                                                    >
-                                                        Yes, Logout
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setShowLogoutConfirm(false)}
-                                                        className="w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-medium"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </motion.div>
                         </>
                     )}
@@ -486,6 +441,51 @@ export default function GarageDashboard() {
                     }}
                 />
             </div>
+
+            {/* Logout Confirmation Modal - Full Screen Overlay */}
+            <AnimatePresence>
+                {showLogoutConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-50"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl"
+                        >
+                            <div className="text-center mb-6">
+                                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <LogOut className="w-8 h-8 text-red-600" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">Logout?</h3>
+                                <p className="text-slate-500 text-sm">Are you sure you want to logout?</p>
+                            </div>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={() => {
+                                        setShowLogoutConfirm(false);
+                                        setShowProfilePanel(false);
+                                        handleLogout();
+                                    }}
+                                    className="w-full bg-red-600 text-white py-3 rounded-xl font-bold"
+                                >
+                                    Yes, Logout
+                                </button>
+                                <button
+                                    onClick={() => setShowLogoutConfirm(false)}
+                                    className="w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-medium"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
