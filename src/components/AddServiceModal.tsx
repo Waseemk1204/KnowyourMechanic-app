@@ -185,7 +185,7 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                 onClick={handleClose}
             >
                 <motion.div
@@ -193,7 +193,7 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                     animate={{ y: 0 }}
                     exit={{ y: '100%' }}
                     onClick={(e) => e.stopPropagation()}
-                    className="bg-white/80 backdrop-blur-xl border-t border-white/20 shadow-2xl rounded-t-3xl w-full max-w-md p-6 pb-10"
+                    className="bg-white/90 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl w-full max-w-md p-6 relative overflow-hidden"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -224,40 +224,43 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                     {step === 'form' && (
                         <div className="space-y-4">
                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1 ml-1">Customer Phone</label>
                                 <div className="relative">
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
                                         type="tel"
                                         value={customerPhone}
                                         onChange={(e) => setCustomerPhone(e.target.value)}
-                                        placeholder="Customer Phone Number"
-                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 font-medium"
+                                        placeholder="9876543210"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                                     />
                                 </div>
                             </div>
 
                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1 ml-1">Service Description</label>
                                 <div className="relative">
                                     <FileText className="absolute left-4 top-4 w-5 h-5 text-slate-500" />
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Service Description"
+                                        placeholder="Oil change, brake repair, etc."
                                         rows={3}
-                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder:text-slate-400 font-medium"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium"
                                     />
                                 </div>
                             </div>
 
                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1 ml-1">Amount (₹)</label>
                                 <div className="relative">
                                     <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                                     <input
                                         type="number"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
-                                        placeholder="Amount"
-                                        className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 font-bold text-lg"
+                                        placeholder="500"
+                                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-lg"
                                     />
                                 </div>
                             </div>
@@ -365,25 +368,12 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
                                 className="absolute inset-0 bg-white z-10 flex flex-col"
                             >
                                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                                    <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mb-6">
-                                        <AlertTriangle className="w-12 h-12 text-amber-600" />
+                                    <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mb-6">
+                                        <AlertTriangle className="w-10 h-10 text-amber-600" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-4">Cash Payment Warning</h3>
-                                    <p className="text-slate-600 mb-6 text-lg">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2">Marked as Less Reliable</h3>
+                                    <p className="text-slate-600 font-medium leading-relaxed">
                                         Services recorded with cash payment will be marked as <span className="font-bold text-amber-600">"Less Reliable"</span> in your portfolio.
-                                    </p>
-                                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 text-left">
-                                        <p className="text-amber-800 text-sm">
-                                            <strong>This affects:</strong>
-                                        </p>
-                                        <ul className="text-amber-700 text-sm mt-2 space-y-1">
-                                            <li>• Your services will show a "Less Reliable" badge</li>
-                                            <li>• Customers may trust online payments more</li>
-                                            <li>• Your reliability score could be affected</li>
-                                        </ul>
-                                    </div>
-                                    <p className="text-slate-500 text-sm mb-8">
-                                        We recommend using QR/Razorpay for better credibility.
                                     </p>
                                 </div>
                                 <div className="p-6 space-y-3 border-t border-slate-100">
