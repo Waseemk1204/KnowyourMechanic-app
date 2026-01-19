@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 import AddServiceModal from '../../components/AddServiceModal';
+import { DashboardSkeleton } from '../../components/Loaders';
 
 interface Booking {
     _id: string;
@@ -181,9 +182,12 @@ export default function GarageDashboard() {
         }
     };
 
+    if (loading) {
+        return <DashboardSkeleton />;
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 text-slate-900">
-            {/* Hero Header with Large Photo */}
             {/* Hero Header with Full Width Photo */}
             <div className="relative h-72 w-full bg-slate-900 overflow-hidden mb-6">
                 {garagePhotoUrl ? (

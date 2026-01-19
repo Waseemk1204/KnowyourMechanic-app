@@ -5,6 +5,7 @@ import {
     ArrowLeft, Building2, MapPin, Clock, Phone, Mail, CreditCard,
     Loader2, AlertTriangle, Landmark, User, Save, Eye, EyeOff, Check, Camera
 } from 'lucide-react';
+import { CustomLoader } from '../../components/Loaders';
 
 
 interface BusinessInfo {
@@ -289,7 +290,7 @@ export default function GarageSettings() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                <CustomLoader />
             </div>
         );
     }
