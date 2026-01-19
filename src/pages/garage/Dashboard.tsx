@@ -362,7 +362,14 @@ export default function GarageDashboard() {
                     <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
                             <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Recent Services</h4>
-
+                            {services.length > 2 && (
+                                <button
+                                    onClick={() => setShowAllServices(!showAllServices)}
+                                    className="text-blue-600 text-xs font-bold"
+                                >
+                                    {showAllServices ? 'Show Less' : 'See More'}
+                                </button>
+                            )}
                         </div>
                         <div className="space-y-3">
                             {(showAllServices ? services : services.slice(0, 2)).map((service) => (
@@ -385,15 +392,6 @@ export default function GarageDashboard() {
                                 </div>
                             ))}
                         </div>
-                        {services.length > 2 && (
-                            <button
-                                onClick={() => setShowAllServices(!showAllServices)}
-                                className="w-full mt-4 py-3 text-blue-600 text-sm font-bold bg-white border border-blue-100 rounded-xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
-                            >
-                                <span>{showAllServices ? 'Show Less' : 'See More'}</span>
-                                <ChevronRight className={`w-4 h-4 transition-transform ${showAllServices ? '-rotate-90' : 'rotate-90'}`} />
-                            </button>
-                        )}
                     </div>
                 )}
 
