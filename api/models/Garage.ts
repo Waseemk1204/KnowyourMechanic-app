@@ -20,7 +20,7 @@ export interface IGarage extends Document {
         coordinates: [number, number];
     };
     serviceHours: string;
-    workingDays: string;
+    workingDays: string[];
     photoUrl?: string;
     rating: number;
     totalReviews: number;
@@ -58,7 +58,7 @@ const GarageSchema = new Schema<IGarage>({
         coordinates: { type: [Number], index: '2dsphere' },
     },
     serviceHours: { type: String },
-    workingDays: { type: String },
+    workingDays: { type: [String], default: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] },
     photoUrl: { type: String },
     rating: { type: Number, default: 0 },
     totalReviews: { type: Number, default: 0 },
