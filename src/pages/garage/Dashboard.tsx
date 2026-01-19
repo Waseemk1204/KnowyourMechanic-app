@@ -360,16 +360,8 @@ export default function GarageDashboard() {
                 {/* Recent Services */}
                 {services.length > 0 && (
                     <div className="mb-6">
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="mb-3">
                             <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Recent Services</h4>
-                            {services.length > 2 && (
-                                <button
-                                    onClick={() => setShowAllServices(!showAllServices)}
-                                    className="text-blue-600 text-xs font-bold"
-                                >
-                                    {showAllServices ? 'Show Less' : 'See More'}
-                                </button>
-                            )}
                         </div>
                         <div className="space-y-3">
                             {(showAllServices ? services : services.slice(0, 2)).map((service) => (
@@ -392,6 +384,14 @@ export default function GarageDashboard() {
                                 </div>
                             ))}
                         </div>
+                        {services.length > 2 && (
+                            <p
+                                onClick={() => setShowAllServices(!showAllServices)}
+                                className="text-blue-600 text-sm font-medium underline text-center mt-4 cursor-pointer"
+                            >
+                                {showAllServices ? 'Show Less' : 'See More'}
+                            </p>
+                        )}
                     </div>
                 )}
 
