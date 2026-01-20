@@ -199,7 +199,7 @@ export default function CustomerActivity() {
                                 <Clock className="w-10 h-10" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-400">No activity yet</h3>
-                            <p className="text-slate-300 font-medium">Your service requests will show up here</p>
+                            <p className="text-slate-300 font-medium">Your past services will start appearing here</p>
                         </div>
                     )}
                 </div>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Geolocation } from '@capacitor/geolocation';
 
 interface LocationState {
     lat: number;
@@ -19,40 +18,36 @@ export function useLocation() {
 
     const requestLocation = async () => {
         setLoading(true);
-        try {
-            // Add a timeout race condition for permissions
-            const checkPermissionPromise = Geolocation.checkPermissions();
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Permission check timeout')), 2000)
-            );
+        setPermissionDenied(false);
 
-            const permission = await Promise.race([checkPermissionPromise, timeoutPromise]) as any;
-
-            if (permission.location === 'denied') {
-                const requested = await Geolocation.requestPermissions();
-                if (requested.location === 'denied') {
-                    setPermissionDenied(true);
+        // Use native browser Geolocation API for web
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                    setPermissionDenied(false);
                     setLoading(false);
-                    return;
+                    console.log('Location obtained:', position.coords.latitude, position.coords.longitude);
+                },
+                (error) => {
+                    console.error('Geolocation error:', error.message);
+                    if (error.code === error.PERMISSION_DENIED) {
+                        setPermissionDenied(true);
+                    }
+                    // Keep default location on error
+                    setLoading(false);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000, // Cache for 1 minute
                 }
-            }
-
-            // Get position with timeout
-            const position = await Geolocation.getCurrentPosition({
-                enableHighAccuracy: true,
-                timeout: 5000, // 5 second timeout
-            });
-
-            setLocation({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-            });
-            setPermissionDenied(false);
-        } catch (error) {
-            console.error('Location error (fallback to default):', error);
-            // Don't set permission denied on timeout, just use default location
-            // setPermissionDenied(true); 
-        } finally {
+            );
+        } else {
+            console.log('Geolocation not supported, using default');
             setLoading(false);
         }
     };
