@@ -18,6 +18,7 @@ type Garage = {
     lng: number;
     totalServices?: number;
     phone?: string;
+    joinedDate?: string;
 };
 
 const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): string => {
@@ -48,6 +49,7 @@ const transformApiGarage = (apiGarage: any, userLat: number, userLng: number): G
         lng,
         totalServices: apiGarage.totalServices || 0,
         phone: apiGarage.userId?.phoneNumber || apiGarage.phone || '',
+        joinedDate: apiGarage.createdAt ? new Date(apiGarage.createdAt).getFullYear().toString() : '2024',
     };
 };
 
@@ -215,47 +217,55 @@ export default function CustomerHome() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             key={garage.id}
-                            className="w-full premium-card p-4 flex items-center gap-4"
+                            className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-row h-36"
                         >
-                            <div
-                                className="flex items-center gap-4 flex-1 cursor-pointer"
-                                onClick={() => {
-                                    if (!garage.id.startsWith('mock-')) {
-                                        navigate(`/customer/garage/${garage.id}`);
-                                    }
-                                }}
-                            >
-                                <div>
-                                    <img
-                                        src={garage.photo}
-                                        alt={garage.name}
-                                        className="w-16 h-16 rounded-2xl object-cover shadow-sm"
-                                    />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-slate-900 mb-1 truncate">{garage.name}</h3>
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                                            <span className="font-bold text-slate-700">{garage.rating}</span>
-                                        </div>
-                                        <span className="text-slate-300">•</span>
-                                        <span className="text-slate-400 font-medium">{garage.totalServices || 0} services</span>
-                                    </div>
+                            <div className="w-1/3 h-full relative" onClick={() => navigate(`/customer/garage/${garage.id}`)}>
+                                <img
+                                    src={garage.photo}
+                                    alt={garage.name}
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-medium text-white">
+                                    {garage.distance}
                                 </div>
                             </div>
-                            {garage.phone && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(`tel:${garage.phone}`);
-                                    }}
-                                    className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors flex-shrink-0"
-                                >
-                                    <Phone className="w-4 h-4" />
-                                </button>
-                            )}
-                            <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+
+                            <div className="flex-1 p-4 flex flex-col justify-between" onClick={() => navigate(`/customer/garage/${garage.id}`)}>
+                                <div>
+                                    <h3 className="font-bold text-slate-900 mb-1 truncate text-lg leading-tight">{garage.name}</h3>
+                                    <div className="flex items-center gap-2 text-xs mb-2">
+                                        <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100">
+                                            <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                            <span className="font-bold text-amber-700">{garage.rating}</span>
+                                        </div>
+                                        <span className="text-slate-400 font-medium">({garage.reviews} reviews)</span>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                                        <span className="flex items-center gap-1">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                            {garage.totalServices || 0} services
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-auto">
+                                    <span className="text-[10px] text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-full border border-slate-100">
+                                        Joined since {garage.joinedDate}
+                                    </span>
+
+                                    {garage.phone && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.open(`tel:${garage.phone}`);
+                                            }}
+                                            className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors border border-green-100"
+                                        >
+                                            <Phone className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </motion.div>
                     ))
                 )}
