@@ -20,29 +20,6 @@ type Garage = {
     phone?: string;
 };
 
-const generateMockGarages = (userLat: number, userLng: number): Garage[] => [
-    {
-        id: 'mock-1',
-        name: 'Sapphire Car Care (Sample)',
-        distance: '1.2 km',
-        rating: 4.8,
-        reviews: 124,
-        photo: 'https://images.unsplash.com/photo-1517524008410-b44c6059b850?q=80&w=800',
-        lat: userLat + 0.005,
-        lng: userLng + 0.005,
-    },
-    {
-        id: 'mock-2',
-        name: 'Auto Precision Garage',
-        distance: '2.5 km',
-        rating: 4.6,
-        reviews: 89,
-        photo: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193b?q=80&w=800',
-        lat: userLat - 0.008,
-        lng: userLng + 0.003,
-    }
-];
-
 const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): string => {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -120,11 +97,11 @@ export default function CustomerHome() {
                     );
                     setGarages(transformed);
                 } else {
-                    setGarages(generateMockGarages(location.lat, location.lng));
+                    setGarages([]); // No garages found
                 }
             } catch (error) {
                 console.error('Error fetching garages:', error);
-                setGarages(generateMockGarages(location.lat, location.lng));
+                setGarages([]); // Error fallback
             } finally {
                 setIsLoadingGarages(false);
             }
