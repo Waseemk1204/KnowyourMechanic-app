@@ -121,7 +121,7 @@ export default function CustomerActivity() {
                     <ArrowLeft className="w-5 h-5" />
                     <span className="font-medium">Back</span>
                 </button>
-                <h1 className="text-2xl font-black">My Bookings</h1>
+                <h1 className="text-2xl font-black">Activity</h1>
                 <p className="text-blue-200 text-sm">Your service history</p>
             </header>
 
@@ -198,8 +198,8 @@ export default function CustomerActivity() {
                             <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-6">
                                 <Clock className="w-10 h-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-400">No bookings yet</h3>
-                            <p className="text-slate-300 font-medium">Your bookings will appear here</p>
+                            <h3 className="text-xl font-bold text-slate-400">No activity yet</h3>
+                            <p className="text-slate-300 font-medium">Your service requests will show up here</p>
                         </div>
                     )}
                 </div>
