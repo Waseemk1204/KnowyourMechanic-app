@@ -89,7 +89,7 @@ export default function CustomerHome() {
             setIsLoadingGarages(true);
             try {
                 console.log('Calling discoverGarages...');
-                const result = await discoverGarages(location.lat, location.lng, 10000);
+                const result = await discoverGarages(location.lat, location.lng, 5000); // 5km radius
                 console.log('discoverGarages result:', result);
 
                 if (result.data && result.data.length > 0) {
@@ -112,14 +112,22 @@ export default function CustomerHome() {
     }, [location, loading]);
 
     // Sort by distance (closest first) and filter by search
-    const sortedGarages = [...garages].sort((a, b) => {
-        // Parse distance strings like "1.2 km" or "350 m"
-        const parseDistance = (d: string) => {
-            const num = parseFloat(d);
-            return d.includes('km') ? num * 1000 : num;
-        };
-        return parseDistance(a.distance) - parseDistance(b.distance);
-    });
+    const sortedGarages = [...garages]
+        .filter(g => {
+            // Only include garages under 5km
+            const parseDistance = (d: string) => {
+                const num = parseFloat(d);
+                return d.includes('km') ? num : num / 1000;
+            };
+            return parseDistance(g.distance) < 5;
+        })
+        .sort((a, b) => {
+            const parseDistance = (d: string) => {
+                const num = parseFloat(d);
+                return d.includes('km') ? num * 1000 : num;
+            };
+            return parseDistance(a.distance) - parseDistance(b.distance);
+        });
 
     const filteredGarages = sortedGarages
         .filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
@@ -258,7 +266,7 @@ export default function CustomerHome() {
                         onClick={() => setVisibleCount(prev => prev + 5)}
                         className="w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-2xl hover:bg-blue-100 transition-colors"
                     >
-                        See More ({totalFilteredCount - visibleCount} remaining)
+                        See More
                     </button>
                 )}
             </div>
