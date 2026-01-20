@@ -59,6 +59,7 @@ export default function CustomerHome() {
     const [showProfilePanel, setShowProfilePanel] = useState(false);
     const [isLoadingGarages, setIsLoadingGarages] = useState(false);
     const [customerName, setCustomerName] = useState('Customer');
+    const [visibleCount, setVisibleCount] = useState(3);
 
     // Load customer name from profile
     useEffect(() => {
@@ -110,9 +111,25 @@ export default function CustomerHome() {
         fetchGarages();
     }, [location, loading]);
 
-    const filteredGarages = garages.filter(g =>
+    // Sort by distance (closest first) and filter by search
+    const sortedGarages = [...garages].sort((a, b) => {
+        // Parse distance strings like "1.2 km" or "350 m"
+        const parseDistance = (d: string) => {
+            const num = parseFloat(d);
+            return d.includes('km') ? num * 1000 : num;
+        };
+        return parseDistance(a.distance) - parseDistance(b.distance);
+    });
+
+    const filteredGarages = sortedGarages
+        .filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
+        .slice(0, visibleCount);
+
+    const totalFilteredCount = sortedGarages.filter(g =>
         g.name.toLowerCase().includes(search.toLowerCase())
-    );
+    ).length;
+
+    const hasMore = visibleCount < totalFilteredCount;
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 px-4">
@@ -171,7 +188,7 @@ export default function CustomerHome() {
             <div className="flex-1 space-y-5">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-xl font-bold text-slate-900">Nearby Garages</h2>
-                    <button className="text-blue-600 text-sm font-bold">See All</button>
+                    <span className="text-slate-400 text-sm">{totalFilteredCount} found</span>
                 </div>
 
                 {isLoadingGarages ? (
@@ -200,15 +217,12 @@ export default function CustomerHome() {
                                     }
                                 }}
                             >
-                                <div className="relative">
+                                <div>
                                     <img
                                         src={garage.photo}
                                         alt={garage.name}
                                         className="w-16 h-16 rounded-2xl object-cover shadow-sm"
                                     />
-                                    <div className="absolute -top-1.5 -right-1.5 bg-blue-600 text-[9px] font-bold text-white px-1.5 py-0.5 rounded-md">
-                                        {garage.distance}
-                                    </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-bold text-slate-900 mb-1 truncate">{garage.name}</h3>
@@ -236,6 +250,16 @@ export default function CustomerHome() {
                             <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
                         </motion.div>
                     ))
+                )}
+
+                {/* See More Button */}
+                {hasMore && !isLoadingGarages && (
+                    <button
+                        onClick={() => setVisibleCount(prev => prev + 5)}
+                        className="w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-2xl hover:bg-blue-100 transition-colors"
+                    >
+                        See More ({totalFilteredCount - visibleCount} remaining)
+                    </button>
                 )}
             </div>
 
