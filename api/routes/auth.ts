@@ -28,9 +28,16 @@ router.post('/sync', authenticate, async (req: AuthRequest, res) => {
 
         res.status(200).json(user);
     } catch (error: any) {
-        console.error('Sync error details:', JSON.stringify(error, null, 2));
-        console.error('Sync error message:', error.message);
         console.error('Sync error stack:', error.stack);
+
+        // Handle duplicate key error
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: 'User already exists or database index conflict. Please contact support.',
+                details: error.message
+            });
+        }
+
         res.status(500).json({ message: 'Internal server error', details: error.message });
     }
 });
