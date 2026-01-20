@@ -161,21 +161,6 @@ export default function CustomerHome() {
                 </button>
             </div>
 
-            {/* Location Permission Prompt */}
-            {permissionDenied && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                            <LocateFixed className="w-5 h-5 text-amber-600" />
-                        </div>
-                        <p className="font-bold text-amber-800 text-sm">Location Blocked</p>
-                    </div>
-                    <p className="text-amber-700 text-xs leading-relaxed">
-                        Tap the 🔒 lock icon in your browser's address bar → Allow Location → Refresh the page
-                    </p>
-                </div>
-            )}
-
             {/* Map Preview */}
             <div className="relative h-56 rounded-[2.5rem] overflow-hidden mb-10 shadow-2xl shadow-blue-900/10 border-4 border-white">
                 <GarageMap
