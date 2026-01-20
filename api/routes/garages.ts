@@ -68,8 +68,26 @@ router.get('/discovery', async (req, res) => {
             };
         }
 
-        const garages = await Garage.find(query).populate('userId', 'phoneNumber');
-        res.status(200).json(garages);
+        const garages = await Garage.find(query).populate('userId', 'phoneNumber').lean();
+
+        // Get service counts for all garages
+        const Service = (await import('../models/Service.js')).default;
+        const garageIds = garages.map((g: any) => g._id);
+        const serviceCounts = await Service.aggregate([
+            { $match: { garageId: { $in: garageIds }, isActive: true } },
+            { $group: { _id: '$garageId', count: { $sum: 1 } } }
+        ]);
+
+        // Create a map of garage ID to service count
+        const countMap = new Map(serviceCounts.map((s: any) => [s._id.toString(), s.count]));
+
+        // Add totalServices to each garage
+        const garagesWithCounts = garages.map((g: any) => ({
+            ...g,
+            totalServices: countMap.get(g._id.toString()) || 0
+        }));
+
+        res.status(200).json(garagesWithCounts);
     } catch (error) {
         console.error('Garage discovery error:', error);
         // If geospatial query fails, return all garages
