@@ -16,6 +16,8 @@ type Garage = {
     photo: string;
     lat: number;
     lng: number;
+    totalServices?: number;
+    phone?: string;
 };
 
 const generateMockGarages = (userLat: number, userLng: number): Garage[] => [
@@ -67,6 +69,8 @@ const transformApiGarage = (apiGarage: any, userLat: number, userLng: number): G
         photo: apiGarage.photoUrl || 'https://images.unsplash.com/photo-1517524008410-b44c6059b850?q=80&w=800',
         lat,
         lng,
+        totalServices: apiGarage.totalServices || 0,
+        phone: apiGarage.userId?.phoneNumber || apiGarage.phone || '',
     };
 };
 
@@ -204,41 +208,56 @@ export default function CustomerHome() {
                     </div>
                 ) : (
                     filteredGarages.map(garage => (
-                        <motion.button
+                        <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             key={garage.id}
-                            onClick={() => navigate(`/customer/garage/${garage.id}`)}
-                            className="w-full premium-card p-4 flex items-center gap-5 text-left"
+                            className="w-full premium-card p-4 flex items-center gap-4"
                         >
-                            <div className="relative">
-                                <img
-                                    src={garage.photo}
-                                    alt={garage.name}
-                                    className="w-20 h-20 rounded-[1.5rem] object-cover shadow-sm"
-                                />
-                                <div className="absolute -top-2 -right-2 bg-blue-600 text-[10px] font-bold text-white px-2 py-1 rounded-lg">
-                                    {garage.distance}
-                                </div>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-bold text-lg text-slate-900 mb-1 leading-tight">{garage.name}</h3>
-                                <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                                        <span className="font-bold text-slate-700 text-sm">{garage.rating}</span>
+                            <div
+                                className="flex items-center gap-4 flex-1 cursor-pointer"
+                                onClick={() => {
+                                    if (!garage.id.startsWith('mock-')) {
+                                        navigate(`/customer/garage/${garage.id}`);
+                                    }
+                                }}
+                            >
+                                <div className="relative">
+                                    <img
+                                        src={garage.photo}
+                                        alt={garage.name}
+                                        className="w-16 h-16 rounded-2xl object-cover shadow-sm"
+                                    />
+                                    <div className="absolute -top-1.5 -right-1.5 bg-blue-600 text-[9px] font-bold text-white px-1.5 py-0.5 rounded-md">
+                                        {garage.distance}
                                     </div>
-                                    <span className="text-slate-300">•</span>
-                                    <span className="text-slate-400 text-xs font-semibold">{garage.reviews} Reviews</span>
                                 </div>
-                                <div className="mt-2 flex gap-1">
-                                    <span className="bg-blue-50 text-blue-600 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Certified</span>
-                                    <span className="bg-slate-100 text-slate-500 text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Top Rated</span>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-slate-900 mb-1 truncate">{garage.name}</h3>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <div className="flex items-center gap-1">
+                                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                                            <span className="font-bold text-slate-700">{garage.rating}</span>
+                                        </div>
+                                        <span className="text-slate-300">•</span>
+                                        <span className="text-slate-400 font-medium">{garage.totalServices || 0} services</span>
+                                    </div>
                                 </div>
                             </div>
-                            <ChevronRight className="w-5 h-5 text-slate-300" />
-                        </motion.button>
+                            {garage.phone && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(`tel:${garage.phone}`);
+                                    }}
+                                    className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors flex-shrink-0"
+                                >
+                                    <Phone className="w-4 h-4" />
+                                </button>
+                            )}
+                            <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+                        </motion.div>
                     ))
                 )}
             </div>
