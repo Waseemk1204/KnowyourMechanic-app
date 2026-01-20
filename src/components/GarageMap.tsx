@@ -2,11 +2,22 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
+import { ArrowRight } from 'lucide-react';
 
 interface GarageMapProps {
-    garages: { id: string; name: string; lat: number; lng: number; rating?: number }[];
+    garages: {
+        id: string;
+        name: string;
+        lat: number;
+        lng: number;
+        rating?: number;
+        reviews?: number;
+        photo?: string;
+        address?: string;
+        phone?: string;
+    }[];
     userLocation: { lat: number; lng: number };
-    onGarageSelect?: (garage: { id: string; name: string; lat: number; lng: number }) => void;
+    onGarageSelect?: (garage: any) => void;
 }
 
 // Custom user location icon (blue pulsing dot)
@@ -76,9 +87,9 @@ export default function GarageMap({ garages, userLocation, onGarageSelect }: Gar
 
             {/* User Location Marker */}
             <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
-                <Popup>
-                    <div className="text-center">
-                        <p className="font-bold text-blue-600">You are here</p>
+                <Popup className="custom-popup">
+                    <div className="text-center px-2 py-1">
+                        <p className="font-bold text-blue-600 text-xs">You are here</p>
                     </div>
                 </Popup>
             </Marker>
@@ -93,18 +104,23 @@ export default function GarageMap({ garages, userLocation, onGarageSelect }: Gar
                         click: () => onGarageSelect?.(garage),
                     }}
                 >
-                    <Popup>
-                        <div className="text-center min-w-[120px]">
-                            <p className="font-bold text-slate-900">{garage.name}</p>
-                            {garage.rating && (
-                                <p className="text-amber-500 text-sm">⭐ {garage.rating}</p>
-                            )}
-                            <button
-                                onClick={() => onGarageSelect?.(garage)}
-                                className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded-full"
-                            >
-                                View Details
-                            </button>
+                    <Popup className="custom-popup" minWidth={200} closeButton={false}>
+                        <div className="flex gap-3 p-1 cursor-pointer" onClick={() => onGarageSelect?.(garage)}>
+                            <img
+                                src={garage.photo || 'https://images.unsplash.com/photo-1517524008410-b44c6059b850?q=80&w=800'}
+                                alt={garage.name}
+                                className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-slate-900 text-sm truncate mb-0.5">{garage.name}</h3>
+                                <div className="flex items-center gap-1 text-xs mb-1">
+                                    <span className="text-amber-500 font-bold">★ {garage.rating || 4.5}</span>
+                                    <span className="text-slate-400">({garage.reviews || 0})</span>
+                                </div>
+                                <div className="text-blue-600 text-xs font-bold flex items-center gap-1">
+                                    View Details <ArrowRight className="w-3 h-3" />
+                                </div>
+                            </div>
                         </div>
                     </Popup>
                 </Marker>

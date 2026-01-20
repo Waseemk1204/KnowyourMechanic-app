@@ -182,7 +182,16 @@ export default function CustomerHome() {
             {/* Map Preview */}
             <div className="relative h-56 rounded-[2.5rem] overflow-hidden mb-10 shadow-2xl shadow-blue-900/10 border-4 border-white">
                 <GarageMap
-                    garages={garages.map(g => ({ id: g.id, name: g.name, lat: g.lat, lng: g.lng }))}
+                    garages={garages.map(g => ({
+                        id: g.id,
+                        name: g.name,
+                        lat: g.lat,
+                        lng: g.lng,
+                        rating: g.rating,
+                        reviews: g.reviews,
+                        photo: g.photo,
+                        phone: g.phone
+                    }))}
                     userLocation={location}
                     onGarageSelect={(g) => {
                         const full = garages.find(garage => garage.id === g.id);
@@ -253,17 +262,29 @@ export default function CustomerHome() {
                                         Joined since {garage.joinedDate}
                                     </span>
 
-                                    {garage.phone && (
+                                    <div className="flex flex-col gap-2">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                window.open(`tel:${garage.phone}`);
+                                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${garage.lat},${garage.lng}`);
                                             }}
-                                            className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors border border-green-100"
+                                            className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
                                         >
-                                            <Phone className="w-3.5 h-3.5" />
+                                            <Navigation className="w-3.5 h-3.5 fill-blue-600" />
                                         </button>
-                                    )}
+
+                                        {garage.phone && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    window.open(`tel:${garage.phone}`);
+                                                }}
+                                                className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors border border-green-100"
+                                            >
+                                                <Phone className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
