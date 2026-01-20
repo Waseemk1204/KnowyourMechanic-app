@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Star, Phone, LogOut, X, Loader2, Filter, Navigation, ChevronRight, LocateFixed } from 'lucide-react';
+import { Search, MapPin, Star, Phone, LogOut, X, Loader2, Filter, Navigation, ChevronRight, LocateFixed, Settings, Clock, Headphones, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from '../../hooks/useLocation';
 import { useAuth } from '../../contexts/AuthContext';
 import { discoverGarages, type GarageProfile } from '../../lib/api';
-import BottomNav from '../../components/BottomNav';
 import GarageMap from '../../components/GarageMap';
 
 type Garage = {
@@ -76,6 +75,7 @@ export default function CustomerHome() {
     const [search, setSearch] = useState('');
     const [garages, setGarages] = useState<Garage[]>([]);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showProfilePanel, setShowProfilePanel] = useState(false);
     const [isLoadingGarages, setIsLoadingGarages] = useState(false);
 
     const navigate = useNavigate();
@@ -124,7 +124,7 @@ export default function CustomerHome() {
     );
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-28 px-4">
+        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 px-4">
             {/* Header */}
             <header className="flex items-center justify-between py-6 mb-2">
                 <div>
@@ -137,10 +137,10 @@ export default function CustomerHome() {
                     </p>
                 </div>
                 <button
-                    onClick={() => setShowLogoutModal(true)}
+                    onClick={() => setShowProfilePanel(true)}
                     className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400 active:bg-slate-50 transition-colors"
                 >
-                    <LogOut className="w-5.5 h-5.5" />
+                    <Settings className="w-5.5 h-5.5" />
                 </button>
             </header>
 
@@ -375,7 +375,100 @@ export default function CustomerHome() {
                 )}
             </AnimatePresence>
 
-            <BottomNav role="customer" />
+            {/* Profile Slider Panel */}
+            <AnimatePresence>
+                {showProfilePanel && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+                            onClick={() => setShowProfilePanel(false)}
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 flex flex-col"
+                        >
+                            {/* Panel Header */}
+                            <div className="p-6 bg-blue-600 text-white">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-lg font-bold">Menu</h2>
+                                    <button
+                                        onClick={() => setShowProfilePanel(false)}
+                                        className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                        <User className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold">Customer</p>
+                                        <p className="text-blue-200 text-xs">Express Service</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Panel Options */}
+                            <div className="flex-1 p-4 space-y-2">
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
+                                        navigate('/activity');
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                        <Clock className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-bold text-slate-900">Activity</p>
+                                        <p className="text-slate-400 text-xs">View your service history</p>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
+                                        navigate('/support');
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                                        <Headphones className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-bold text-slate-900">Support</p>
+                                        <p className="text-slate-400 text-xs">Get help & contact us</p>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500" />
+                                </button>
+                            </div>
+
+                            {/* Logout Button */}
+                            <div className="p-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
+                                        setShowLogoutModal(true);
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    <span className="font-bold">Logout</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
