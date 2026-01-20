@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
-import { MessageSquare, Phone, Mail, ArrowRight, ShieldCheck, LifeBuoy } from 'lucide-react';
-import BottomNav from '../../components/BottomNav';
+import { MessageSquare, Phone, Mail, ArrowRight, ShieldCheck, LifeBuoy, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function CustomerSupport() {
+    const navigate = useNavigate();
+
     const options = [
         { icon: MessageSquare, label: 'Live Chat', description: 'Speak with our team now', color: 'text-blue-600', bg: 'bg-blue-50' },
         { icon: Phone, label: 'Call Support', description: 'Available 9 AM - 9 PM', color: 'text-green-600', bg: 'bg-green-50' },
@@ -10,16 +12,28 @@ export default function CustomerSupport() {
     ];
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-28 px-6">
-            <header className="py-8 mb-4">
-                <div className="w-16 h-16 bg-blue-600 rounded-[1.5rem] shadow-xl shadow-blue-500/20 flex items-center justify-center text-white mb-6">
-                    <LifeBuoy className="w-9 h-9" />
+        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
+            {/* Header with Back Button */}
+            <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem]">
+                <button
+                    onClick={() => navigate('/customer')}
+                    className="flex items-center gap-2 text-white/80 hover:text-white mb-4"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                    <span className="font-medium">Back</span>
+                </button>
+                <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                        <LifeBuoy className="w-7 h-7" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black">Support</h1>
+                        <p className="text-blue-200 text-sm">How can we help you today?</p>
+                    </div>
                 </div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Support</h1>
-                <p className="text-slate-500 font-medium">How can we help you today?</p>
             </header>
 
-            <div className="space-y-4">
+            <div className="px-6 py-6 space-y-4">
                 {options.map((option, i) => (
                     <motion.button
                         initial={{ opacity: 0, y: 10 }}
@@ -38,19 +52,17 @@ export default function CustomerSupport() {
                         <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600" />
                     </motion.button>
                 ))}
-            </div>
 
-            <div className="mt-12 p-8 bg-blue-600 rounded-[2.5rem] text-white shadow-2xl shadow-blue-900/10">
-                <div className="flex items-center gap-4 mb-4">
-                    <ShieldCheck className="w-8 h-8 opacity-80" />
-                    <h4 className="text-xl font-black">Secure Support</h4>
+                <div className="mt-8 p-8 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-500/20">
+                    <div className="flex items-center gap-4 mb-4">
+                        <ShieldCheck className="w-8 h-8 opacity-80" />
+                        <h4 className="text-xl font-black">Secure Support</h4>
+                    </div>
+                    <p className="text-blue-100 text-sm font-medium leading-relaxed">
+                        Our verified partners provide 24/7 assistance for all your automotive needs.
+                    </p>
                 </div>
-                <p className="text-blue-100 text-sm font-medium leading-relaxed">
-                    Our verified partners provide 24/7 assistance for all your automotive needs.
-                </p>
             </div>
-
-            <BottomNav role="customer" />
         </div>
     );
 }

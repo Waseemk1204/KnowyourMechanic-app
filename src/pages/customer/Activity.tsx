@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Wrench, Loader2, Calendar, X, Check, AlertCircle } from 'lucide-react';
-import BottomNav from '../../components/BottomNav';
+import { Clock, Wrench, Loader2, Calendar, X, Check, AlertCircle, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Booking {
     _id: string;
@@ -34,6 +34,7 @@ export default function CustomerActivity() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchBookings();
@@ -110,90 +111,99 @@ export default function CustomerActivity() {
     }
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-28 px-6">
-            <header className="py-8 mb-4">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">My Bookings</h1>
-                <p className="text-slate-500 font-medium">Your service history</p>
+        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
+            {/* Header with Back Button */}
+            <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem] mb-4">
+                <button
+                    onClick={() => navigate('/customer')}
+                    className="flex items-center gap-2 text-white/80 hover:text-white mb-4"
+                >
+                    <ArrowLeft className="w-5 h-5" />
+                    <span className="font-medium">Back</span>
+                </button>
+                <h1 className="text-2xl font-black">My Bookings</h1>
+                <p className="text-blue-200 text-sm">Your service history</p>
             </header>
 
-            {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-4 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5" />
-                    {error}
-                </div>
-            )}
+            <div className="px-6">
 
-            <div className="space-y-4">
-                {bookings.map((booking, i) => {
-                    const status = statusConfig[booking.status];
-                    return (
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            key={booking._id}
-                            className="premium-card p-5 bg-white"
-                        >
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-                                    <Wrench className="w-7 h-7 text-blue-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <h3 className="font-bold text-slate-900">{booking.garageId?.name || 'Unknown Garage'}</h3>
-                                        <span className={`text-[10px] font-black uppercase ${status.color} ${status.bg} px-2 py-1 rounded-md`}>
-                                            {status.label}
-                                        </span>
-                                    </div>
-                                    <p className="text-blue-600 font-semibold text-sm">{booking.serviceId?.name || 'Service'}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
-                                <div className="flex items-center gap-1">
-                                    <Calendar className="w-4 h-4" />
-                                    {formatDate(booking.scheduledDate)}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Clock className="w-4 h-4" />
-                                    {booking.scheduledTime}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                <span className="font-bold text-lg text-slate-900">₹{booking.totalPrice}</span>
-                                {booking.status === 'pending' && (
-                                    <button
-                                        onClick={() => handleCancelBooking(booking._id)}
-                                        className="text-red-600 text-sm font-semibold flex items-center gap-1"
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Cancel
-                                    </button>
-                                )}
-                                {booking.status === 'completed' && (
-                                    <div className="flex items-center gap-1 text-green-600 text-sm font-semibold">
-                                        <Check className="w-4 h-4" />
-                                        Done
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    );
-                })}
-
-                {bookings.length === 0 && !error && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-6">
-                            <Clock className="w-10 h-10" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-400">No bookings yet</h3>
-                        <p className="text-slate-300 font-medium">Your bookings will appear here</p>
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-4 flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5" />
+                        {error}
                     </div>
                 )}
-            </div>
 
-            <BottomNav role="customer" />
+                <div className="space-y-4">
+                    {bookings.map((booking, i) => {
+                        const status = statusConfig[booking.status];
+                        return (
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                key={booking._id}
+                                className="premium-card p-5 bg-white"
+                            >
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
+                                        <Wrench className="w-7 h-7 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h3 className="font-bold text-slate-900">{booking.garageId?.name || 'Unknown Garage'}</h3>
+                                            <span className={`text-[10px] font-black uppercase ${status.color} ${status.bg} px-2 py-1 rounded-md`}>
+                                                {status.label}
+                                            </span>
+                                        </div>
+                                        <p className="text-blue-600 font-semibold text-sm">{booking.serviceId?.name || 'Service'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
+                                    <div className="flex items-center gap-1">
+                                        <Calendar className="w-4 h-4" />
+                                        {formatDate(booking.scheduledDate)}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Clock className="w-4 h-4" />
+                                        {booking.scheduledTime}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                                    <span className="font-bold text-lg text-slate-900">₹{booking.totalPrice}</span>
+                                    {booking.status === 'pending' && (
+                                        <button
+                                            onClick={() => handleCancelBooking(booking._id)}
+                                            className="text-red-600 text-sm font-semibold flex items-center gap-1"
+                                        >
+                                            <X className="w-4 h-4" />
+                                            Cancel
+                                        </button>
+                                    )}
+                                    {booking.status === 'completed' && (
+                                        <div className="flex items-center gap-1 text-green-600 text-sm font-semibold">
+                                            <Check className="w-4 h-4" />
+                                            Done
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+
+                    {bookings.length === 0 && !error && (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-6">
+                                <Clock className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-400">No bookings yet</h3>
+                            <p className="text-slate-300 font-medium">Your bookings will appear here</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
