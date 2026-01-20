@@ -77,6 +77,16 @@ export default function CustomerHome() {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showProfilePanel, setShowProfilePanel] = useState(false);
     const [isLoadingGarages, setIsLoadingGarages] = useState(false);
+    const [customerName, setCustomerName] = useState('Customer');
+
+    // Load customer name from profile
+    useEffect(() => {
+        const savedProfile = localStorage.getItem('customerProfile');
+        if (savedProfile) {
+            const profile = JSON.parse(savedProfile);
+            if (profile.name) setCustomerName(profile.name);
+        }
+    }, [showProfilePanel]); // Refresh when panel closes (after profile edit)
 
     const navigate = useNavigate();
     const { location, loading, permissionDenied, requestLocation } = useLocation();
@@ -376,8 +386,7 @@ export default function CustomerHome() {
                         >
                             {/* Panel Header */}
                             <div className="p-6 bg-blue-600 text-white">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-bold">Menu</h2>
+                                <div className="flex items-center justify-end mb-4">
                                     <button
                                         onClick={() => setShowProfilePanel(false)}
                                         className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
@@ -390,7 +399,7 @@ export default function CustomerHome() {
                                         <User className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="font-bold">Customer</p>
+                                        <p className="font-bold">{customerName}</p>
                                         <p className="text-blue-200 text-xs">Find a Mechanic</p>
                                     </div>
                                 </div>
