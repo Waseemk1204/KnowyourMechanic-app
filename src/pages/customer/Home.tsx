@@ -163,20 +163,16 @@ export default function CustomerHome() {
 
             {/* Location Permission Prompt */}
             {permissionDenied && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <LocateFixed className="w-6 h-6 text-amber-600" />
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <LocateFixed className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <p className="font-bold text-amber-800 text-sm">Location Blocked</p>
                     </div>
-                    <div className="flex-1">
-                        <p className="font-bold text-amber-800 text-sm">Location Access Needed</p>
-                        <p className="text-amber-600 text-xs">Enable location for accurate nearby garages</p>
-                    </div>
-                    <button
-                        onClick={requestLocation}
-                        className="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl"
-                    >
-                        Enable
-                    </button>
+                    <p className="text-amber-700 text-xs leading-relaxed">
+                        Tap the 🔒 lock icon in your browser's address bar → Allow Location → Refresh the page
+                    </p>
                 </div>
             )}
 
