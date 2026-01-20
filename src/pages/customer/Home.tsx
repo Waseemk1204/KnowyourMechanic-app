@@ -128,12 +128,12 @@ export default function CustomerHome() {
             {/* Header */}
             <header className="flex items-center justify-between py-6 mb-2">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Express Service</h1>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Find a Mechanic</h1>
                     <p className="text-blue-600 text-sm font-semibold flex items-center gap-1.5 mt-1">
                         <Navigation className="w-3.5 h-3.5 fill-blue-600" />
                         {loading || isLoadingGarages ? 'Locating...' :
                             permissionDenied ? 'Pune City Center' :
-                                `${garages.length} stations nearby`}
+                                `${garages.length} garages nearby`}
                     </p>
                 </div>
                 <button
@@ -198,7 +198,7 @@ export default function CustomerHome() {
             {/* Garage List */}
             <div className="flex-1 space-y-5">
                 <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-xl font-bold text-slate-900">Recommended for you</h2>
+                    <h2 className="text-xl font-bold text-slate-900">Nearby Garages</h2>
                     <button className="text-blue-600 text-sm font-bold">See All</button>
                 </div>
 
@@ -410,7 +410,7 @@ export default function CustomerHome() {
                                     </div>
                                     <div>
                                         <p className="font-bold">Customer</p>
-                                        <p className="text-blue-200 text-xs">Express Service</p>
+                                        <p className="text-blue-200 text-xs">Find a Mechanic</p>
                                     </div>
                                 </div>
                             </div>
