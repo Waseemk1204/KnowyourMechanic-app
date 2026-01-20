@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
+import LocationPicker from '../../components/LocationPicker';
 
 type Step = 'business' | 'bank' | 'review' | 'success';
 
@@ -16,6 +17,7 @@ interface BusinessInfo {
     email: string;
     phone: string;
     address: string;
+    coordinates: [number, number];
     serviceHours: string;
     workingDays: string[];
     businessType: string;
@@ -42,6 +44,7 @@ export default function GarageOnboardingWizard() {
         email: '',
         phone: '',
         address: '',
+        coordinates: [73.8567, 18.5204], // Default to Pune
         serviceHours: '9:00 AM - 8:00 PM',
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         businessType: 'individual',
@@ -286,19 +289,16 @@ export default function GarageOnboardingWizard() {
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Address</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
-                                    <textarea
-                                        value={business.address}
-                                        onChange={(e) => setBusiness({ ...business, address: e.target.value })}
-                                        placeholder="Full address"
-                                        rows={2}
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 resize-none"
-                                    />
-                                </div>
-                            </div>
+                            <LocationPicker
+                                value={business.address}
+                                coordinates={business.coordinates}
+                                onChange={(address, coords) => setBusiness({
+                                    ...business,
+                                    address,
+                                    coordinates: coords
+                                })}
+                                placeholder="Enter your garage address"
+                            />
 
                             <TimeRangePicker
                                 value={business.serviceHours}

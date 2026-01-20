@@ -8,6 +8,7 @@ import {
 import { CustomLoader } from '../../components/Loaders';
 import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
+import LocationPicker from '../../components/LocationPicker';
 
 
 interface BusinessInfo {
@@ -15,6 +16,7 @@ interface BusinessInfo {
     email: string;
     phone: string;
     address: string;
+    coordinates: [number, number];
     serviceHours: string;
     workingDays: string[];
     businessType: string;
@@ -47,6 +49,7 @@ export default function GarageSettings() {
         email: '',
         phone: '',
         address: '',
+        coordinates: [73.8567, 18.5204],
         serviceHours: '9:00 AM - 8:00 PM',
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         businessType: 'individual',
@@ -426,15 +429,16 @@ export default function GarageSettings() {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Address</label>
-                            <textarea
-                                value={business.address}
-                                onChange={(e) => setBusiness({ ...business, address: e.target.value })}
-                                rows={2}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white resize-none"
-                            />
-                        </div>
+                        <LocationPicker
+                            value={business.address}
+                            coordinates={business.coordinates}
+                            onChange={(address, coords) => setBusiness({
+                                ...business,
+                                address,
+                                coordinates: coords
+                            })}
+                            placeholder="Enter your garage address"
+                        />
 
                         <TimeRangePicker
                             value={business.serviceHours}
