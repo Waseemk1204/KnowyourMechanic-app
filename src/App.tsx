@@ -6,6 +6,7 @@ import CustomerActivity from './pages/customer/Activity';
 import GarageDetail from './pages/customer/GarageDetail';
 import VideoCall from './pages/customer/VideoCall';
 import CustomerSupport from './pages/customer/Support';
+import CustomerProfile from './pages/customer/Profile';
 import GarageOnboarding from './pages/garage/Onboarding';
 import GarageDashboard from './pages/garage/Dashboard';
 import GarageSettings from './pages/garage/Settings';
@@ -84,6 +85,7 @@ export default function App() {
           <Route path="/customer/garage/:id" element={<ProtectedRoute requiredRole="customer"><GarageDetail /></ProtectedRoute>} />
           <Route path="/customer/call/:roomId" element={<ProtectedRoute requiredRole="customer"><VideoCall /></ProtectedRoute>} />
           <Route path="/customer/support" element={<ProtectedRoute requiredRole="customer"><CustomerSupport /></ProtectedRoute>} />
+          <Route path="/customer/profile" element={<ProtectedRoute requiredRole="customer"><CustomerProfile /></ProtectedRoute>} />
 
           {/* Garage Routes */}
           <Route path="/garage/onboarding" element={<ProtectedRoute requiredRole="garage"><GarageOnboarding /></ProtectedRoute>} />

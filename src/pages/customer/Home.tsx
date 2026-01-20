@@ -401,6 +401,23 @@ export default function CustomerHome() {
                                 <button
                                     onClick={() => {
                                         setShowProfilePanel(false);
+                                        navigate('/customer/profile');
+                                    }}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+                                        <User className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-bold text-slate-900">Profile</p>
+                                        <p className="text-slate-400 text-xs">Your info & vehicle</p>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-500" />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setShowProfilePanel(false);
                                         navigate('/customer/activity');
                                     }}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
