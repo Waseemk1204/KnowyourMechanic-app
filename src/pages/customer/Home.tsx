@@ -420,7 +420,7 @@ export default function CustomerHome() {
                                 <button
                                     onClick={() => {
                                         setShowProfilePanel(false);
-                                        navigate('/activity');
+                                        navigate('/customer/activity');
                                     }}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
                                 >
@@ -437,7 +437,7 @@ export default function CustomerHome() {
                                 <button
                                     onClick={() => {
                                         setShowProfilePanel(false);
-                                        navigate('/support');
+                                        navigate('/customer/support');
                                     }}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
                                 >
