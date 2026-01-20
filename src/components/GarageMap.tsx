@@ -1,76 +1,114 @@
-import { useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useEffect } from 'react';
 
 interface GarageMapProps {
-    garages: { id: string; name: string; lat: number; lng: number }[];
+    garages: { id: string; name: string; lat: number; lng: number; rating?: number }[];
     userLocation: { lat: number; lng: number };
     onGarageSelect?: (garage: { id: string; name: string; lat: number; lng: number }) => void;
 }
 
-export default function GarageMap({ garages, userLocation, onGarageSelect }: GarageMapProps) {
-    const mapRef = useRef<HTMLDivElement>(null);
+// Custom user location icon (blue pulsing dot)
+const userIcon = L.divIcon({
+    className: 'user-location-marker',
+    html: `
+        <div style="
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3), 0 2px 8px rgba(0,0,0,0.3);
+        "></div>
+    `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+});
 
+// Custom garage marker icon
+const garageIcon = L.divIcon({
+    className: 'garage-marker',
+    html: `
+        <div style="
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+        </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+});
+
+// Component to recenter map when location changes
+function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
+    const map = useMap();
     useEffect(() => {
-        // Simple SVG-based map representation
-        if (mapRef.current) {
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('width', '100%');
-            svg.setAttribute('height', '100%');
-            svg.setAttribute('viewBox', '0 0 400 200');
-            svg.style.background = 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)';
+        map.setView([lat, lng], map.getZoom());
+    }, [lat, lng, map]);
+    return null;
+}
 
-            // Grid lines
-            for (let i = 0; i <= 8; i++) {
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', String(i * 50));
-                line.setAttribute('y1', '0');
-                line.setAttribute('x2', String(i * 50));
-                line.setAttribute('y2', '200');
-                line.setAttribute('stroke', 'rgba(100, 116, 139, 0.1)');
-                svg.appendChild(line);
-            }
-            for (let i = 0; i <= 4; i++) {
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', '0');
-                line.setAttribute('y1', String(i * 50));
-                line.setAttribute('x2', '400');
-                line.setAttribute('y2', String(i * 50));
-                line.setAttribute('stroke', 'rgba(100, 116, 139, 0.1)');
-                svg.appendChild(line);
-            }
+export default function GarageMap({ garages, userLocation, onGarageSelect }: GarageMapProps) {
+    return (
+        <MapContainer
+            center={[userLocation.lat, userLocation.lng]}
+            zoom={14}
+            style={{ width: '100%', height: '100%', borderRadius: '1rem' }}
+            zoomControl={false}
+            attributionControl={false}
+        >
+            <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
 
-            // User location
-            const userDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            userDot.setAttribute('cx', '200');
-            userDot.setAttribute('cy', '100');
-            userDot.setAttribute('r', '8');
-            userDot.setAttribute('fill', '#3b82f6');
-            userDot.setAttribute('stroke', 'white');
-            userDot.setAttribute('stroke-width', '2');
-            svg.appendChild(userDot);
+            <RecenterMap lat={userLocation.lat} lng={userLocation.lng} />
 
-            // Garage markers
-            garages.forEach((garage, index) => {
-                const angle = (index / garages.length) * 2 * Math.PI;
-                const distance = 50 + Math.random() * 30;
-                const x = 200 + Math.cos(angle) * distance;
-                const y = 100 + Math.sin(angle) * distance;
+            {/* User Location Marker */}
+            <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+                <Popup>
+                    <div className="text-center">
+                        <p className="font-bold text-blue-600">You are here</p>
+                    </div>
+                </Popup>
+            </Marker>
 
-                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                marker.setAttribute('cx', String(x));
-                marker.setAttribute('cy', String(y));
-                marker.setAttribute('r', '10');
-                marker.setAttribute('fill', '#8b5cf6');
-                marker.setAttribute('stroke', 'white');
-                marker.setAttribute('stroke-width', '2');
-                marker.style.cursor = 'pointer';
-                marker.addEventListener('click', () => onGarageSelect?.(garage));
-                svg.appendChild(marker);
-            });
-
-            mapRef.current.innerHTML = '';
-            mapRef.current.appendChild(svg);
-        }
-    }, [garages, userLocation, onGarageSelect]);
-
-    return <div ref={mapRef} className="w-full h-full" />;
+            {/* Garage Markers */}
+            {garages.map((garage) => (
+                <Marker
+                    key={garage.id}
+                    position={[garage.lat, garage.lng]}
+                    icon={garageIcon}
+                    eventHandlers={{
+                        click: () => onGarageSelect?.(garage),
+                    }}
+                >
+                    <Popup>
+                        <div className="text-center min-w-[120px]">
+                            <p className="font-bold text-slate-900">{garage.name}</p>
+                            {garage.rating && (
+                                <p className="text-amber-500 text-sm">⭐ {garage.rating}</p>
+                            )}
+                            <button
+                                onClick={() => onGarageSelect?.(garage)}
+                                className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded-full"
+                            >
+                                View Details
+                            </button>
+                        </div>
+                    </Popup>
+                </Marker>
+            ))}
+        </MapContainer>
+    );
 }

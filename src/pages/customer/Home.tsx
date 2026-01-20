@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Star, Phone, LogOut, X, Loader2, Filter, Navigation, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Star, Phone, LogOut, X, Loader2, Filter, Navigation, ChevronRight, LocateFixed } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from '../../hooks/useLocation';
 import { useAuth } from '../../contexts/AuthContext';
@@ -79,7 +79,7 @@ export default function CustomerHome() {
     const [isLoadingGarages, setIsLoadingGarages] = useState(false);
 
     const navigate = useNavigate();
-    const { location, loading, permissionDenied } = useLocation();
+    const { location, loading, permissionDenied, requestLocation } = useLocation();
     const { logout } = useAuth();
 
     console.log('CustomerHome render:', { loading, location, garagesCount: garages.length, isLoadingGarages });
@@ -160,6 +160,25 @@ export default function CustomerHome() {
                     <Filter className="w-5.5 h-5.5" />
                 </button>
             </div>
+
+            {/* Location Permission Prompt */}
+            {permissionDenied && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <LocateFixed className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="font-bold text-amber-800 text-sm">Location Access Needed</p>
+                        <p className="text-amber-600 text-xs">Enable location for accurate nearby garages</p>
+                    </div>
+                    <button
+                        onClick={requestLocation}
+                        className="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-xl"
+                    >
+                        Enable
+                    </button>
+                </div>
+            )}
 
             {/* Map Preview */}
             <div className="relative h-56 rounded-[2.5rem] overflow-hidden mb-10 shadow-2xl shadow-blue-900/10 border-4 border-white">
