@@ -73,14 +73,21 @@ router.get('/discovery', async (req, res) => {
         // Get service counts for all garages
         const Service = (await import('../models/Service.js')).default;
         const garageIds = garages.map((g: any) => g._id);
+
+        // Check total services in database
+        const totalServices = await Service.countDocuments({ isActive: true });
+        const allServices = await Service.find({ isActive: true }).limit(10).lean();
+
         const serviceCounts = await Service.aggregate([
             { $match: { garageId: { $in: garageIds }, isActive: true } },
             { $group: { _id: '$garageId', count: { $sum: 1 } } }
         ]);
 
-        console.log('Service count aggregation:', {
+        console.log('Service count debugging:', {
             totalGarages: garageIds.length,
-            garageIds: garageIds.map(id => id.toString()),
+            totalServicesInDb: totalServices,
+            sampleServices: allServices.map(s => ({ name: s.name, garageId: s.garageId?.toString() })),
+            garageNames: garages.map((g: any) => ({ id: g._id.toString(), name: g.name })),
             serviceCounts,
             serviceCountsLength: serviceCounts.length
         });
