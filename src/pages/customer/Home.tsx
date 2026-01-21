@@ -21,6 +21,14 @@ type Garage = {
     joinedDate?: string;
 };
 
+interface UnratedService {
+    garageId: string;
+    garageName: string;
+    garagePhoto?: string;
+    serviceDescription: string;
+    serviceDate: string;
+}
+
 const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): string => {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -71,6 +79,12 @@ export default function CustomerHome() {
     const [customerName, setCustomerName] = useState('Customer');
     const [visibleCount, setVisibleCount] = useState(3);
 
+    // Unrated service state
+    const [unratedService, setUnratedService] = useState<UnratedService | null>(null);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
+
     // Load customer name from profile
     useEffect(() => {
         const savedProfile = localStorage.getItem('customerProfile');
@@ -78,7 +92,95 @@ export default function CustomerHome() {
             const profile = JSON.parse(savedProfile);
             if (profile.name) setCustomerName(profile.name);
         }
-    }, [showProfilePanel]); // Refresh when panel closes (after profile edit)
+    }, [showProfilePanel]);
+
+    // Fetch unrated services
+    useEffect(() => {
+        fetchUnratedService();
+    }, []);
+
+    const getApiUrl = () => {
+        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
+    };
+
+    const fetchUnratedService = async () => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) return;
+
+            // Get customer's service history
+            const servicesRes = await fetch(`${getApiUrl()}/service-records/my-history`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!servicesRes.ok) return;
+            const services = await servicesRes.json();
+
+            // Check each service for existing review
+            for (const service of services) {
+                const garageId = service.garageId?._id;
+                if (!garageId) continue;
+
+                const reviewRes = await fetch(`${getApiUrl()}/reviews/my-review/${garageId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (reviewRes.ok) {
+                    const reviewData = await reviewRes.json();
+                    if (!reviewData.review) {
+                        // Found an unrated service
+                        setUnratedService({
+                            garageId,
+                            garageName: service.garageId?.name || 'Unknown Garage',
+                            garagePhoto: service.garageId?.photoUrl,
+                            serviceDescription: service.description,
+                            serviceDate: service.createdAt
+                        });
+                        return;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching unrated services:', error);
+        }
+    };
+
+    const handleSubmitReview = async () => {
+        if (reviewRating === 0 || !unratedService) return;
+
+        setSubmittingReview(true);
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch(`${getApiUrl()}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    garageId: unratedService.garageId,
+                    rating: reviewRating,
+                    comment: reviewComment
+                })
+            });
+
+            if (res.ok) {
+                setUnratedService(null);
+                setReviewRating(0);
+                setReviewComment('');
+            } else {
+                const errData = await res.json();
+                alert(errData.message || 'Failed to submit review');
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
 
     const navigate = useNavigate();
     const { location, loading, permissionDenied, requestLocation } = useLocation();
@@ -210,6 +312,81 @@ export default function CustomerHome() {
                     TAP MARKERS
                 </div>
             </div>
+
+            {/* Unrated Service Prompt */}
+            {unratedService && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-5 mb-6 border border-amber-200"
+                >
+                    <div className="flex items-start gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {unratedService.garagePhoto ? (
+                                <img src={unratedService.garagePhoto} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                <Star className="w-6 h-6 text-amber-600" />
+                            )}
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-slate-900 text-sm">Rate your experience</h3>
+                            <p className="text-xs text-slate-600 mt-0.5">{unratedService.garageName}</p>
+                            <p className="text-xs text-slate-400 mt-1 line-clamp-1">{unratedService.serviceDescription}</p>
+                        </div>
+                        <button
+                            onClick={() => setUnratedService(null)}
+                            className="text-slate-400 hover:text-slate-600"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="flex justify-center gap-2 mb-4">
+                        {[1, 2, 3, 4, 5].map(star => (
+                            <button
+                                key={star}
+                                onClick={() => setReviewRating(star)}
+                                className="transition-transform hover:scale-110 active:scale-95"
+                            >
+                                <Star
+                                    className={`w-10 h-10 ${star <= reviewRating
+                                            ? 'fill-amber-400 text-amber-400'
+                                            : 'text-slate-300'
+                                        }`}
+                                />
+                            </button>
+                        ))}
+                    </div>
+
+                    {reviewRating > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="space-y-3"
+                        >
+                            <textarea
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                placeholder="Add a comment (optional)"
+                                rows={2}
+                                maxLength={500}
+                                className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            />
+                            <button
+                                onClick={handleSubmitReview}
+                                disabled={submittingReview}
+                                className="w-full bg-amber-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors disabled:opacity-50"
+                            >
+                                {submittingReview ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    'Done'
+                                )}
+                            </button>
+                        </motion.div>
+                    )}
+                </motion.div>
+            )}
 
             {/* Garage List */}
             <div className="flex-1 space-y-5">
