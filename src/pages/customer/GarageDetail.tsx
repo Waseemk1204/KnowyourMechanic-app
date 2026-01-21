@@ -279,7 +279,7 @@ export default function GarageDetailPage() {
                                                     </div>
                                                 ) : (
                                                     <div className="mt-1 text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full inline-block">
-                                                        Less Reliable
+                                                        Cash Payment
                                                     </div>
                                                 )}
                                             </div>
