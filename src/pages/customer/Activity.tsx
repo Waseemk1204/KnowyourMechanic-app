@@ -214,9 +214,6 @@ export default function CustomerActivity() {
                                     <div className="flex-1">
                                         <div className="flex justify-between items-start mb-1">
                                             <h3 className="font-bold text-slate-900">{service.garageId?.name || 'Unknown Garage'}</h3>
-                                            <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-2 py-1 rounded-md">
-                                                Completed
-                                            </span>
                                         </div>
                                         <p className="text-slate-600 text-sm line-clamp-2">{service.description}</p>
                                     </div>
@@ -230,8 +227,8 @@ export default function CustomerActivity() {
                                             {formatDate(service.createdAt)}
                                         </div>
                                         <div className={`text-xs px-2 py-0.5 rounded-full ${service.isReliable
-                                                ? 'bg-green-50 text-green-600'
-                                                : 'bg-amber-50 text-amber-600'
+                                            ? 'bg-green-50 text-green-600'
+                                            : 'bg-amber-50 text-amber-600'
                                             }`}>
                                             {service.isReliable ? 'Verified' : 'Cash'}
                                         </div>
@@ -259,8 +256,8 @@ export default function CustomerActivity() {
                                                     >
                                                         <Star
                                                             className={`w-8 h-8 ${star <= reviewRating
-                                                                    ? 'fill-amber-400 text-amber-400'
-                                                                    : 'text-slate-300'
+                                                                ? 'fill-amber-400 text-amber-400'
+                                                                : 'text-slate-300'
                                                                 }`}
                                                         />
                                                     </button>
@@ -298,8 +295,8 @@ export default function CustomerActivity() {
                                                         <Star
                                                             key={star}
                                                             className={`w-4 h-4 ${star <= myReview.rating
-                                                                    ? 'fill-amber-400 text-amber-400'
-                                                                    : 'text-slate-300'
+                                                                ? 'fill-amber-400 text-amber-400'
+                                                                : 'text-slate-300'
                                                                 }`}
                                                         />
                                                     ))}
