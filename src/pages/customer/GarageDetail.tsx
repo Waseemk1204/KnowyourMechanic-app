@@ -35,7 +35,7 @@ export default function GarageDetailPage() {
 
     const [garage, setGarage] = useState<GarageDetail | null>(null);
     const [services, setServices] = useState<ServiceRecord[]>([]);
-    const [visibleServices, setVisibleServices] = useState(3);
+    const [visibleServices, setVisibleServices] = useState(5);
     const [loading, setLoading] = useState(true);
     const [selectedService, setSelectedService] = useState<ServiceRecord | null>(null);
     const [showCashInfoId, setShowCashInfoId] = useState<string | null>(null);
@@ -83,8 +83,8 @@ export default function GarageDetailPage() {
     };
 
     const loadMoreServices = () => {
-        // First click: show 5 more (3→8), subsequent clicks: show 10 more
-        const increment = visibleServices === 3 ? 5 : 10;
+        // First click: show 5 more (5→10), subsequent clicks: show 10 more
+        const increment = visibleServices === 5 ? 5 : 10;
         setVisibleServices(prev => prev + increment);
     };
 
