@@ -7,6 +7,7 @@ import bookingsRoutes from './routes/bookings.js';
 import servicesRoutes from './routes/services.js';
 import serviceRecordsRoutes from './routes/service-records.js';
 import onboardingRoutes from './routes/onboarding.js';
+import reviewsRoutes from './routes/reviews.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ app.use('/api/bookings', bookingsRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/service-records', serviceRecordsRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {

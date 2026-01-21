@@ -15,6 +15,14 @@ interface ServiceRecord {
     isReliable: boolean;
 }
 
+interface Review {
+    _id: string;
+    rating: number;
+    comment?: string;
+    customerPhone: string;
+    createdAt: string;
+}
+
 interface GarageDetail {
     _id: string;
     name: string;
@@ -36,6 +44,14 @@ export default function GarageDetailPage() {
     const [garage, setGarage] = useState<GarageDetail | null>(null);
     const [services, setServices] = useState<ServiceRecord[]>([]);
     const [visibleServices, setVisibleServices] = useState(5);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [visibleReviews, setVisibleReviews] = useState(20);
+    const [myReview, setMyReview] = useState<Review | null>(null);
+    const [canReview, setCanReview] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [submittingReview, setSubmittingReview] = useState(false);
     const [loading, setLoading] = useState(true);
     const [selectedService, setSelectedService] = useState<ServiceRecord | null>(null);
     const [showCashInfoId, setShowCashInfoId] = useState<string | null>(null);
@@ -48,6 +64,8 @@ export default function GarageDetailPage() {
 
     useEffect(() => {
         fetchGarageDetails();
+        fetchReviews();
+        fetchMyReview();
     }, [id]);
 
     const fetchGarageDetails = async () => {
@@ -70,6 +88,112 @@ export default function GarageDetailPage() {
             console.error('Error fetching garage details:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchReviews = async () => {
+        try {
+            const res = await fetch(`${getApiUrl()}/reviews/garage/${id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setReviews(data.reviews);
+            }
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+        }
+    };
+
+    const fetchMyReview = async () => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) return;
+
+            const res = await fetch(`${getApiUrl()}/reviews/my-review/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setMyReview(data.review);
+                setCanReview(data.canReview);
+
+                if (data.review) {
+                    setReviewRating(data.review.rating);
+                    setReviewComment(data.review.comment || '');
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching my review:', error);
+        }
+    };
+
+    const handleSubmitReview = async () => {
+        if (reviewRating === 0) {
+            alert('Please select a rating');
+            return;
+        }
+
+        setSubmittingReview(true);
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch(`${getApiUrl()}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    garageId: id,
+                    rating: reviewRating,
+                    comment: reviewComment
+                })
+            });
+
+            if (res.ok) {
+                setShowReviewModal(false);
+                fetchReviews();
+                fetchMyReview();
+
+                // Update garage rating in state
+                if (garage) {
+                    fetchGarageDetails();
+                }
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to submit review');
+            }
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            alert('Failed to submit review');
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
+
+    const handleDeleteReview = async () => {
+        if (!myReview || !confirm('Are you sure you want to delete your review?')) return;
+
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch(`${getApiUrl()}/reviews/${myReview._id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                setMyReview(null);
+                setReviewRating(0);
+                setReviewComment('');
+                fetchReviews();
+                fetchGarageDetails();
+            }
+        } catch (error) {
+            console.error('Error deleting review:', error);
         }
     };
 
@@ -341,7 +465,204 @@ export default function GarageDetailPage() {
                         </>
                     )}
                 </div>
+
+                {/* Reviews Section */}
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-slate-900 mb-4">Reviews ({garage?.totalReviews || 0})</h2>
+
+                    {/* Your Review */}
+                    {canReview && (
+                        <div className="bg-white rounded-2xl p-4 mb-4 border border-slate-100">
+                            {myReview ? (
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="font-semibold text-slate-900">Your Review</h3>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setShowReviewModal(true);
+                                                }}
+                                                className="text-sm text-blue-600 font-semibold"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={handleDeleteReview}
+                                                className="text-sm text-red-600 font-semibold"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <Star
+                                                key={star}
+                                                className={`w-5 h-5 ${star <= myReview.rating
+                                                        ? 'fill-amber-400 text-amber-400'
+                                                        : 'text-slate-300'
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
+                                    {myReview.comment && (
+                                        <p className="text-sm text-slate-600">{myReview.comment}</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setShowReviewModal(true)}
+                                    className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+                                >
+                                    Leave a Review
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* All Reviews */}
+                    {reviews.length === 0 ? (
+                        <div className="bg-white rounded-2xl p-6 text-center">
+                            <Star className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                            <p className="text-slate-400">No reviews yet</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="space-y-3">
+                                {reviews.slice(0, visibleReviews).map((review, i) => (
+                                    <motion.div
+                                        key={review._id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="bg-white rounded-2xl p-4 border border-slate-100"
+                                    >
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <Star
+                                                        key={star}
+                                                        className={`w-4 h-4 ${star <= review.rating
+                                                                ? 'fill-amber-400 text-amber-400'
+                                                                : 'text-slate-300'
+                                                            }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-xs text-slate-400">
+                                                {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric'
+                                                })}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mb-2">{review.customerPhone}</p>
+                                        {review.comment && (
+                                            <p className="text-sm text-slate-700">{review.comment}</p>
+                                        )}
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {visibleReviews < reviews.length && (
+                                <button
+                                    onClick={() => setVisibleReviews(prev => prev + 20)}
+                                    className="w-full mt-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+                                >
+                                    See More Reviews
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
+
+            {/* Review Modal */}
+            <AnimatePresence>
+                {showReviewModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center"
+                        onClick={() => setShowReviewModal(false)}
+                    >
+                        <motion.div
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-bold text-slate-900">
+                                    {myReview ? 'Edit Review' : 'Leave a Review'}
+                                </h3>
+                                <button onClick={() => setShowReviewModal(false)}>
+                                    <X className="w-6 h-6 text-slate-400" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                        Your Rating *
+                                    </label>
+                                    <div className="flex gap-2">
+                                        {[1, 2, 3, 4, 5].map(star => (
+                                            <button
+                                                key={star}
+                                                onClick={() => setReviewRating(star)}
+                                                className="transition-transform hover:scale-110"
+                                            >
+                                                <Star
+                                                    className={`w-10 h-10 ${star <= reviewRating
+                                                            ? 'fill-amber-400 text-amber-400'
+                                                            : 'text-slate-300'
+                                                        }`}
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        Comment (Optional)
+                                    </label>
+                                    <textarea
+                                        value={reviewComment}
+                                        onChange={(e) => setReviewComment(e.target.value)}
+                                        placeholder="Share your experience..."
+                                        rows={4}
+                                        maxLength={500}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    />
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        {reviewComment.length}/500 characters
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={handleSubmitReview}
+                                    disabled={submittingReview || reviewRating === 0}
+                                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {submittingReview ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Check className="w-5 h-5" />
+                                            {myReview ? 'Update Review' : 'Submit Review'}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Booking Modal */}
             <AnimatePresence>
