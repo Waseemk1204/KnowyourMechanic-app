@@ -1,55 +1,51 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Wrench, Loader2, Calendar, X, Check, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Clock, Wrench, Loader2, Calendar, Check, AlertCircle, ArrowLeft, MapPin, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface Booking {
+interface ServiceRecord {
     _id: string;
     garageId: {
         _id: string;
         name: string;
         photoUrl?: string;
+        location?: {
+            address: string;
+        };
     };
-    serviceId: {
-        _id: string;
-        name: string;
-        price: number;
-    };
-    scheduledDate: string;
-    scheduledTime: string;
-    status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
-    totalPrice: number;
+    description: string;
+    amount: number;
+    paymentMethod: string;
+    isReliable: boolean;
     createdAt: string;
 }
 
-const statusConfig = {
-    pending: { label: 'Pending', color: 'text-amber-600', bg: 'bg-amber-50' },
-    accepted: { label: 'Confirmed', color: 'text-green-600', bg: 'bg-green-50' },
-    rejected: { label: 'Rejected', color: 'text-red-600', bg: 'bg-red-50' },
-    completed: { label: 'Completed', color: 'text-blue-600', bg: 'bg-blue-50' },
-    cancelled: { label: 'Cancelled', color: 'text-slate-600', bg: 'bg-slate-100' },
-};
-
 export default function CustomerActivity() {
-    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [services, setServices] = useState<ServiceRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchBookings();
+        fetchServiceHistory();
     }, []);
 
     const getApiUrl = () => {
         return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
     };
 
-    const fetchBookings = async () => {
+    const fetchServiceHistory = async () => {
         try {
             const { auth } = await import('../../lib/firebase');
             const token = await auth.currentUser?.getIdToken();
 
-            const res = await fetch(`${getApiUrl()}/bookings/my-bookings`, {
+            if (!token) {
+                setError('Please login to view your service history');
+                setLoading(false);
+                return;
+            }
+
+            const res = await fetch(`${getApiUrl()}/service-records/my-history`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -57,43 +53,21 @@ export default function CustomerActivity() {
 
             if (res.ok) {
                 const data = await res.json();
-                setBookings(data);
+                setServices(data);
             } else {
-                setError('Failed to load bookings');
+                const errData = await res.json();
+                if (res.status === 404) {
+                    // No services yet - not an error
+                    setServices([]);
+                } else {
+                    setError(errData.message || 'Failed to load service history');
+                }
             }
         } catch (err) {
-            console.error('Error fetching bookings:', err);
-            setError('Failed to load bookings');
+            console.error('Error fetching service history:', err);
+            setError('Failed to load service history');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleCancelBooking = async (bookingId: string) => {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
-
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/bookings/${bookingId}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ status: 'cancelled' })
-            });
-
-            if (res.ok) {
-                // Refresh bookings
-                fetchBookings();
-            } else {
-                alert('Failed to cancel booking');
-            }
-        } catch (err) {
-            console.error('Error cancelling booking:', err);
-            alert('Failed to cancel booking');
         }
     };
 
@@ -135,71 +109,86 @@ export default function CustomerActivity() {
                 )}
 
                 <div className="space-y-4">
-                    {bookings.map((booking, i) => {
-                        const status = statusConfig[booking.status];
-                        return (
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.1 }}
-                                key={booking._id}
-                                className="premium-card p-5 bg-white"
-                            >
-                                <div className="flex items-start gap-4 mb-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
+                    {services.map((service, i) => (
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            key={service._id}
+                            className="premium-card p-5 bg-white cursor-pointer hover:shadow-lg transition-shadow"
+                            onClick={() => navigate(`/customer/garage/${service.garageId?._id}`)}
+                        >
+                            <div className="flex items-start gap-4 mb-3">
+                                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center overflow-hidden">
+                                    {service.garageId?.photoUrl ? (
+                                        <img
+                                            src={service.garageId.photoUrl}
+                                            alt={service.garageId.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
                                         <Wrench className="w-7 h-7 text-blue-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-bold text-slate-900">{booking.garageId?.name || 'Unknown Garage'}</h3>
-                                            <span className={`text-[10px] font-black uppercase ${status.color} ${status.bg} px-2 py-1 rounded-md`}>
-                                                {status.label}
-                                            </span>
-                                        </div>
-                                        <p className="text-blue-600 font-semibold text-sm">{booking.serviceId?.name || 'Service'}</p>
-                                    </div>
+                                    )}
                                 </div>
+                                <div className="flex-1">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <h3 className="font-bold text-slate-900">{service.garageId?.name || 'Unknown Garage'}</h3>
+                                        <span className="text-[10px] font-black uppercase text-green-600 bg-green-50 px-2 py-1 rounded-md">
+                                            Completed
+                                        </span>
+                                    </div>
+                                    <p className="text-slate-600 text-sm line-clamp-2">{service.description}</p>
+                                </div>
+                            </div>
 
-                                <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
-                                    <div className="flex items-center gap-1">
+                            {service.garageId?.location?.address && (
+                                <div className="flex items-center gap-2 text-xs text-slate-400 mb-3">
+                                    <MapPin className="w-3 h-3" />
+                                    <span className="truncate">{service.garageId.location.address}</span>
+                                </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1 text-slate-500 text-sm">
                                         <Calendar className="w-4 h-4" />
-                                        {formatDate(booking.scheduledDate)}
+                                        {formatDate(service.createdAt)}
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <Clock className="w-4 h-4" />
-                                        {booking.scheduledTime}
+                                    <div className={`text-xs px-2 py-0.5 rounded-full ${service.isReliable
+                                            ? 'bg-green-50 text-green-600'
+                                            : 'bg-amber-50 text-amber-600'
+                                        }`}>
+                                        {service.isReliable ? 'Verified' : 'Cash'}
                                     </div>
                                 </div>
+                                <span className="font-bold text-lg text-slate-900">₹{service.amount}</span>
+                            </div>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                                    <span className="font-bold text-lg text-slate-900">₹{booking.totalPrice}</span>
-                                    {booking.status === 'pending' && (
-                                        <button
-                                            onClick={() => handleCancelBooking(booking._id)}
-                                            className="text-red-600 text-sm font-semibold flex items-center gap-1"
-                                        >
-                                            <X className="w-4 h-4" />
-                                            Cancel
-                                        </button>
-                                    )}
-                                    {booking.status === 'completed' && (
-                                        <div className="flex items-center gap-1 text-green-600 text-sm font-semibold">
-                                            <Check className="w-4 h-4" />
-                                            Done
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        );
-                    })}
+                            {/* Review prompt */}
+                            <div className="mt-3 pt-3 border-t border-slate-100">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate(`/customer/garage/${service.garageId?._id}`);
+                                    }}
+                                    className="flex items-center gap-2 text-blue-600 text-sm font-semibold"
+                                >
+                                    <Star className="w-4 h-4" />
+                                    Leave a Review
+                                </button>
+                            </div>
+                        </motion.div>
+                    ))}
 
-                    {bookings.length === 0 && !error && (
+                    {services.length === 0 && !error && (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
                             <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-6">
                                 <Clock className="w-10 h-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-400">No activity yet</h3>
-                            <p className="text-slate-300 font-medium">Your past services will start appearing here</p>
+                            <h3 className="text-xl font-bold text-slate-400">No services yet</h3>
+                            <p className="text-slate-300 font-medium mt-2">
+                                Your service history will appear here when garages record your services
+                            </p>
                         </div>
                     )}
                 </div>

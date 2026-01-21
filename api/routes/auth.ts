@@ -15,15 +15,35 @@ router.post('/sync', authenticate, async (req: AuthRequest, res) => {
             return res.status(400).json({ message: 'Invalid role' });
         }
 
+        const phoneNumber = req.user!.phone_number || '';
+
+        // First check if user exists by Firebase UID
         let user = await User.findOne({ firebaseUid: req.user!.uid });
 
         if (!user) {
-            user = new User({
-                firebaseUid: req.user!.uid,
-                phoneNumber: req.user!.phone_number || '',
-                role,
+            // Check if there's an existing account with this phone number but no Firebase UID
+            // (auto-created from service records)
+            const existingByPhone = await User.findOne({
+                phoneNumber,
+                role: 'customer',
+                firebaseUid: { $exists: false }
             });
-            await user.save();
+
+            if (existingByPhone && role === 'customer') {
+                // Link this Firebase account to the existing customer record
+                existingByPhone.firebaseUid = req.user!.uid;
+                await existingByPhone.save();
+                console.log(`Linked Firebase account to existing customer: ${phoneNumber}`);
+                user = existingByPhone;
+            } else {
+                // Create new user
+                user = new User({
+                    firebaseUid: req.user!.uid,
+                    phoneNumber,
+                    role,
+                });
+                await user.save();
+            }
         }
 
         res.status(200).json(user);

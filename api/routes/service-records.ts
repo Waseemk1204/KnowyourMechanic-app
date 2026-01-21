@@ -179,6 +179,29 @@ router.post('/complete', authenticate, async (req: AuthRequest, res) => {
 
         await serviceRecord.save();
 
+        // Auto-create customer account if doesn't exist
+        try {
+            const existingCustomer = await User.findOne({
+                phoneNumber: serviceRecord.customerPhone,
+                role: 'customer'
+            });
+
+            if (!existingCustomer) {
+                // Create a placeholder customer account
+                // They can "claim" it when they login with this phone number
+                const newCustomer = new User({
+                    phoneNumber: serviceRecord.customerPhone,
+                    role: 'customer',
+                    createdAt: new Date()
+                });
+                await newCustomer.save();
+                console.log(`Auto-created customer account for ${serviceRecord.customerPhone}`);
+            }
+        } catch (customerError) {
+            // Don't fail the service completion if customer creation fails
+            console.error('Auto-create customer error:', customerError);
+        }
+
         res.json({
             message: 'Service completed successfully',
             serviceRecord: {
@@ -258,6 +281,31 @@ router.get('/garage/:garageId', async (req, res) => {
     } catch (error: any) {
         console.error('Get garage service records error:', error);
         res.status(500).json({ message: 'Failed to get service records' });
+    }
+});
+
+// Get customer's service history (for Activity page)
+router.get('/my-history', authenticate, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const user = await User.findOne({ firebaseUid: req.user!.uid });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Find all completed services for this customer's phone number
+        const services = await ServiceRecord.find({
+            customerPhone: user.phoneNumber,
+            status: 'completed'
+        })
+            .sort({ createdAt: -1 })
+            .populate('garageId', 'name photoUrl location')
+            .lean();
+
+        res.json(services);
+    } catch (error: any) {
+        console.error('Get customer service history error:', error);
+        res.status(500).json({ message: 'Failed to get service history' });
     }
 });
 
