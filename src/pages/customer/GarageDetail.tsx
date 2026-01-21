@@ -218,7 +218,15 @@ export default function GarageDetailPage() {
                         </div>
                         <div className="flex items-center gap-3">
                             <Calendar className="w-5 h-5 text-slate-400" />
-                            <span className="text-slate-600 text-sm">{garage.workingDays}</span>
+                            <span className="text-slate-600 text-sm">
+                                {garage.workingDays.split('').map((day, i, arr) => {
+                                    // Add space after every 3 characters (Mon, Tue, etc.)
+                                    if ((i + 1) % 3 === 0 && i !== arr.length - 1) {
+                                        return day + ', ';
+                                    }
+                                    return day;
+                                }).join('')}
+                            </span>
                         </div>
                     </div>
 
