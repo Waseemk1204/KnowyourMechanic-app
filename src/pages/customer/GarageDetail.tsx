@@ -82,7 +82,9 @@ export default function GarageDetailPage() {
     };
 
     const loadMoreServices = () => {
-        setVisibleServices(prev => prev + 5);
+        // First click: show 5 more (3→8), subsequent clicks: show 10 more
+        const increment = visibleServices === 3 ? 5 : 10;
+        setVisibleServices(prev => prev + increment);
     };
 
     const handleConfirmBooking = async () => {
@@ -270,10 +272,14 @@ export default function GarageDetailPage() {
                                                 </p>
                                             </div>
                                             <div className="text-right ml-3">
-                                                <p className="font-bold text-blue-600">₹{service.amount}</p>
-                                                {service.isReliable && (
+                                                <p className="font-bold text-slate-900">₹{service.amount}</p>
+                                                {service.isReliable ? (
                                                     <div className="mt-1 text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full inline-block">
                                                         Verified
+                                                    </div>
+                                                ) : (
+                                                    <div className="mt-1 text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full inline-block">
+                                                        Less Reliable
                                                     </div>
                                                 )}
                                             </div>
@@ -287,7 +293,7 @@ export default function GarageDetailPage() {
                                     onClick={loadMoreServices}
                                     className="w-full mt-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
                                 >
-                                    See More ({services.length - visibleServices} remaining)
+                                    See More
                                 </button>
                             )}
                         </>
