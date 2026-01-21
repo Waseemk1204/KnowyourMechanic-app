@@ -38,6 +38,14 @@ const transformApiGarage = (apiGarage: any, userLat: number, userLng: number): G
     const lat = coords[1] || userLat;
     const lng = coords[0] || userLng;
 
+    console.log('Transforming garage:', {
+        name: apiGarage.name,
+        rawCoords: coords,
+        extractedLat: lat,
+        extractedLng: lng,
+        totalServices: apiGarage.totalServices
+    });
+
     return {
         id: apiGarage._id,
         name: apiGarage.name || 'Unnamed Garage',
@@ -262,15 +270,16 @@ export default function CustomerHome() {
                                         Joined since {garage.joinedDate}
                                     </span>
 
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                console.log('Opening directions to:', { lat: garage.lat, lng: garage.lng, name: garage.name });
                                                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${garage.lat},${garage.lng}`);
                                             }}
-                                            className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
+                                            className="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
                                         >
-                                            <Navigation className="w-3.5 h-3.5 fill-blue-600" />
+                                            <Navigation className="w-4 h-4 fill-blue-600" />
                                         </button>
 
                                         {garage.phone && (
@@ -279,9 +288,9 @@ export default function CustomerHome() {
                                                     e.stopPropagation();
                                                     window.open(`tel:${garage.phone}`);
                                                 }}
-                                                className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors border border-green-100"
+                                                className="w-9 h-9 bg-green-50 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors border border-green-100"
                                             >
-                                                <Phone className="w-3.5 h-3.5" />
+                                                <Phone className="w-4 h-4" />
                                             </button>
                                         )}
                                     </div>
