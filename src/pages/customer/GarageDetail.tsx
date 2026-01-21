@@ -38,7 +38,7 @@ export default function GarageDetailPage() {
     const [visibleServices, setVisibleServices] = useState(3);
     const [loading, setLoading] = useState(true);
     const [selectedService, setSelectedService] = useState<ServiceRecord | null>(null);
-    const [showCashInfo, setShowCashInfo] = useState(false);
+    const [showCashInfoId, setShowCashInfoId] = useState<string | null>(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [bookingDate, setBookingDate] = useState('');
     const [bookingTime, setBookingTime] = useState('');
@@ -282,7 +282,10 @@ export default function GarageDetailPage() {
                                                     <div className="relative">
                                                         <div className="mt-1 flex items-center gap-1">
                                                             <button
-                                                                onClick={() => setShowCashInfo(!showCashInfo)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setShowCashInfoId(showCashInfoId === service._id ? null : service._id);
+                                                                }}
                                                                 className="w-4 h-4 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors"
                                                             >
                                                                 <Info className="w-3 h-3 text-amber-600" />
@@ -291,7 +294,7 @@ export default function GarageDetailPage() {
                                                                 Cash Payment
                                                             </div>
                                                         </div>
-                                                        {showCashInfo && (
+                                                        {showCashInfoId === service._id && (
                                                             <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-10">
                                                                 <div className="flex items-start gap-2">
                                                                     <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -300,7 +303,7 @@ export default function GarageDetailPage() {
                                                                             Cash payments can't be verified through our payment system, making them less traceable and reliable.
                                                                         </p>
                                                                         <button
-                                                                            onClick={() => setShowCashInfo(false)}
+                                                                            onClick={() => setShowCashInfoId(null)}
                                                                             className="text-xs text-blue-600 font-semibold mt-2"
                                                                         >
                                                                             Got it
