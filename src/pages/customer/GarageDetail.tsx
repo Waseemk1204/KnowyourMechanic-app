@@ -6,12 +6,13 @@ import {
     Wrench, ChevronRight, Calendar, X, Check, Loader2
 } from 'lucide-react';
 
-interface Service {
+interface ServiceRecord {
     _id: string;
-    name: string;
-    description?: string;
-    price: number;
-    duration: number;
+    description: string;
+    amount: number;
+    createdAt: string;
+    customerPhone: string;
+    isReliable: boolean;
 }
 
 interface GarageDetail {
@@ -33,9 +34,10 @@ export default function GarageDetailPage() {
     const navigate = useNavigate();
 
     const [garage, setGarage] = useState<GarageDetail | null>(null);
-    const [services, setServices] = useState<Service[]>([]);
+    const [services, setServices] = useState<ServiceRecord[]>([]);
+    const [visibleServices, setVisibleServices] = useState(3);
     const [loading, setLoading] = useState(true);
-    const [selectedService, setSelectedService] = useState<Service | null>(null);
+    const [selectedService, setSelectedService] = useState<ServiceRecord | null>(null);
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [bookingDate, setBookingDate] = useState('');
     const [bookingTime, setBookingTime] = useState('');
@@ -57,8 +59,8 @@ export default function GarageDetailPage() {
                 setGarage(garageData);
             }
 
-            // Fetch services
-            const servicesRes = await fetch(`${getApiUrl()}/services/garage/${id}`);
+            // Fetch service records (completed services)
+            const servicesRes = await fetch(`${getApiUrl()}/service-records/garage/${id}`);
             if (servicesRes.ok) {
                 const servicesData = await servicesRes.json();
                 setServices(servicesData);
@@ -74,9 +76,13 @@ export default function GarageDetailPage() {
         return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
     };
 
-    const handleBookService = (service: Service) => {
+    const handleBookService = (service: ServiceRecord) => {
         setSelectedService(service);
         setShowBookingModal(true);
+    };
+
+    const loadMoreServices = () => {
+        setVisibleServices(prev => prev + 5);
     };
 
     const handleConfirmBooking = async () => {
@@ -234,42 +240,57 @@ export default function GarageDetailPage() {
 
                 {/* Services */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">Services</h2>
+                    <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Services</h2>
 
                     {services.length === 0 ? (
                         <div className="bg-white rounded-2xl p-6 text-center">
                             <Wrench className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                            <p className="text-slate-400">No services available yet</p>
+                            <p className="text-slate-400">No services completed yet</p>
                         </div>
                     ) : (
-                        <div className="space-y-3">
-                            {services.map((service, i) => (
-                                <motion.div
-                                    key={service._id}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.1 }}
-                                    className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm"
+                        <>
+                            <div className="space-y-3">
+                                {services.slice(0, visibleServices).map((service, i) => (
+                                    <motion.div
+                                        key={service._id}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-slate-900 mb-1">{service.description}</p>
+                                                <p className="text-xs text-slate-400">
+                                                    {new Date(service.createdAt).toLocaleDateString('en-IN', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric'
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <div className="text-right ml-3">
+                                                <p className="font-bold text-blue-600">₹{service.amount}</p>
+                                                {service.isReliable && (
+                                                    <div className="mt-1 text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full inline-block">
+                                                        Verified
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {visibleServices < services.length && (
+                                <button
+                                    onClick={loadMoreServices}
+                                    className="w-full mt-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
                                 >
-                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                                        <Wrench className="w-6 h-6 text-blue-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-bold text-slate-900">{service.name}</h3>
-                                        <p className="text-slate-400 text-sm">{service.duration} mins</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-bold text-blue-600">₹{service.price}</p>
-                                        <button
-                                            onClick={() => handleBookService(service)}
-                                            className="text-xs font-semibold text-blue-600 mt-1"
-                                        >
-                                            Book Now
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
+                                    See More ({services.length - visibleServices} remaining)
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

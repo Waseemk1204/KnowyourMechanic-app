@@ -240,4 +240,25 @@ router.get('/history', authenticate, async (req: AuthRequest, res) => {
     }
 });
 
+// Get service records for a specific garage (public endpoint for customers)
+router.get('/garage/:garageId', async (req, res) => {
+    await dbConnect();
+    try {
+        const { garageId } = req.params;
+
+        const serviceRecords = await ServiceRecord.find({
+            garageId,
+            status: 'completed'
+        })
+            .sort({ createdAt: -1 })
+            .select('description amount createdAt customerPhone isReliable')
+            .lean();
+
+        res.json(serviceRecords);
+    } catch (error: any) {
+        console.error('Get garage service records error:', error);
+        res.status(500).json({ message: 'Failed to get service records' });
+    }
+});
+
 export default router;
