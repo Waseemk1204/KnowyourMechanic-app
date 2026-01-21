@@ -11,7 +11,6 @@ import GarageOnboarding from './pages/garage/Onboarding';
 import GarageDashboard from './pages/garage/Dashboard';
 import GarageSettings from './pages/garage/Settings';
 import GarageSupport from './pages/garage/Support';
-import GarageServices from './pages/garage/Services';
 import './index.css';
 
 function LoadingScreen() {
@@ -92,7 +91,6 @@ export default function App() {
           <Route path="/garage/onboarding" element={<ProtectedRoute requiredRole="garage"><GarageOnboarding /></ProtectedRoute>} />
           <Route path="/garage" element={<ProtectedRoute requiredRole="garage"><GarageDashboard /></ProtectedRoute>} />
           <Route path="/garage/dashboard" element={<ProtectedRoute requiredRole="garage"><GarageDashboard /></ProtectedRoute>} />
-          <Route path="/garage/services" element={<ProtectedRoute requiredRole="garage"><GarageServices /></ProtectedRoute>} />
           <Route path="/garage/settings" element={<ProtectedRoute requiredRole="garage"><GarageSettings /></ProtectedRoute>} />
           <Route path="/garage/support" element={<ProtectedRoute requiredRole="garage"><GarageSupport /></ProtectedRoute>} />
 

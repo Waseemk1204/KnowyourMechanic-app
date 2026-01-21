@@ -70,23 +70,23 @@ router.get('/discovery', async (req, res) => {
 
         const garages = await Garage.find(query).populate('userId', 'phoneNumber').lean();
 
-        // Get service counts for all garages
-        const Service = (await import('../models/Service.js')).default;
+        // Get service record counts for all garages (completed services)
+        const ServiceRecord = (await import('../models/ServiceRecord.js')).default;
         const garageIds = garages.map((g: any) => g._id);
 
-        // Check total services in database
-        const totalServices = await Service.countDocuments({ isActive: true });
-        const allServices = await Service.find({ isActive: true }).limit(10).lean();
+        // Check total service records in database
+        const totalRecords = await ServiceRecord.countDocuments({ status: 'completed' });
+        const allRecords = await ServiceRecord.find({ status: 'completed' }).limit(10).lean();
 
-        const serviceCounts = await Service.aggregate([
-            { $match: { garageId: { $in: garageIds }, isActive: true } },
+        const serviceCounts = await ServiceRecord.aggregate([
+            { $match: { garageId: { $in: garageIds }, status: 'completed' } },
             { $group: { _id: '$garageId', count: { $sum: 1 } } }
         ]);
 
-        console.log('Service count debugging:', {
+        console.log('Service record count debugging:', {
             totalGarages: garageIds.length,
-            totalServicesInDb: totalServices,
-            sampleServices: allServices.map(s => ({ name: s.name, garageId: s.garageId?.toString() })),
+            totalRecordsInDb: totalRecords,
+            sampleRecords: allRecords.map(s => ({ customerPhone: s.customerPhone, garageId: s.garageId?.toString(), amount: s.amount })),
             garageNames: garages.map((g: any) => ({ id: g._id.toString(), name: g.name })),
             serviceCounts,
             serviceCountsLength: serviceCounts.length
