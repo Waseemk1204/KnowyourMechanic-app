@@ -65,7 +65,9 @@ const transformApiGarage = (apiGarage: any, userLat: number, userLng: number): G
         lng,
         totalServices: apiGarage.totalServices || 0,
         phone: apiGarage.userId?.phoneNumber || apiGarage.phone || '',
-        joinedDate: apiGarage.createdAt ? new Date(apiGarage.createdAt).getFullYear().toString() : '2024',
+        joinedDate: apiGarage.createdAt
+            ? `${String(new Date(apiGarage.createdAt).getMonth() + 1).padStart(2, '0')}/${new Date(apiGarage.createdAt).getFullYear()}`
+            : '01/2024',
     };
 };
 
@@ -350,8 +352,8 @@ export default function CustomerHome() {
                             >
                                 <Star
                                     className={`w-10 h-10 ${star <= reviewRating
-                                            ? 'fill-amber-400 text-amber-400'
-                                            : 'text-slate-300'
+                                        ? 'fill-amber-400 text-amber-400'
+                                        : 'text-slate-300'
                                         }`}
                                 />
                             </button>
@@ -419,9 +421,6 @@ export default function CustomerHome() {
                                     alt={garage.name}
                                     className="w-full h-full object-cover"
                                 />
-                                <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-medium text-white">
-                                    {garage.distance}
-                                </div>
                             </div>
 
                             <div className="flex-1 p-4 flex flex-col justify-between" onClick={() => navigate(`/customer/garage/${garage.id}`)}>
