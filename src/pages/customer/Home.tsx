@@ -275,7 +275,7 @@ export default function CustomerHome() {
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 console.log('Opening directions to:', { lat: garage.lat, lng: garage.lng, name: garage.name });
-                                                window.open(`https://www.google.com/maps/dir/?api=1&destination=${garage.lat},${garage.lng}`);
+                                                window.open(`https://www.google.com/maps/dir//${garage.lat},${garage.lng}`);
                                             }}
                                             className="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
                                         >

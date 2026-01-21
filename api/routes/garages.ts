@@ -78,6 +78,13 @@ router.get('/discovery', async (req, res) => {
             { $group: { _id: '$garageId', count: { $sum: 1 } } }
         ]);
 
+        console.log('Service count aggregation:', {
+            totalGarages: garageIds.length,
+            garageIds: garageIds.map(id => id.toString()),
+            serviceCounts,
+            serviceCountsLength: serviceCounts.length
+        });
+
         // Create a map of garage ID to service count
         const countMap = new Map(serviceCounts.map((s: any) => [s._id.toString(), s.count]));
 
