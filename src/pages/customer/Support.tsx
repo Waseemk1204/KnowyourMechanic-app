@@ -139,7 +139,7 @@ export default function CustomerSupport() {
                         <h4 className="text-lg font-black">We're Here to Help</h4>
                     </div>
                     <p className="text-blue-100 text-sm font-medium leading-relaxed">
-                        Contact us anytime for assistance with bookings, payments, or any questions.
+                        Contact us anytime for assistance with services, payments, or any questions.
                     </p>
                 </div>
             </div>
