@@ -1,19 +1,61 @@
-import { motion } from 'framer-motion';
-import { MessageSquare, Phone, Mail, ArrowRight, ShieldCheck, Briefcase, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Phone, Mail, ArrowRight, ShieldCheck, Briefcase, ArrowLeft, ChevronDown, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const faqs = [
+    {
+        question: 'How do I add a new service record?',
+        answer: 'Tap the "+ Add Service" button on your dashboard. Enter the customer\'s phone number, service description, and amount. The customer will receive an OTP to verify.'
+    },
+    {
+        question: 'What is the platform fee?',
+        answer: 'A small platform fee (2%) is deducted from each transaction to maintain the app and provide support services. You keep the remaining 98%.'
+    },
+    {
+        question: 'How do customers pay?',
+        answer: 'Customers can pay via Razorpay (online payment) or cash. Online payments are marked as "Verified" and add to your credibility on the platform.'
+    },
+    {
+        question: 'How do I update my garage profile?',
+        answer: 'Go to Settings from your dashboard. You can update your garage name, photo, address, working hours, and services offered.'
+    },
+    {
+        question: 'What happens if a customer disputes a service?',
+        answer: 'Contact our support team immediately. We\'ll review the service record and help resolve the dispute fairly for both parties.'
+    },
+    {
+        question: 'How do I improve my garage rating?',
+        answer: 'Provide excellent service, respond quickly to customers, and encourage satisfied customers to leave reviews. Higher ratings mean more visibility.'
+    },
+];
 
 export default function GarageSupport() {
     const navigate = useNavigate();
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     const options = [
-        { icon: MessageSquare, label: 'Partner Hotline', description: 'Business support 24/7', color: 'text-blue-600', bg: 'bg-blue-50' },
-        { icon: Phone, label: 'Account Manager', description: 'Dedicated assistance', color: 'text-green-600', bg: 'bg-green-50' },
-        { icon: Mail, label: 'Portal Issues', description: 'tech@knowyourmechanic.com', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        {
+            icon: Phone,
+            label: 'Call Support',
+            description: '+91 8070604004',
+            color: 'text-green-600',
+            bg: 'bg-green-50',
+            action: () => window.open('tel:+918070604004')
+        },
+        {
+            icon: Mail,
+            label: 'Email Us',
+            description: 'knowyourmechanic@gmail.com',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+            action: () => window.open('mailto:knowyourmechanic@gmail.com')
+        },
     ];
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
-            {/* Header with Back Button */}
+            {/* Header */}
             <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem]">
                 <button
                     onClick={() => navigate('/garage')}
@@ -34,12 +76,14 @@ export default function GarageSupport() {
             </header>
 
             <div className="px-6 py-6 space-y-4">
+                {/* Contact Options */}
                 {options.map((option, i) => (
                     <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={option.label}
+                        onClick={option.action}
                         className="w-full premium-card p-6 flex items-center gap-6 group hover:border-blue-300"
                     >
                         <div className={`w-14 h-14 rounded-2xl ${option.bg} ${option.color} flex items-center justify-center`}>
@@ -53,10 +97,50 @@ export default function GarageSupport() {
                     </motion.button>
                 ))}
 
-                <div className="mt-8 p-8 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-500/20">
-                    <div className="flex items-center gap-4 mb-4">
-                        <ShieldCheck className="w-8 h-8 opacity-80" />
-                        <h4 className="text-xl font-black">Safe Earnings</h4>
+                {/* FAQ Section */}
+                <div className="mt-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <HelpCircle className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-bold text-slate-900">Frequently Asked Questions</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {faqs.map((faq, i) => (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 + i * 0.05 }}
+                                key={i}
+                                className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+                            >
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                    className="w-full p-4 flex items-center justify-between text-left"
+                                >
+                                    <span className="font-semibold text-slate-800 text-sm pr-4">{faq.question}</span>
+                                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {openFaq === i && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <p className="px-4 pb-4 text-sm text-slate-600">{faq.answer}</p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Help Card */}
+                <div className="mt-6 p-6 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-500/20">
+                    <div className="flex items-center gap-4 mb-3">
+                        <ShieldCheck className="w-7 h-7 opacity-80" />
+                        <h4 className="text-lg font-black">Safe Earnings</h4>
                     </div>
                     <p className="text-blue-100 text-sm font-medium leading-relaxed">
                         Your business data and earnings are protected with bank-grade security.

@@ -1,19 +1,57 @@
-import { motion } from 'framer-motion';
-import { MessageSquare, Phone, Mail, ArrowRight, ShieldCheck, LifeBuoy, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Phone, Mail, ArrowRight, ShieldCheck, LifeBuoy, ArrowLeft, ChevronDown, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const faqs = [
+    {
+        question: 'How do I find a garage near me?',
+        answer: 'Open the app and allow location access. We\'ll automatically show garages within 5km of your location, sorted by distance.'
+    },
+    {
+        question: 'How do I know if a garage is trustworthy?',
+        answer: 'Look for the star rating, number of reviews, and total services completed. Garages with higher ratings and more services have a proven track record.'
+    },
+    {
+        question: 'What does "Verified" vs "Cash" payment mean?',
+        answer: '"Verified" payments are made through our secure payment system (Razorpay). "Cash" payments are made directly to the garage. Verified payments offer better protection.'
+    },
+    {
+        question: 'How do I leave a review?',
+        answer: 'After getting service from a garage, go to your Activity page or the garage\'s detail page. You\'ll see a "Rate this service" option if you\'re eligible.'
+    },
+    {
+        question: 'Can I edit or delete my review?',
+        answer: 'Yes! Go to the garage\'s page or your Activity page to find your review. You can edit the rating and comment, or delete it entirely.'
+    },
+];
 
 export default function CustomerSupport() {
     const navigate = useNavigate();
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     const options = [
-        { icon: MessageSquare, label: 'Live Chat', description: 'Speak with our team now', color: 'text-blue-600', bg: 'bg-blue-50' },
-        { icon: Phone, label: 'Call Support', description: 'Available 9 AM - 9 PM', color: 'text-green-600', bg: 'bg-green-50' },
-        { icon: Mail, label: 'Email Us', description: 'support@knowyourmechanic.com', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        {
+            icon: Phone,
+            label: 'Call Support',
+            description: '+91 8070604004',
+            color: 'text-green-600',
+            bg: 'bg-green-50',
+            action: () => window.open('tel:+918070604004')
+        },
+        {
+            icon: Mail,
+            label: 'Email Us',
+            description: 'knowyourmechanic@gmail.com',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+            action: () => window.open('mailto:knowyourmechanic@gmail.com')
+        },
     ];
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
-            {/* Header with Back Button */}
+            {/* Header */}
             <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem]">
                 <button
                     onClick={() => navigate('/customer')}
@@ -34,12 +72,14 @@ export default function CustomerSupport() {
             </header>
 
             <div className="px-6 py-6 space-y-4">
+                {/* Contact Options */}
                 {options.map((option, i) => (
                     <motion.button
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={option.label}
+                        onClick={option.action}
                         className="w-full premium-card p-6 flex items-center gap-6 group hover:border-blue-300"
                     >
                         <div className={`w-14 h-14 rounded-2xl ${option.bg} ${option.color} flex items-center justify-center`}>
@@ -53,13 +93,53 @@ export default function CustomerSupport() {
                     </motion.button>
                 ))}
 
-                <div className="mt-8 p-8 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-500/20">
-                    <div className="flex items-center gap-4 mb-4">
-                        <ShieldCheck className="w-8 h-8 opacity-80" />
-                        <h4 className="text-xl font-black">Secure Support</h4>
+                {/* FAQ Section */}
+                <div className="mt-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <HelpCircle className="w-5 h-5 text-blue-600" />
+                        <h2 className="text-lg font-bold text-slate-900">Frequently Asked Questions</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {faqs.map((faq, i) => (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 + i * 0.05 }}
+                                key={i}
+                                className="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+                            >
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                    className="w-full p-4 flex items-center justify-between text-left"
+                                >
+                                    <span className="font-semibold text-slate-800 text-sm pr-4">{faq.question}</span>
+                                    <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${openFaq === i ? 'rotate-180' : ''}`} />
+                                </button>
+                                <AnimatePresence>
+                                    {openFaq === i && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <p className="px-4 pb-4 text-sm text-slate-600">{faq.answer}</p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Help Card */}
+                <div className="mt-6 p-6 bg-blue-600 rounded-[2rem] text-white shadow-xl shadow-blue-500/20">
+                    <div className="flex items-center gap-4 mb-3">
+                        <ShieldCheck className="w-7 h-7 opacity-80" />
+                        <h4 className="text-lg font-black">We're Here to Help</h4>
                     </div>
                     <p className="text-blue-100 text-sm font-medium leading-relaxed">
-                        Our verified partners provide 24/7 assistance for all your automotive needs.
+                        Contact us anytime for assistance with bookings, payments, or any questions.
                     </p>
                 </div>
             </div>
