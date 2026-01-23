@@ -4,6 +4,7 @@ import ServiceRecord from '../models/ServiceRecord.js';
 import Garage from '../models/Garage.js';
 import User from '../models/User.js';
 import dbConnect from '../utils/dbConnect.js';
+import { sendInvoiceWhatsApp, isWhatsAppConfigured } from '../utils/whatsapp.js';
 
 const router = express.Router();
 
@@ -202,6 +203,28 @@ router.post('/complete', authenticate, async (req: AuthRequest, res) => {
             console.error('Auto-create customer error:', customerError);
         }
 
+        // Send invoice via WhatsApp if configured
+        let whatsappSent = false;
+        if (isWhatsAppConfigured()) {
+            try {
+                const garage = await Garage.findById(serviceRecord.garageId);
+                const result = await sendInvoiceWhatsApp(
+                    serviceRecord.customerPhone,
+                    'Customer',
+                    garage?.name || 'Unknown Garage',
+                    serviceRecord.description,
+                    serviceRecord.amount,
+                    new Date().toLocaleDateString('en-IN')
+                );
+                whatsappSent = result.success;
+                if (whatsappSent) {
+                    console.log(`Invoice sent via WhatsApp to ${serviceRecord.customerPhone}`);
+                }
+            } catch (whatsappError) {
+                console.error('WhatsApp invoice error:', whatsappError);
+            }
+        }
+
         res.json({
             message: 'Service completed successfully',
             serviceRecord: {
@@ -212,6 +235,7 @@ router.post('/complete', authenticate, async (req: AuthRequest, res) => {
                 isReliable: serviceRecord.isReliable,
                 garageEarnings: serviceRecord.garageEarnings,
             },
+            whatsappInvoiceSent: whatsappSent,
         });
     } catch (error: any) {
         console.error('Complete service error:', error);
