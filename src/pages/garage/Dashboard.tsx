@@ -62,7 +62,7 @@ export default function GarageDashboard() {
     const [showAllServices, setShowAllServices] = useState(false);
     const [showProfilePanel, setShowProfilePanel] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ pending: 0, completed: 0, rating: 4.8 });
+    const [stats, setStats] = useState({ pending: 0, completed: 0, rating: 0, totalReviews: 0 });
     const [showAddService, setShowAddService] = useState(false);
     const [garagePhotoUrl, setGaragePhotoUrl] = useState('');
     const [garageName, setGarageName] = useState('');
@@ -181,6 +181,12 @@ export default function GarageDashboard() {
                 if (data.name) setGarageName(data.name);
                 if (data.serviceHours) setServiceHours(data.serviceHours);
                 if (data.workingDays) setWorkingDays(Array.isArray(data.workingDays) ? data.workingDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+                // Update rating and reviews from garage profile
+                setStats(prev => ({
+                    ...prev,
+                    rating: data.rating || 0,
+                    totalReviews: data.totalReviews || 0
+                }));
             }
         } catch (err) {
             console.error('Error fetching garage profile:', err);
@@ -365,19 +371,19 @@ export default function GarageDashboard() {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3 mb-8">
-                    <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col items-center">
                         <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-2">
                             <Wrench className="w-5 h-5" />
                         </div>
                         <p className="text-2xl font-black text-slate-900">{stats.completed}</p>
                         <p className="text-slate-400 text-[10px] font-bold uppercase">Total Services</p>
                     </div>
-                    <div className="premium-card p-4 bg-white flex flex-col items-center">
+                    <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col items-center">
                         <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 mb-2">
                             <Star className="w-5 h-5 fill-amber-500" />
                         </div>
-                        <p className="text-2xl font-black text-slate-900">{stats.rating}</p>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase">Rating</p>
+                        <p className="text-2xl font-black text-slate-900">{stats.rating > 0 ? stats.rating.toFixed(1) : '-'}</p>
+                        <p className="text-slate-400 text-[10px] font-bold uppercase">Rating ({stats.totalReviews})</p>
                     </div>
                 </div>
 
