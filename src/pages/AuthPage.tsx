@@ -131,8 +131,8 @@ export default function AuthPage() {
                         className="flex-1 flex flex-col"
                     >
                         <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
-                            <div className="w-24 h-24 rounded-[2rem] bg-white shadow-2xl shadow-blue-200/50 flex items-center justify-center mb-10 mx-auto">
-                                <Wrench className="w-12 h-12 text-blue-600" />
+                            <div className="w-28 h-28 rounded-[2rem] bg-white shadow-2xl shadow-blue-200/50 flex items-center justify-center mb-10 mx-auto overflow-hidden">
+                                <img src="/logo.jpg" alt="KnowYourMechanic" className="w-full h-full object-cover" />
                             </div>
 
                             <div className="text-center mb-10">
