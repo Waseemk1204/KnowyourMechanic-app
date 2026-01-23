@@ -266,7 +266,7 @@ export default function GarageDashboard() {
                         )}
                         <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/90 text-xs font-bold flex items-center gap-1.5">
                             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                            4.8 Rating
+                            {stats.rating > 0 ? `${stats.rating.toFixed(1)} Rating` : 'No Ratings'}
                         </div>
                     </div>
                 </div>
