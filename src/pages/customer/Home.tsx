@@ -110,6 +110,12 @@ export default function CustomerHome() {
     const [customerName, setCustomerName] = useState('Customer');
     const [visibleCount, setVisibleCount] = useState(3);
 
+    // Filter state
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'reviews' | 'services'>('distance');
+    const [showOpenOnly, setShowOpenOnly] = useState(false);
+    const [minRating, setMinRating] = useState(0);
+
     // Unrated service state
     const [unratedService, setUnratedService] = useState<UnratedService | null>(null);
     const [reviewRating, setReviewRating] = useState(0);
@@ -254,33 +260,51 @@ export default function CustomerHome() {
         fetchGarages();
     }, [location, loading]);
 
-    // Sort by distance (closest first) and filter by search
+    // Parse distance helper
+    const parseDistance = (d: string) => {
+        const num = parseFloat(d);
+        return d.includes('km') ? num * 1000 : num;
+    };
+
+    // Sort and filter garages
     const sortedGarages = [...garages]
         .filter(g => {
             // Only include garages under 5km
-            const parseDistance = (d: string) => {
-                const num = parseFloat(d);
-                return d.includes('km') ? num : num / 1000;
-            };
-            return parseDistance(g.distance) < 5;
+            const distKm = parseDistance(g.distance) / 1000;
+            if (distKm >= 5) return false;
+
+            // Filter by search
+            if (search && !g.name.toLowerCase().includes(search.toLowerCase())) return false;
+
+            // Filter by open now
+            if (showOpenOnly && !isGarageOpen(g.serviceHours)) return false;
+
+            // Filter by minimum rating
+            if (minRating > 0 && (g.rating || 0) < minRating) return false;
+
+            return true;
         })
         .sort((a, b) => {
-            const parseDistance = (d: string) => {
-                const num = parseFloat(d);
-                return d.includes('km') ? num * 1000 : num;
-            };
-            return parseDistance(a.distance) - parseDistance(b.distance);
+            switch (sortBy) {
+                case 'rating':
+                    return (b.rating || 0) - (a.rating || 0);
+                case 'reviews':
+                    return (b.reviews || 0) - (a.reviews || 0);
+                case 'services':
+                    return (b.totalServices || 0) - (a.totalServices || 0);
+                case 'distance':
+                default:
+                    return parseDistance(a.distance) - parseDistance(b.distance);
+            }
         });
 
-    const filteredGarages = sortedGarages
-        .filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
-        .slice(0, visibleCount);
+    const filteredGarages = sortedGarages.slice(0, visibleCount);
 
-    const totalFilteredCount = sortedGarages.filter(g =>
-        g.name.toLowerCase().includes(search.toLowerCase())
-    ).length;
+    const totalFilteredCount = sortedGarages.length;
 
     const hasMore = visibleCount < totalFilteredCount;
+
+    const activeFiltersCount = (sortBy !== 'distance' ? 1 : 0) + (showOpenOnly ? 1 : 0) + (minRating > 0 ? 1 : 0);
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 px-4">
@@ -315,8 +339,16 @@ export default function CustomerHome() {
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
-                <button className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 text-white active:scale-95 transition-all">
+                <button
+                    onClick={() => setShowFilterModal(true)}
+                    className="relative w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 text-white active:scale-95 transition-all"
+                >
                     <Filter className="w-5.5 h-5.5" />
+                    {activeFiltersCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                            {activeFiltersCount}
+                        </span>
+                    )}
                 </button>
             </div>
 
@@ -749,6 +781,124 @@ export default function CustomerHome() {
                                 >
                                     <LogOut className="w-5 h-5" />
                                     <span className="font-bold">Logout</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+
+                {/* Filter Modal */}
+                {showFilterModal && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+                            onClick={() => setShowFilterModal(false)}
+                        />
+                        <motion.div
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6 pb-10 max-h-[80vh] overflow-y-auto"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-bold text-slate-900">Filters</h2>
+                                <button onClick={() => setShowFilterModal(false)}>
+                                    <X className="w-6 h-6 text-slate-400" />
+                                </button>
+                            </div>
+
+                            {/* Sort By */}
+                            <div className="mb-6">
+                                <h3 className="text-sm font-semibold text-slate-700 mb-3">Sort By</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { value: 'distance', label: 'Distance', icon: '📍' },
+                                        { value: 'rating', label: 'Rating', icon: '⭐' },
+                                        { value: 'reviews', label: 'Reviews', icon: '💬' },
+                                        { value: 'services', label: 'Services', icon: '🔧' },
+                                    ].map(option => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => setSortBy(option.value as any)}
+                                            className={`p-3 rounded-xl border-2 text-left transition-all ${sortBy === option.value
+                                                    ? 'border-blue-500 bg-blue-50'
+                                                    : 'border-slate-100 bg-white'
+                                                }`}
+                                        >
+                                            <span className="text-lg">{option.icon}</span>
+                                            <p className={`text-sm font-semibold mt-1 ${sortBy === option.value ? 'text-blue-600' : 'text-slate-700'
+                                                }`}>{option.label}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Open Now Toggle */}
+                            <div className="mb-6">
+                                <button
+                                    onClick={() => setShowOpenOnly(!showOpenOnly)}
+                                    className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${showOpenOnly
+                                            ? 'border-green-500 bg-green-50'
+                                            : 'border-slate-100 bg-white'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-3 h-3 rounded-full ${showOpenOnly ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+                                        <span className={`font-semibold ${showOpenOnly ? 'text-green-600' : 'text-slate-700'}`}>
+                                            Open Now Only
+                                        </span>
+                                    </div>
+                                    <div className={`w-12 h-7 rounded-full transition-all ${showOpenOnly ? 'bg-green-500' : 'bg-slate-200'}`}>
+                                        <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-all mt-1 ${showOpenOnly ? 'ml-6' : 'ml-1'}`} />
+                                    </div>
+                                </button>
+                            </div>
+
+                            {/* Minimum Rating */}
+                            <div className="mb-8">
+                                <h3 className="text-sm font-semibold text-slate-700 mb-3">Minimum Rating</h3>
+                                <div className="flex gap-2">
+                                    {[0, 3, 3.5, 4, 4.5].map(rating => (
+                                        <button
+                                            key={rating}
+                                            onClick={() => setMinRating(rating)}
+                                            className={`flex-1 p-3 rounded-xl border-2 text-center transition-all ${minRating === rating
+                                                    ? 'border-amber-500 bg-amber-50'
+                                                    : 'border-slate-100 bg-white'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-center gap-1">
+                                                {rating > 0 && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+                                                <span className={`text-sm font-semibold ${minRating === rating ? 'text-amber-600' : 'text-slate-600'
+                                                    }`}>
+                                                    {rating === 0 ? 'Any' : `${rating}+`}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        setSortBy('distance');
+                                        setShowOpenOnly(false);
+                                        setMinRating(0);
+                                    }}
+                                    className="flex-1 py-4 rounded-xl border-2 border-slate-200 text-slate-600 font-bold"
+                                >
+                                    Reset
+                                </button>
+                                <button
+                                    onClick={() => setShowFilterModal(false)}
+                                    className="flex-1 py-4 rounded-xl bg-blue-600 text-white font-bold"
+                                >
+                                    Apply ({sortedGarages.length} results)
                                 </button>
                             </div>
                         </motion.div>
