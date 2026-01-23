@@ -817,15 +817,14 @@ export default function CustomerHome() {
                                     {[
                                         { value: 'distance', label: 'Distance', icon: '📍' },
                                         { value: 'rating', label: 'Rating', icon: '⭐' },
-                                        { value: 'reviews', label: 'Reviews', icon: '💬' },
                                         { value: 'services', label: 'Services', icon: '🔧' },
                                     ].map(option => (
                                         <button
                                             key={option.value}
                                             onClick={() => setSortBy(option.value as any)}
                                             className={`p-3 rounded-xl border-2 text-left transition-all ${sortBy === option.value
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-slate-100 bg-white'
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-slate-100 bg-white'
                                                 }`}
                                         >
                                             <span className="text-lg">{option.icon}</span>
@@ -841,8 +840,8 @@ export default function CustomerHome() {
                                 <button
                                     onClick={() => setShowOpenOnly(!showOpenOnly)}
                                     className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${showOpenOnly
-                                            ? 'border-green-500 bg-green-50'
-                                            : 'border-slate-100 bg-white'
+                                        ? 'border-green-500 bg-green-50'
+                                        : 'border-slate-100 bg-white'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
@@ -866,8 +865,8 @@ export default function CustomerHome() {
                                             key={rating}
                                             onClick={() => setMinRating(rating)}
                                             className={`flex-1 p-3 rounded-xl border-2 text-center transition-all ${minRating === rating
-                                                    ? 'border-amber-500 bg-amber-50'
-                                                    : 'border-slate-100 bg-white'
+                                                ? 'border-amber-500 bg-amber-50'
+                                                : 'border-slate-100 bg-white'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-center gap-1">
