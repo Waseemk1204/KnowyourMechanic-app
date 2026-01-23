@@ -19,6 +19,34 @@ type Garage = {
     totalServices?: number;
     phone?: string;
     joinedDate?: string;
+    serviceHours?: string;
+};
+
+const isGarageOpen = (serviceHours?: string): boolean => {
+    if (!serviceHours) return false;
+
+    // Parse service hours like "9:00 AM - 10:00 PM"
+    const match = serviceHours.match(/(\d{1,2}):(\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!match) return false;
+
+    const [, startHour, startMin, startPeriod, endHour, endMin, endPeriod] = match;
+
+    const convertTo24 = (hour: string, period: string) => {
+        let h = parseInt(hour);
+        if (period.toUpperCase() === 'PM' && h !== 12) h += 12;
+        if (period.toUpperCase() === 'AM' && h === 12) h = 0;
+        return h;
+    };
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMin = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMin;
+
+    const openTime = convertTo24(startHour, startPeriod) * 60 + parseInt(startMin);
+    const closeTime = convertTo24(endHour, endPeriod) * 60 + parseInt(endMin);
+
+    return currentTime >= openTime && currentTime <= closeTime;
 };
 
 interface UnratedService {
@@ -68,6 +96,7 @@ const transformApiGarage = (apiGarage: any, userLat: number, userLng: number): G
         joinedDate: apiGarage.createdAt
             ? `${String(new Date(apiGarage.createdAt).getMonth() + 1).padStart(2, '0')}/${new Date(apiGarage.createdAt).getFullYear()}`
             : '01/2024',
+        serviceHours: apiGarage.serviceHours || '',
     };
 };
 
@@ -438,6 +467,12 @@ export default function CustomerHome() {
                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                                             {garage.totalServices || 0} services
                                         </span>
+                                        {isGarageOpen(garage.serviceHours) && (
+                                            <span className="flex items-center gap-1 text-green-600 font-semibold">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                                Open Now
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
