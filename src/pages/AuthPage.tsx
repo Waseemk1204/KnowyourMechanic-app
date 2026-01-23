@@ -119,7 +119,6 @@ export default function AuthPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col pt-safe px-6 pb-12 overflow-hidden text-slate-900">
-            <div id="recaptcha-container"></div>
 
             <AnimatePresence mode="wait">
                 {step === 'phone' && (
@@ -159,6 +158,12 @@ export default function AuthPage() {
                                             onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                         />
                                     </div>
+                                </div>
+
+                                {/* reCAPTCHA centered below phone field */}
+                                <div className="flex flex-col items-center">
+                                    <div id="recaptcha-container" className="flex justify-center"></div>
+                                    <p className="text-slate-400 text-xs mt-2 text-center">Complete the verification above to continue</p>
                                 </div>
 
                                 {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
