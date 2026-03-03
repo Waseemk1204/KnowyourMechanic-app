@@ -11,7 +11,7 @@ router.post('/sync', authenticate, async (req: AuthRequest, res) => {
     try {
         const { role } = req.body;
 
-        if (!role || !['customer', 'garage'].includes(role)) {
+        if (!role || !['customer', 'garage', 'admin', 'employee'].includes(role)) {
             return res.status(400).json({ message: 'Invalid role' });
         }
 

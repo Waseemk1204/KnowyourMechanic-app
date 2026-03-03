@@ -1,30 +1,29 @@
 import mongoose from 'mongoose';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { config } from 'dotenv';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load .env from project root
-config({ path: join(__dirname, '../../.env') });
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-    console.error('MONGODB_URI is not defined');
-    process.exit(1);
+// Load .env only in development (Vercel uses dashboard env vars)
+try {
+    const dotenv = await import('dotenv');
+    const { fileURLToPath } = await import('url');
+    const { dirname, join } = await import('path');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    dotenv.config({ path: join(__dirname, '../../.env') });
+} catch {
+    // dotenv not available or .env not found — fine on Vercel
 }
-
-console.log('MongoDB URI configured:', MONGODB_URI.substring(0, 30) + '...');
 
 let isConnected = false;
 
 async function dbConnect() {
     if (isConnected) return;
 
+    const MONGODB_URI = process.env.MONGODB_URI;
+    if (!MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is not set. Configure it in Vercel dashboard or .env file.');
+    }
+
     try {
-        await mongoose.connect(MONGODB_URI!);
+        await mongoose.connect(MONGODB_URI);
         isConnected = true;
         console.log('Connected to MongoDB');
     } catch (error) {
