@@ -60,6 +60,7 @@ export async function createLinkedAccount(params: CreateLinkedAccountParams): Pr
                 addresses: {
                     registered: {
                         street1: 'N/A',
+                        street2: '',
                         city: 'Mumbai',
                         state: 'Maharashtra',
                         postal_code: 400001,
@@ -77,8 +78,9 @@ export async function createLinkedAccount(params: CreateLinkedAccountParams): Pr
         });
 
         // Add bank account to the linked account
-        if (account.id) {
-            await razorpay.accounts.edit(account.id, {
+        const acct = account as any;
+        if (acct.id) {
+            await (razorpay.accounts as any).edit(acct.id, {
                 bank_account: {
                     ifsc_code: params.ifscCode,
                     account_number: params.bankAccountNumber,
@@ -87,7 +89,7 @@ export async function createLinkedAccount(params: CreateLinkedAccountParams): Pr
             });
         }
 
-        return account.id;
+        return acct.id;
     } catch (error: any) {
         console.error('Razorpay create linked account error:', error);
         throw new Error(error.error?.description || 'Failed to create linked account');

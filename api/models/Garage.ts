@@ -37,6 +37,10 @@ export interface IGarage extends Document {
     onboardingStatus: OnboardingStatus;
     isVerified: boolean;
 
+    // Referral
+    referralCode?: string;
+    assignedEmployeeId?: Types.ObjectId;
+
     createdAt: Date;
     updatedAt: Date;
 }
@@ -82,6 +86,10 @@ const GarageSchema = new Schema<IGarage>({
         default: 'pending'
     },
     isVerified: { type: Boolean, default: false },
+
+    // Referral
+    referralCode: { type: String },
+    assignedEmployeeId: { type: Schema.Types.ObjectId, ref: 'Employee' },
 }, { timestamps: true });
 
 GarageSchema.index({ 'location.coordinates': '2dsphere' });

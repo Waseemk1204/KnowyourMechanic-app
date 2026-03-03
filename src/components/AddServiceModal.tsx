@@ -126,11 +126,115 @@ export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServi
             const token = await getToken();
 
             if (method === 'razorpay') {
-                // TODO: Integrate Razorpay checkout
-                // For now, just mark as cash
-                alert('Razorpay integration coming soon! Using cash for now.');
+                // Step 1: Create order via backend
+                const orderRes = await fetch(`${getApiUrl()}/payments/create-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ serviceId }),
+                });
+
+                if (!orderRes.ok) {
+                    const err = await orderRes.json();
+                    if (orderRes.status === 503) {
+                        // Razorpay not configured — fall back to cash
+                        setError('Online payment not available yet. Please use cash.');
+                        setLoading(false);
+                        return;
+                    }
+                    setError(err.message || 'Failed to create payment order');
+                    setLoading(false);
+                    return;
+                }
+
+                const orderData = await orderRes.json();
+
+                // Step 2: Load Razorpay script if not already loaded
+                if (!(window as any).Razorpay) {
+                    await new Promise<void>((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                        script.onload = () => resolve();
+                        script.onerror = () => reject(new Error('Failed to load Razorpay'));
+                        document.body.appendChild(script);
+                    });
+                }
+
+                // Step 3: Open Razorpay checkout
+                setLoading(false); // Allow user to interact with popup
+                const rzp = new (window as any).Razorpay({
+                    key: orderData.keyId,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: 'KnowyourMechanic',
+                    description: description || 'Service Payment',
+                    order_id: orderData.orderId,
+                    handler: async (response: any) => {
+                        // Step 4: Verify payment
+                        setLoading(true);
+                        try {
+                            const verifyRes = await fetch(`${getApiUrl()}/payments/verify`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({
+                                    orderId: response.razorpay_order_id,
+                                    paymentId: response.razorpay_payment_id,
+                                    signature: response.razorpay_signature,
+                                    serviceId,
+                                }),
+                            });
+
+                            if (verifyRes.ok) {
+                                // Step 5: Complete the service
+                                const completeRes = await fetch(`${getApiUrl()}/service-records/complete`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({
+                                        serviceId,
+                                        paymentMethod: 'razorpay',
+                                    }),
+                                });
+
+                                if (completeRes.ok) {
+                                    setStep('success');
+                                    setTimeout(() => {
+                                        onSuccess();
+                                        resetForm();
+                                    }, 2000);
+                                } else {
+                                    setError('Payment verified but service completion failed. Contact support.');
+                                }
+                            } else {
+                                setError('Payment verification failed');
+                            }
+                        } catch {
+                            setError('Error verifying payment');
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                    modal: {
+                        ondismiss: () => {
+                            setLoading(false);
+                        },
+                    },
+                    theme: {
+                        color: '#2563eb',
+                    },
+                });
+                rzp.open();
+                return; // Don't proceed to complete below
             }
 
+            // Cash payment flow
             const res = await fetch(`${getApiUrl()}/service-records/complete`, {
                 method: 'POST',
                 headers: {

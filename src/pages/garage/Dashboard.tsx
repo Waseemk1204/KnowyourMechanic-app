@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Settings, Plus, Star, Users, TrendingUp, LogOut, Wrench, ArrowRight, User,
-    Calendar, Clock, Check, X, Loader2, AlertCircle, Phone, Headphones, Edit, ChevronRight
+    Settings, Plus, Star, LogOut, Wrench, User,
+    X, Headphones, Edit, ChevronRight, Timer, Trash2, Save, Package, Loader2, Calendar, Check, XCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -45,18 +45,15 @@ interface ServiceRecord {
     createdAt: string;
 }
 
-type View = 'dashboard' | 'bookings' | 'services';
-
-const statusConfig = {
-    pending: { label: 'Pending', color: 'text-amber-600', bg: 'bg-amber-50' },
-    accepted: { label: 'Confirmed', color: 'text-green-600', bg: 'bg-green-50' },
-    rejected: { label: 'Rejected', color: 'text-red-600', bg: 'bg-red-50' },
-    completed: { label: 'Completed', color: 'text-blue-600', bg: 'bg-blue-50' },
-    cancelled: { label: 'Cancelled', color: 'text-slate-600', bg: 'bg-slate-100' },
-};
+interface OfferedService {
+    _id: string;
+    name: string;
+    description?: string;
+    price: number;
+    duration: number;
+}
 
 export default function GarageDashboard() {
-    const [view, setView] = useState<View>('dashboard');
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [services, setServices] = useState<ServiceRecord[]>([]);
     const [showAllServices, setShowAllServices] = useState(false);
@@ -70,6 +67,13 @@ export default function GarageDashboard() {
     const [workingDays, setWorkingDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+    // Service portfolio
+    const [portfolioServices, setPortfolioServices] = useState<OfferedService[]>([]);
+    const [showAddPortfolio, setShowAddPortfolio] = useState(false);
+    const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+    const [portfolioForm, setPortfolioForm] = useState({ name: '', description: '', price: '', duration: '60' });
+    const [savingPortfolio, setSavingPortfolio] = useState(false);
+
     const navigate = useNavigate();
     const { userData, logout } = useAuth();
 
@@ -77,6 +81,7 @@ export default function GarageDashboard() {
         fetchBookings();
         fetchServices();
         fetchGarageProfile();
+        fetchPortfolioServices();
     }, []);
 
     const getApiUrl = () => {
@@ -130,42 +135,78 @@ export default function GarageDashboard() {
         }
     };
 
-    const handleUpdateStatus = async (bookingId: string, status: 'accepted' | 'rejected' | 'completed') => {
+    const fetchPortfolioServices = async () => {
         try {
             const { auth } = await import('../../lib/firebase');
             const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/bookings/${bookingId}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ status })
+            const res = await fetch(`${getApiUrl()}/services/my-services`, {
+                headers: { 'Authorization': `Bearer ${token}` },
             });
-
             if (res.ok) {
-                fetchBookings();
-            } else {
-                alert('Failed to update booking');
+                const data = await res.json();
+                setPortfolioServices(data);
             }
-        } catch (error) {
-            console.error('Error updating booking:', error);
+        } catch (err) {
+            console.error('Error fetching portfolio services:', err);
         }
     };
+
+    const handleSavePortfolioService = async () => {
+        if (!portfolioForm.name || !portfolioForm.price) return;
+        setSavingPortfolio(true);
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            const url = editingServiceId
+                ? `${getApiUrl()}/services/${editingServiceId}`
+                : `${getApiUrl()}/services`;
+            const method = editingServiceId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    name: portfolioForm.name,
+                    description: portfolioForm.description,
+                    price: parseFloat(portfolioForm.price),
+                    duration: parseInt(portfolioForm.duration) || 60,
+                }),
+            });
+            if (res.ok) {
+                setShowAddPortfolio(false);
+                setEditingServiceId(null);
+                setPortfolioForm({ name: '', description: '', price: '', duration: '60' });
+                fetchPortfolioServices();
+            }
+        } catch (err) {
+            console.error('Error saving service:', err);
+        } finally {
+            setSavingPortfolio(false);
+        }
+    };
+
+    const handleDeletePortfolioService = async (serviceId: string) => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            await fetch(`${getApiUrl()}/services/${serviceId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            fetchPortfolioServices();
+        } catch (err) {
+            console.error('Error deleting service:', err);
+        }
+    };
+
+
 
     const handleLogout = async () => {
         await logout();
         navigate('/auth');
     };
-
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-    };
-
-    const pendingBookings = bookings.filter(b => b.status === 'pending');
-    const acceptedBookings = bookings.filter(b => b.status === 'accepted');
 
     const fetchGarageProfile = async () => {
         try {
@@ -217,6 +258,21 @@ export default function GarageDashboard() {
             return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
         } catch {
             return true; // Default to open if parsing fails
+        }
+    };
+
+    const handleBookingStatus = async (bookingId: string, status: 'accepted' | 'rejected') => {
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            await fetch(`${getApiUrl()}/bookings/${bookingId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ status }),
+            });
+            fetchBookings();
+        } catch (err) {
+            console.error('Booking status error:', err);
         }
     };
 
@@ -387,8 +443,130 @@ export default function GarageDashboard() {
                     </div>
                 </div>
 
+                {/* Service Portfolio (Menu) */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Service Menu</h4>
+                        <button
+                            onClick={() => {
+                                setShowAddPortfolio(true);
+                                setEditingServiceId(null);
+                                setPortfolioForm({ name: '', description: '', price: '', duration: '60' });
+                            }}
+                            className="text-sm text-blue-600 font-semibold flex items-center gap-1"
+                        >
+                            <Plus className="w-4 h-4" /> Add
+                        </button>
+                    </div>
 
-                {/* Add Service Button */}
+                    {/* Add/Edit Form */}
+                    {showAddPortfolio && (
+                        <div className="bg-white rounded-2xl border border-blue-200 p-4 mb-3 space-y-3">
+                            <input
+                                type="text"
+                                value={portfolioForm.name}
+                                onChange={(e) => setPortfolioForm({ ...portfolioForm, name: e.target.value })}
+                                placeholder="Service name (e.g. Oil Change)"
+                                className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            />
+                            <input
+                                type="text"
+                                value={portfolioForm.description}
+                                onChange={(e) => setPortfolioForm({ ...portfolioForm, description: e.target.value })}
+                                placeholder="Description (optional)"
+                                className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            />
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-slate-500 mb-1 block">Price (Rs.)</label>
+                                    <input
+                                        type="number"
+                                        value={portfolioForm.price}
+                                        onChange={(e) => setPortfolioForm({ ...portfolioForm, price: e.target.value })}
+                                        placeholder="500"
+                                        className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-slate-500 mb-1 block">Duration (min)</label>
+                                    <input
+                                        type="number"
+                                        value={portfolioForm.duration}
+                                        onChange={(e) => setPortfolioForm({ ...portfolioForm, duration: e.target.value })}
+                                        placeholder="60"
+                                        className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSavePortfolioService}
+                                    disabled={!portfolioForm.name || !portfolioForm.price || savingPortfolio}
+                                    className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-1.5"
+                                >
+                                    {savingPortfolio ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    {editingServiceId ? 'Update' : 'Save'}
+                                </button>
+                                <button
+                                    onClick={() => { setShowAddPortfolio(false); setEditingServiceId(null); }}
+                                    className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {portfolioServices.filter(s => (s as any).isActive !== false).length === 0 && !showAddPortfolio ? (
+                        <div className="bg-white rounded-2xl p-6 text-center border border-slate-100">
+                            <Package className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                            <p className="text-slate-400 text-sm">No services in your menu yet</p>
+                            <p className="text-slate-300 text-xs mt-1">Add services so customers know what you offer</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {portfolioServices.filter(s => (s as any).isActive !== false).map((svc) => (
+                                <div key={svc._id} className="bg-white rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <p className="font-bold text-slate-900 text-sm">{svc.name}</p>
+                                        {svc.description && <p className="text-xs text-slate-400 mt-0.5">{svc.description}</p>}
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-sm font-bold text-blue-600">Rs.{svc.price}</span>
+                                            <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                <Timer className="w-3 h-3" />{svc.duration} min
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => {
+                                                setEditingServiceId(svc._id);
+                                                setPortfolioForm({
+                                                    name: svc.name,
+                                                    description: svc.description || '',
+                                                    price: svc.price.toString(),
+                                                    duration: svc.duration.toString(),
+                                                });
+                                                setShowAddPortfolio(true);
+                                            }}
+                                            className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeletePortfolioService(svc._id)}
+                                            className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Add Service Record Button */}
                 <div className="mb-6">
                     <button
                         onClick={() => setShowAddService(true)}
@@ -398,6 +576,60 @@ export default function GarageDashboard() {
                         <span className="font-bold text-lg">Add Service</span>
                     </button>
                 </div>
+
+                {/* Pending Bookings */}
+                {bookings.filter(b => b.status === 'pending').length > 0 && (
+                    <div className="mb-6">
+                        <div className="mb-3">
+                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Pending Bookings</h4>
+                        </div>
+                        <div className="space-y-3">
+                            {bookings.filter(b => b.status === 'pending').map((booking) => (
+                                <motion.div
+                                    key={booking._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="premium-card p-4"
+                                >
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Calendar className="w-4 h-4 text-blue-600" />
+                                                <span className="font-bold text-sm">
+                                                    {booking.serviceId?.name || 'Service'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-500">
+                                                {booking.customerId?.phoneNumber || 'Customer'} ·
+                                                {new Date(booking.scheduledDate).toLocaleDateString()} at {booking.scheduledTime}
+                                            </p>
+                                            {booking.notes && (
+                                                <p className="text-xs text-slate-400 mt-1 italic">"{booking.notes}"</p>
+                                            )}
+                                            <p className="text-sm font-bold text-blue-600 mt-1">₹{booking.totalPrice}</p>
+                                        </div>
+                                        <div className="flex gap-2 ml-3">
+                                            <button
+                                                onClick={() => handleBookingStatus(booking._id, 'accepted')}
+                                                className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors"
+                                                title="Accept"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleBookingStatus(booking._id, 'rejected')}
+                                                className="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors"
+                                                title="Reject"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Recent Services */}
                 {services.length > 0 && (

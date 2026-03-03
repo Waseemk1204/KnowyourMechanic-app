@@ -4,13 +4,17 @@ import AuthPage from './pages/AuthPage';
 import CustomerHome from './pages/customer/Home';
 import CustomerActivity from './pages/customer/Activity';
 import GarageDetail from './pages/customer/GarageDetail';
-import VideoCall from './pages/customer/VideoCall';
 import CustomerSupport from './pages/customer/Support';
 import CustomerProfile from './pages/customer/Profile';
 import GarageOnboarding from './pages/garage/Onboarding';
 import GarageDashboard from './pages/garage/Dashboard';
 import GarageSettings from './pages/garage/Settings';
 import GarageSupport from './pages/garage/Support';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminEmployees from './pages/admin/Employees';
+import AdminEmployeeDetail from './pages/admin/EmployeeDetail';
+import AdminReports from './pages/admin/Reports';
+import EmployeeDashboard from './pages/employee/Dashboard';
 import './index.css';
 
 function LoadingScreen() {
@@ -21,7 +25,7 @@ function LoadingScreen() {
   );
 }
 
-function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'customer' | 'garage' }) {
+function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'customer' | 'garage' | 'admin' | 'employee' }) {
   const { user, userData, loading } = useAuth();
 
   console.log('ProtectedRoute:', { loading, hasUser: !!user, role: userData?.role, requiredRole });
@@ -41,7 +45,7 @@ function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode;
       // If role is missing, redirect to auth page for role selection
       return <Navigate to="/auth" replace />;
     }
-    return <Navigate to={role === 'garage' ? '/garage' : '/customer'} replace />;
+    return <Navigate to={role === 'garage' ? '/garage' : role === 'admin' ? '/admin' : role === 'employee' ? '/employee' : '/customer'} replace />;
   }
 
   return <>{children}</>;
@@ -65,6 +69,8 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
       const onboarded = localStorage.getItem('garageOnboarded');
       return <Navigate to={onboarded ? '/garage' : '/garage/onboarding'} replace />;
     }
+    if (role === 'admin') return <Navigate to="/admin" replace />;
+    if (role === 'employee') return <Navigate to="/employee" replace />;
     return <Navigate to="/customer" replace />;
   }
 
@@ -83,7 +89,6 @@ export default function App() {
           <Route path="/customer" element={<ProtectedRoute requiredRole="customer"><CustomerHome /></ProtectedRoute>} />
           <Route path="/customer/activity" element={<ProtectedRoute requiredRole="customer"><CustomerActivity /></ProtectedRoute>} />
           <Route path="/customer/garage/:id" element={<ProtectedRoute requiredRole="customer"><GarageDetail /></ProtectedRoute>} />
-          <Route path="/customer/call/:roomId" element={<ProtectedRoute requiredRole="customer"><VideoCall /></ProtectedRoute>} />
           <Route path="/customer/support" element={<ProtectedRoute requiredRole="customer"><CustomerSupport /></ProtectedRoute>} />
           <Route path="/customer/profile" element={<ProtectedRoute requiredRole="customer"><CustomerProfile /></ProtectedRoute>} />
 
@@ -93,6 +98,15 @@ export default function App() {
           <Route path="/garage/dashboard" element={<ProtectedRoute requiredRole="garage"><GarageDashboard /></ProtectedRoute>} />
           <Route path="/garage/settings" element={<ProtectedRoute requiredRole="garage"><GarageSettings /></ProtectedRoute>} />
           <Route path="/garage/support" element={<ProtectedRoute requiredRole="garage"><GarageSupport /></ProtectedRoute>} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/employees" element={<ProtectedRoute requiredRole="admin"><AdminEmployees /></ProtectedRoute>} />
+          <Route path="/admin/employees/:id" element={<ProtectedRoute requiredRole="admin"><AdminEmployeeDetail /></ProtectedRoute>} />
+          <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><AdminReports /></ProtectedRoute>} />
+
+          {/* Employee Routes */}
+          <Route path="/employee" element={<ProtectedRoute requiredRole="employee"><EmployeeDashboard /></ProtectedRoute>} />
 
           <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>

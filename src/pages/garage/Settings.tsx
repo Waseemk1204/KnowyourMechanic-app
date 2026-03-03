@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Building2, MapPin, Clock, Phone, Mail, CreditCard,
+    ArrowLeft, Building2, CreditCard,
     Loader2, AlertTriangle, Landmark, User, Save, Eye, EyeOff, Check, Camera
 } from 'lucide-react';
 import { CustomLoader } from '../../components/Loaders';

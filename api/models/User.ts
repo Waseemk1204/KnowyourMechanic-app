@@ -3,7 +3,13 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
     firebaseUid: string;
     phoneNumber: string;
-    role: 'customer' | 'garage';
+    role: 'customer' | 'garage' | 'admin' | 'employee';
+    name?: string;
+    vehicleMake?: string;
+    vehicleModel?: string;
+    vehicleYear?: string;
+    vehicleNumber?: string;
+    fcmToken?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -11,7 +17,13 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>({
     firebaseUid: { type: String, required: true, unique: true },
     phoneNumber: { type: String, required: true },
-    role: { type: String, enum: ['customer', 'garage'], required: true },
+    role: { type: String, enum: ['customer', 'garage', 'admin', 'employee'], required: true },
+    name: { type: String },
+    vehicleMake: { type: String },
+    vehicleModel: { type: String },
+    vehicleYear: { type: String },
+    vehicleNumber: { type: String },
+    fcmToken: { type: String },
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

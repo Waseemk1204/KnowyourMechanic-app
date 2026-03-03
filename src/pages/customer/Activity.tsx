@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Wrench, Loader2, Calendar, AlertCircle, ArrowLeft, MapPin, Star, X, Check, Edit2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Clock, Wrench, Loader2, Calendar, AlertCircle, ArrowLeft, Star, X, Check, Edit2, Flag, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ServiceRecord {
@@ -237,92 +237,137 @@ export default function CustomerActivity() {
                                 </div>
 
                                 {/* Review Section */}
-                                <div className="pt-3 border-t border-slate-100">
-                                    {isReviewing ? (
-                                        // Inline Review Form
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm font-semibold text-slate-700">Your Rating</span>
-                                                <button onClick={() => setReviewingGarageId(null)}>
-                                                    <X className="w-5 h-5 text-slate-400" />
+                                <div className="pt-3 border-t border-slate-100 flex items-start justify-between">
+                                    <div className="flex-1">
+                                        {isReviewing ? (
+                                            // Inline Review Form
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm font-semibold text-slate-700">Your Rating</span>
+                                                    <button onClick={() => setReviewingGarageId(null)}>
+                                                        <X className="w-5 h-5 text-slate-400" />
+                                                    </button>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                        <button
+                                                            key={star}
+                                                            onClick={() => setReviewRating(star)}
+                                                            className="transition-transform hover:scale-110"
+                                                        >
+                                                            <Star
+                                                                className={`w-8 h-8 ${star <= reviewRating
+                                                                    ? 'fill-amber-400 text-amber-400'
+                                                                    : 'text-slate-300'
+                                                                    }`}
+                                                            />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <textarea
+                                                    value={reviewComment}
+                                                    onChange={(e) => setReviewComment(e.target.value)}
+                                                    placeholder="Add a comment (optional)"
+                                                    rows={2}
+                                                    maxLength={500}
+                                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                />
+                                                <button
+                                                    onClick={handleSubmitReview}
+                                                    disabled={submittingReview || reviewRating === 0}
+                                                    className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                                                >
+                                                    {submittingReview ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <>
+                                                            <Check className="w-4 h-4" />
+                                                            {myReview ? 'Update Review' : 'Submit Review'}
+                                                        </>
+                                                    )}
                                                 </button>
                                             </div>
-                                            <div className="flex gap-1">
-                                                {[1, 2, 3, 4, 5].map(star => (
+                                        ) : myReview ? (
+                                            // Show Existing Review
+                                            <div>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-1">
+                                                        {[1, 2, 3, 4, 5].map(star => (
+                                                            <Star
+                                                                key={star}
+                                                                className={`w-4 h-4 ${star <= myReview.rating
+                                                                    ? 'fill-amber-400 text-amber-400'
+                                                                    : 'text-slate-300'
+                                                                    }`}
+                                                            />
+                                                        ))}
+                                                        <span className="text-sm text-slate-500 ml-2">Your Review</span>
+                                                    </div>
                                                     <button
-                                                        key={star}
-                                                        onClick={() => setReviewRating(star)}
-                                                        className="transition-transform hover:scale-110"
+                                                        onClick={() => garageId && startReview(garageId)}
+                                                        className="flex items-center gap-1 text-blue-600 text-sm font-semibold"
                                                     >
-                                                        <Star
-                                                            className={`w-8 h-8 ${star <= reviewRating
-                                                                ? 'fill-amber-400 text-amber-400'
-                                                                : 'text-slate-300'
-                                                                }`}
-                                                        />
+                                                        <Edit2 className="w-3 h-3" />
+                                                        Edit
                                                     </button>
-                                                ))}
-                                            </div>
-                                            <textarea
-                                                value={reviewComment}
-                                                onChange={(e) => setReviewComment(e.target.value)}
-                                                placeholder="Add a comment (optional)"
-                                                rows={2}
-                                                maxLength={500}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                            <button
-                                                onClick={handleSubmitReview}
-                                                disabled={submittingReview || reviewRating === 0}
-                                                className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-                                            >
-                                                {submittingReview ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <>
-                                                        <Check className="w-4 h-4" />
-                                                        {myReview ? 'Update Review' : 'Submit Review'}
-                                                    </>
+                                                </div>
+                                                {myReview.comment && (
+                                                    <p className="text-sm text-slate-600">{myReview.comment}</p>
                                                 )}
+                                            </div>
+                                        ) : (
+                                            // Rate Prompt
+                                            <button
+                                                onClick={() => garageId && startReview(garageId)}
+                                                className="flex items-center gap-2 text-blue-600 text-sm font-semibold"
+                                            >
+                                                <Star className="w-4 h-4" />
+                                                Rate this service
+                                            </button>
+                                        )}
+                                    </div>
+                                    {/* Report Link */}
+                                    {garageId && (
+                                        <div className="flex flex-col ml-3 mt-1 gap-1">
+                                            <button
+                                                onClick={async (e) => {
+                                                    e.stopPropagation();
+                                                    try {
+                                                        const { auth } = await import('../../lib/firebase');
+                                                        const token = await auth.currentUser?.getIdToken();
+                                                        const apiUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
+                                                        const res = await fetch(`${apiUrl}/service-records/invoice/${service._id}`, {
+                                                            headers: { 'Authorization': `Bearer ${token}` },
+                                                        });
+                                                        if (res.ok) {
+                                                            const blob = await res.blob();
+                                                            const url = URL.createObjectURL(blob);
+                                                            const a = document.createElement('a');
+                                                            a.href = url;
+                                                            a.download = `Invoice-${service._id}.pdf`;
+                                                            a.click();
+                                                            URL.revokeObjectURL(url);
+                                                        }
+                                                    } catch (err) {
+                                                        console.error('Invoice download error:', err);
+                                                    }
+                                                }}
+                                                className="p-2 text-slate-300 hover:text-blue-500 transition-colors"
+                                                title="Download Invoice"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/customer/garage/${garageId}`);
+                                                }}
+                                                className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                title="Report an issue"
+                                            >
+                                                <Flag className="w-4 h-4" />
                                             </button>
                                         </div>
-                                    ) : myReview ? (
-                                        // Show Existing Review
-                                        <div>
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-1">
-                                                    {[1, 2, 3, 4, 5].map(star => (
-                                                        <Star
-                                                            key={star}
-                                                            className={`w-4 h-4 ${star <= myReview.rating
-                                                                ? 'fill-amber-400 text-amber-400'
-                                                                : 'text-slate-300'
-                                                                }`}
-                                                        />
-                                                    ))}
-                                                    <span className="text-sm text-slate-500 ml-2">Your Review</span>
-                                                </div>
-                                                <button
-                                                    onClick={() => garageId && startReview(garageId)}
-                                                    className="flex items-center gap-1 text-blue-600 text-sm font-semibold"
-                                                >
-                                                    <Edit2 className="w-3 h-3" />
-                                                    Edit
-                                                </button>
-                                            </div>
-                                            {myReview.comment && (
-                                                <p className="text-sm text-slate-600">{myReview.comment}</p>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        // Rate Prompt
-                                        <button
-                                            onClick={() => garageId && startReview(garageId)}
-                                            className="flex items-center gap-2 text-blue-600 text-sm font-semibold"
-                                        >
-                                            <Star className="w-4 h-4" />
-                                            Rate this service
-                                        </button>
                                     )}
                                 </div>
                             </motion.div>

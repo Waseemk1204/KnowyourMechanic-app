@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export type PaymentMethod = 'cash' | 'razorpay';
 export type ServiceStatus = 'pending_otp' | 'otp_verified' | 'payment_pending' | 'completed' | 'cancelled';
+export type VerificationMethod = 'whatsapp_otp' | 'in_app';
 
 export interface IServiceRecord extends Document {
     garageId: Types.ObjectId;
@@ -18,6 +19,8 @@ export interface IServiceRecord extends Document {
     otpExpiry?: Date;
     razorpayOrderId?: string;
     razorpayPaymentId?: string;
+    verificationMethod?: VerificationMethod;
+    approvedByCustomer?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -44,6 +47,8 @@ const ServiceRecordSchema = new Schema<IServiceRecord>({
     otpExpiry: { type: Date },
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
+    verificationMethod: { type: String, enum: ['whatsapp_otp', 'in_app'] },
+    approvedByCustomer: { type: Boolean },
 }, { timestamps: true });
 
 // Indexes

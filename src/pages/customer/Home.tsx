@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Star, Phone, LogOut, X, Loader2, Filter, Navigation, ChevronRight, LocateFixed, Settings, Clock, Headphones, User } from 'lucide-react';
+import { Search, MapPin, Star, Phone, LogOut, X, Loader2, Filter, Navigation, ChevronRight, Settings, Clock, Headphones, User, Shield, Check, XCircle, Wrench } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from '../../hooks/useLocation';
 import { useAuth } from '../../contexts/AuthContext';
 import { discoverGarages, type GarageProfile } from '../../lib/api';
 import GarageMap from '../../components/GarageMap';
+import { useNotifications } from '../../hooks/useNotifications';
 
 type Garage = {
     id: string;
@@ -122,6 +123,13 @@ export default function CustomerHome() {
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
 
+    // Pending service approvals
+    const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+    const [approvingId, setApprovingId] = useState<string | null>(null);
+
+    // Register FCM notifications
+    useNotifications(() => fetchPendingApprovals());
+
     // Load customer name from profile
     useEffect(() => {
         const savedProfile = localStorage.getItem('customerProfile');
@@ -131,13 +139,73 @@ export default function CustomerHome() {
         }
     }, [showProfilePanel]);
 
-    // Fetch unrated services
+    // Fetch unrated services and pending approvals
     useEffect(() => {
         fetchUnratedService();
+        fetchPendingApprovals();
     }, []);
 
     const getApiUrl = () => {
         return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
+    };
+
+    const getToken = async () => {
+        const { auth } = await import('../../lib/firebase');
+        return auth.currentUser?.getIdToken();
+    };
+
+    const fetchPendingApprovals = async () => {
+        try {
+            const token = await getToken();
+            if (!token) return;
+            const res = await fetch(`${getApiUrl()}/service-records/pending-approvals`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setPendingApprovals(data);
+            }
+        } catch (err) {
+            console.error('Fetch pending approvals error:', err);
+        }
+    };
+
+    const handleApproveService = async (serviceId: string) => {
+        setApprovingId(serviceId);
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/service-records/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ serviceId }),
+            });
+            if (res.ok) {
+                setPendingApprovals(prev => prev.filter(p => p._id !== serviceId));
+            }
+        } catch (err) {
+            console.error('Approve service error:', err);
+        } finally {
+            setApprovingId(null);
+        }
+    };
+
+    const handleRejectService = async (serviceId: string) => {
+        setApprovingId(serviceId);
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/service-records/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ serviceId }),
+            });
+            if (res.ok) {
+                setPendingApprovals(prev => prev.filter(p => p._id !== serviceId));
+            }
+        } catch (err) {
+            console.error('Reject service error:', err);
+        } finally {
+            setApprovingId(null);
+        }
     };
 
     const fetchUnratedService = async () => {
@@ -220,7 +288,7 @@ export default function CustomerHome() {
     };
 
     const navigate = useNavigate();
-    const { location, loading, permissionDenied, requestLocation } = useLocation();
+    const { location, loading, permissionDenied } = useLocation();
     const { logout } = useAuth();
 
     console.log('CustomerHome render:', { loading, location, garagesCount: garages.length, isLoadingGarages });
@@ -902,6 +970,88 @@ export default function CustomerHome() {
                             </div>
                         </motion.div>
                     </>
+                )}
+            </AnimatePresence>
+
+            {/* Service Approval Modal */}
+            <AnimatePresence>
+                {pendingApprovals.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-end justify-center"
+                    >
+                        <motion.div
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                        >
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                                    <Shield className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-900">Service Verification</h3>
+                                    <p className="text-slate-400 text-sm">Confirm this service is accurate</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {pendingApprovals.map(service => (
+                                    <div key={service._id} className="bg-slate-50 rounded-2xl p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                                <Wrench className="w-5 h-5 text-blue-600" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-bold text-slate-900">{service.garageName}</p>
+                                                <p className="text-slate-500 text-sm">{service.description}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between mb-4 px-2">
+                                            <div>
+                                                <p className="text-xs text-slate-400">Service Amount</p>
+                                                <p className="font-bold text-slate-900">Rs.{service.amount}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-400">Platform Fee</p>
+                                                <p className="font-bold text-slate-500">Rs.{service.platformFee}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-400">Total</p>
+                                                <p className="font-bold text-blue-600">Rs.{(service.amount + service.platformFee).toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => handleRejectService(service._id)}
+                                                disabled={approvingId === service._id}
+                                                className="flex-1 py-3 rounded-xl bg-red-50 text-red-600 font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                                Reject
+                                            </button>
+                                            <button
+                                                onClick={() => handleApproveService(service._id)}
+                                                disabled={approvingId === service._id}
+                                                className="flex-1 py-3 rounded-xl bg-green-600 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                {approvingId === service._id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Check className="w-5 h-5" />
+                                                )}
+                                                Approve
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>

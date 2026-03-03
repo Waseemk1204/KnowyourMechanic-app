@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
 import Garage from '../models/Garage.js';
 import User from '../models/User.js';
+import Employee from '../models/Employee.js';
 import dbConnect from '../utils/dbConnect.js';
 
 const router = express.Router();
@@ -24,11 +25,23 @@ router.post('/business-info', authenticate, async (req: AuthRequest, res) => {
             serviceHours,
             workingDays,
             businessType,
-            legalBusinessName
+            legalBusinessName,
+            referralCode,
         } = req.body;
 
         if (!name || !email || !phone) {
             return res.status(400).json({ message: 'Name, email, and phone are required' });
+        }
+
+        // Look up referral code if provided
+        let assignedEmployeeId = undefined;
+        let validReferralCode = undefined;
+        if (referralCode) {
+            const employee = await Employee.findOne({ referralCode: referralCode.toUpperCase(), isActive: true });
+            if (employee) {
+                assignedEmployeeId = employee._id;
+                validReferralCode = employee.referralCode;
+            }
         }
 
         // Find or create garage
@@ -48,6 +61,10 @@ router.post('/business-info', authenticate, async (req: AuthRequest, res) => {
             garage.businessType = businessType || 'individual';
             garage.legalBusinessName = legalBusinessName || name;
             garage.onboardingStatus = 'bank_details';
+            if (assignedEmployeeId) {
+                garage.assignedEmployeeId = assignedEmployeeId;
+                garage.referralCode = validReferralCode;
+            }
         } else {
             // Create new
             garage = new Garage({
@@ -64,6 +81,8 @@ router.post('/business-info', authenticate, async (req: AuthRequest, res) => {
                 businessType: businessType || 'individual',
                 legalBusinessName: legalBusinessName || name,
                 onboardingStatus: 'bank_details',
+                assignedEmployeeId,
+                referralCode: validReferralCode,
             });
         }
 
@@ -73,6 +92,7 @@ router.post('/business-info', authenticate, async (req: AuthRequest, res) => {
             message: 'Business info saved',
             garageId: garage._id,
             nextStep: 'bank_details',
+            referralApplied: !!assignedEmployeeId,
         });
     } catch (error: any) {
         console.error('Business info error:', error);

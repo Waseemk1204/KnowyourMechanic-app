@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
-import { sendOtpWhatsApp, sendInvoiceWhatsApp, isWhatsAppConfigured } from '../utils/whatsapp';
+import { authenticate } from '../middleware/auth.js';
+import { sendOtpWhatsApp, sendInvoiceWhatsApp, isWhatsAppConfigured } from '../utils/whatsapp.js';
 
 const router = Router();
 

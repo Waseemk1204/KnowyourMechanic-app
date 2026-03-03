@@ -7,6 +7,7 @@ export default function CustomerProfile() {
     const navigate = useNavigate();
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [loadingProfile, setLoadingProfile] = useState(true);
 
     const [profile, setProfile] = useState({
         name: '',
@@ -16,24 +17,84 @@ export default function CustomerProfile() {
         vehicleNumber: '',
     });
 
+    const getApiUrl = () => {
+        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
+    };
+
+    const getToken = async () => {
+        const { auth } = await import('../../lib/firebase');
+        return auth.currentUser?.getIdToken();
+    };
+
     useEffect(() => {
-        // Load from localStorage
-        const savedProfile = localStorage.getItem('customerProfile');
-        if (savedProfile) {
-            setProfile(JSON.parse(savedProfile));
-        }
+        fetchProfile();
     }, []);
 
-    const handleSave = () => {
+    const fetchProfile = async () => {
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/customer-profile`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setProfile({
+                    name: data.name || '',
+                    vehicleMake: data.vehicleMake || '',
+                    vehicleModel: data.vehicleModel || '',
+                    vehicleYear: data.vehicleYear || '',
+                    vehicleNumber: data.vehicleNumber || '',
+                });
+            }
+        } catch (err) {
+            console.error('Failed to fetch profile:', err);
+            // Fall back to localStorage if API fails
+            const savedProfile = localStorage.getItem('customerProfile');
+            if (savedProfile) {
+                setProfile(JSON.parse(savedProfile));
+            }
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
+
+    const handleSave = async () => {
         setSaving(true);
-        // Save to localStorage
-        localStorage.setItem('customerProfile', JSON.stringify(profile));
-        setTimeout(() => {
-            setSaving(false);
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/customer-profile`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(profile),
+            });
+
+            if (res.ok) {
+                // Also save to localStorage as backup
+                localStorage.setItem('customerProfile', JSON.stringify(profile));
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            }
+        } catch (err) {
+            console.error('Failed to save profile:', err);
+            // Save to localStorage as fallback
+            localStorage.setItem('customerProfile', JSON.stringify(profile));
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
-        }, 500);
+        } finally {
+            setSaving(false);
+        }
     };
+
+    if (loadingProfile) {
+        return (
+            <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
@@ -136,8 +197,8 @@ export default function CustomerProfile() {
                     disabled={saving}
                     whileTap={{ scale: 0.98 }}
                     className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all ${saved
-                            ? 'bg-green-500 text-white'
-                            : 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                         }`}
                 >
                     {saving ? (

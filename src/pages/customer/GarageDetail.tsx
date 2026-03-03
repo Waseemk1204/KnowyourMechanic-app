@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Star, MapPin, Clock, Phone, Navigation,
-    Wrench, ChevronRight, Calendar, X, Check, Loader2, Info
+    Wrench, Calendar, X, Check, Loader2, Info, AlertTriangle, Flag, DollarSign, Timer
 } from 'lucide-react';
 
 interface ServiceRecord {
@@ -37,6 +37,14 @@ interface GarageDetail {
     totalReviews: number;
 }
 
+interface OfferedService {
+    _id: string;
+    name: string;
+    description?: string;
+    price: number;
+    duration: number;
+}
+
 export default function GarageDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -62,16 +70,26 @@ export default function GarageDetailPage() {
     const [booking, setBooking] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
 
+    // Service portfolio
+    const [offeredServices, setOfferedServices] = useState<OfferedService[]>([]);
+
+    // Report modal
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportReason, setReportReason] = useState<string>('');
+    const [reportDescription, setReportDescription] = useState('');
+    const [submittingReport, setSubmittingReport] = useState(false);
+    const [reportSuccess, setReportSuccess] = useState(false);
+
     useEffect(() => {
         fetchGarageDetails();
         fetchReviews();
         fetchMyReview();
+        fetchOfferedServices();
     }, [id]);
 
     const fetchGarageDetails = async () => {
         try {
             // Fetch garage details
-            const { apiRequest } = await import('../../lib/api');
             const garageRes = await fetch(`${getApiUrl()}/garages/${id}`);
             if (garageRes.ok) {
                 const garageData = await garageRes.json();
@@ -201,10 +219,7 @@ export default function GarageDetailPage() {
         return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
     };
 
-    const handleBookService = (service: ServiceRecord) => {
-        setSelectedService(service);
-        setShowBookingModal(true);
-    };
+
 
     const loadMoreServices = () => {
         // First click: show 5 more (5→10), subsequent clicks: show 10 more
@@ -267,6 +282,55 @@ export default function GarageDetailPage() {
         }
     };
 
+    const fetchOfferedServices = async () => {
+        try {
+            const res = await fetch(`${getApiUrl()}/services/garage/${id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setOfferedServices(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch offered services', err);
+        }
+    };
+
+    const handleSubmitReport = async () => {
+        if (!reportReason || !reportDescription.trim()) return;
+        setSubmittingReport(true);
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            const res = await fetch(`${getApiUrl()}/reports`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    garageId: id,
+                    reason: reportReason,
+                    description: reportDescription,
+                }),
+            });
+            if (res.ok) {
+                setReportSuccess(true);
+                setTimeout(() => {
+                    setShowReportModal(false);
+                    setReportReason('');
+                    setReportDescription('');
+                    setReportSuccess(false);
+                }, 2000);
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to submit report');
+            }
+        } catch (err) {
+            alert('Network error. Please try again.');
+        } finally {
+            setSubmittingReport(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -308,6 +372,15 @@ export default function GarageDetailPage() {
                     className="absolute top-12 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center"
                 >
                     <ArrowLeft className="w-5 h-5 text-white" />
+                </button>
+
+                {/* Report button */}
+                <button
+                    onClick={() => setShowReportModal(true)}
+                    className="absolute top-12 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center"
+                    title="Report an issue"
+                >
+                    <Flag className="w-5 h-5 text-white" />
                 </button>
             </div>
 
@@ -375,7 +448,41 @@ export default function GarageDetailPage() {
                     </div>
                 </motion.div>
 
-                {/* Services */}
+                {/* Services Offered (Portfolio) */}
+                {offeredServices.length > 0 && (
+                    <div className="mb-6">
+                        <h2 className="text-lg font-bold text-slate-900 mb-4">Services Offered</h2>
+                        <div className="space-y-3">
+                            {offeredServices.map((svc, i) => (
+                                <motion.div
+                                    key={svc._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-900">{svc.name}</p>
+                                            {svc.description && (
+                                                <p className="text-xs text-slate-500 mt-1">{svc.description}</p>
+                                            )}
+                                        </div>
+                                        <div className="text-right ml-3">
+                                            <p className="font-bold text-blue-600">Rs.{svc.price}</p>
+                                            <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
+                                                <Timer className="w-3 h-3" />
+                                                {svc.duration} min
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Recent Services */}
                 <div className="mb-6">
                     <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Services</h2>
 
@@ -499,8 +606,8 @@ export default function GarageDetailPage() {
                                             <Star
                                                 key={star}
                                                 className={`w-5 h-5 ${star <= myReview.rating
-                                                        ? 'fill-amber-400 text-amber-400'
-                                                        : 'text-slate-300'
+                                                    ? 'fill-amber-400 text-amber-400'
+                                                    : 'text-slate-300'
                                                     }`}
                                             />
                                         ))}
@@ -543,8 +650,8 @@ export default function GarageDetailPage() {
                                                     <Star
                                                         key={star}
                                                         className={`w-4 h-4 ${star <= review.rating
-                                                                ? 'fill-amber-400 text-amber-400'
-                                                                : 'text-slate-300'
+                                                            ? 'fill-amber-400 text-amber-400'
+                                                            : 'text-slate-300'
                                                             }`}
                                                     />
                                                 ))}
@@ -618,8 +725,8 @@ export default function GarageDetailPage() {
                                             >
                                                 <Star
                                                     className={`w-10 h-10 ${star <= reviewRating
-                                                            ? 'fill-amber-400 text-amber-400'
-                                                            : 'text-slate-300'
+                                                        ? 'fill-amber-400 text-amber-400'
+                                                        : 'text-slate-300'
                                                         }`}
                                                 />
                                             </button>
@@ -699,8 +806,8 @@ export default function GarageDetailPage() {
                                     </div>
 
                                     <div className="bg-slate-50 rounded-2xl p-4 mb-6">
-                                        <p className="font-bold text-slate-900">{selectedService.name}</p>
-                                        <p className="text-slate-500 text-sm">{selectedService.duration} mins • ₹{selectedService.price}</p>
+                                        <p className="font-bold text-slate-900">{selectedService.description}</p>
+                                        <p className="text-slate-500 text-sm">₹{selectedService.amount}</p>
                                     </div>
 
                                     <div className="space-y-4 mb-6">
@@ -743,7 +850,109 @@ export default function GarageDetailPage() {
                                         {booking ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                         ) : (
-                                            <>Confirm Booking • ₹{selectedService.price}</>
+                                            <>Confirm Booking • ₹{selectedService.amount}</>
+                                        )}
+                                    </button>
+                                </>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Report Modal */}
+            <AnimatePresence>
+                {showReportModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center"
+                        onClick={() => setShowReportModal(false)}
+                    >
+                        <motion.div
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                        >
+                            {reportSuccess ? (
+                                <div className="text-center py-8">
+                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Check className="w-8 h-8 text-green-600" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2">Report Submitted</h3>
+                                    <p className="text-slate-500">We'll review this and take action shortly.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                                <AlertTriangle className="w-5 h-5 text-red-600" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-900">Report Issue</h3>
+                                        </div>
+                                        <button onClick={() => setShowReportModal(false)}>
+                                            <X className="w-6 h-6 text-slate-400" />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4 mb-6">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Reason</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    { value: 'fraud', label: 'Fraud / Scam' },
+                                                    { value: 'overcharging', label: 'Overcharging' },
+                                                    { value: 'poor_service', label: 'Poor Service' },
+                                                    { value: 'harassment', label: 'Harassment' },
+                                                    { value: 'other', label: 'Other' },
+                                                ].map(opt => (
+                                                    <button
+                                                        key={opt.value}
+                                                        onClick={() => setReportReason(opt.value)}
+                                                        className={`px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all ${reportReason === opt.value
+                                                                ? 'bg-red-50 border-red-300 text-red-700'
+                                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
+                                                            }`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                Describe the issue
+                                            </label>
+                                            <textarea
+                                                value={reportDescription}
+                                                onChange={(e) => setReportDescription(e.target.value)}
+                                                placeholder="Tell us what happened..."
+                                                rows={4}
+                                                maxLength={1000}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm"
+                                            />
+                                            <p className="text-xs text-slate-400 mt-1 text-right">
+                                                {reportDescription.length}/1000
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={handleSubmitReport}
+                                        disabled={!reportReason || !reportDescription.trim() || submittingReport}
+                                        className="w-full bg-red-600 text-white py-4 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {submittingReport ? (
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <AlertTriangle className="w-5 h-5" />
+                                                Submit Report
+                                            </>
                                         )}
                                     </button>
                                 </>

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-    Building2, MapPin, Clock, Phone, Mail, CreditCard,
+    Building2, Phone, Mail, CreditCard,
     CheckCircle, ArrowRight, ArrowLeft, Loader2, AlertTriangle,
-    Landmark, User, FileText
+    Landmark, User
 } from 'lucide-react';
 import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
@@ -22,6 +22,7 @@ interface BusinessInfo {
     workingDays: string[];
     businessType: string;
     legalBusinessName: string;
+    referralCode: string;
 }
 
 interface BankInfo {
@@ -49,6 +50,7 @@ export default function GarageOnboardingWizard() {
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         businessType: 'individual',
         legalBusinessName: '',
+        referralCode: '',
     });
 
     const [bank, setBank] = useState<BankInfo>({
@@ -114,6 +116,7 @@ export default function GarageOnboardingWizard() {
                 body: JSON.stringify({
                     ...business,
                     legalBusinessName: business.legalBusinessName || business.name,
+                    referralCode: business.referralCode || undefined,
                 })
             });
 
@@ -322,6 +325,17 @@ export default function GarageOnboardingWizard() {
                                     <option value="partnership">Partnership</option>
                                     <option value="private_limited">Private Limited</option>
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Referral Code (optional)</label>
+                                <input
+                                    value={business.referralCode}
+                                    onChange={(e) => setBusiness({ ...business, referralCode: e.target.value.toUpperCase() })}
+                                    placeholder="e.g. KYM-A7X3K"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 font-mono uppercase"
+                                />
+                                <p className="text-xs text-slate-400 mt-1">If provided by a KnowyourMechanic representative</p>
                             </div>
 
                             <button
