@@ -1,17 +1,11 @@
 // Firebase Cloud Messaging Service Worker
-// This file MUST live at the root of the public directory
+// Config is injected at build time by vite.config.ts — do NOT hardcode keys here
 
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-    apiKey: 'AIzaSyAjwzp9H99YwIqp4knPgA95W_OjuSeWxWM',
-    authDomain: 'knowyour-mechanic.firebaseapp.com',
-    projectId: 'knowyour-mechanic',
-    storageBucket: 'knowyour-mechanic.firebasestorage.app',
-    messagingSenderId: '11256763632',
-    appId: '1:11256763632:web:329566a04a1331e8579e35',
-});
+// __FIREBASE_CONFIG__ is replaced at build time by the Vite plugin
+firebase.initializeApp(__FIREBASE_CONFIG__);
 
 const messaging = firebase.messaging();
 
