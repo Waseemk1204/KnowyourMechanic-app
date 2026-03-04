@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Clock, Wrench, Loader2, Calendar, AlertCircle, ArrowLeft, Star, X, Check, Edit2, Flag, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, Wrench, Loader2, Calendar, AlertCircle, ArrowLeft, Star, X, Check, Edit2, Flag, Download, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ServiceRecord {
@@ -39,6 +39,15 @@ export default function CustomerActivity() {
     const [reviewRating, setReviewRating] = useState(0);
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
+
+    // Report state
+    const [reportGarageId, setReportGarageId] = useState<string | null>(null);
+    const [reportGarageName, setReportGarageName] = useState('');
+    const [reportReason, setReportReason] = useState('');
+    const [reportDescription, setReportDescription] = useState('');
+    const [submittingReport, setSubmittingReport] = useState(false);
+    const [reportSuccess, setReportSuccess] = useState(false);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -158,7 +167,39 @@ export default function CustomerActivity() {
         );
     }
 
-    return (
+    const handleSubmitReport = async () => {
+        if (!reportReason || !reportDescription.trim() || !reportGarageId) return;
+        setSubmittingReport(true);
+        try {
+            const { auth } = await import('../../lib/firebase');
+            const token = await auth.currentUser?.getIdToken();
+            const res = await fetch(`${getApiUrl()}/reports`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    garageId: reportGarageId,
+                    reason: reportReason,
+                    description: reportDescription,
+                }),
+            });
+            if (res.ok) {
+                setReportSuccess(true);
+                setTimeout(() => setReportGarageId(null), 2000);
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to submit report');
+            }
+        } catch {
+            alert('Network error. Please try again.');
+        } finally {
+            setSubmittingReport(false);
+        }
+    };
+
+    const mainContent = (
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
             {/* Header */}
             <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem] mb-4">
@@ -360,7 +401,13 @@ export default function CustomerActivity() {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    navigate(`/customer/garage/${garageId}`);
+                                                    const garageId = typeof service.garageId === 'object' ? service.garageId._id : service.garageId;
+                                                    const garageName = typeof service.garageId === 'object' ? service.garageId.name : 'this garage';
+                                                    setReportGarageId(garageId);
+                                                    setReportGarageName(garageName);
+                                                    setReportReason('');
+                                                    setReportDescription('');
+                                                    setReportSuccess(false);
                                                 }}
                                                 className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                                                 title="Report an issue"
@@ -388,5 +435,95 @@ export default function CustomerActivity() {
                 </div>
             </div>
         </div>
+    );
+
+    return (
+        <>
+            {mainContent}
+
+            {/* Report Modal */}
+            <AnimatePresence>
+                {reportGarageId && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+                        onClick={() => setReportGarageId(null)}
+                    >
+                        <motion.div
+                            initial={{ y: 100, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 100, opacity: 0 }}
+                            className="bg-white rounded-3xl w-full max-w-md p-6"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {reportSuccess ? (
+                                <div className="text-center py-6">
+                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Check className="w-8 h-8 text-green-600" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900">Report Submitted</h3>
+                                    <p className="text-slate-500 text-sm mt-2">We'll review your report and take action.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                                                <AlertTriangle className="w-5 h-5 text-red-600" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-black text-lg text-slate-900">Report Issue</h3>
+                                                <p className="text-xs text-slate-400">{reportGarageName}</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setReportGarageId(null)} className="p-2 hover:bg-slate-100 rounded-xl"><X className="w-5 h-5" /></button>
+                                    </div>
+
+                                    <div className="space-y-2 mb-4">
+                                        {[
+                                            { value: 'overcharging', label: 'Overcharging' },
+                                            { value: 'poor_service', label: 'Poor Service' },
+                                            { value: 'fraud', label: 'Fraud / Scam' },
+                                            { value: 'harassment', label: 'Harassment' },
+                                            { value: 'other', label: 'Other' },
+                                        ].map(opt => (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => setReportReason(opt.value)}
+                                                className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${reportReason === opt.value
+                                                    ? 'border-red-500 bg-red-50 text-red-700'
+                                                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                                                    }`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <textarea
+                                        value={reportDescription}
+                                        onChange={e => setReportDescription(e.target.value)}
+                                        placeholder="Describe the issue in detail..."
+                                        rows={3}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm resize-none focus:ring-2 focus:ring-red-500 focus:outline-none mb-4"
+                                    />
+
+                                    <button
+                                        onClick={handleSubmitReport}
+                                        disabled={!reportReason || !reportDescription.trim() || submittingReport}
+                                        className="w-full py-3 bg-red-600 text-white rounded-xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {submittingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Flag className="w-4 h-4" />}
+                                        Submit Report
+                                    </button>
+                                </>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 }
