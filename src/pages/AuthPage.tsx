@@ -64,7 +64,11 @@ export default function AuthPage() {
                     localStorage.setItem('userRole', userData.role);
                     localStorage.setItem('userData', JSON.stringify(userData));
 
-                    if (userData.role === 'garage') {
+                    if (userData.role === 'admin') {
+                        navigate('/admin');
+                    } else if (userData.role === 'employee') {
+                        navigate('/employee');
+                    } else if (userData.role === 'garage') {
                         navigate('/garage');
                     } else {
                         navigate('/customer');
