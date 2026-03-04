@@ -29,6 +29,18 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
             return res.status(404).json({ message: 'Garage not found' });
         }
 
+        // MANDATORY: Verify customer has at least one service from this garage
+        const hasService = await ServiceRecord.exists({
+            garageId,
+            customerPhone: user.phoneNumber,
+            status: 'completed',
+        });
+        if (!hasService) {
+            return res.status(403).json({
+                message: 'You can only report a garage where you have had a service done.',
+            });
+        }
+
         // If service record provided, validate it belongs to this customer
         if (serviceRecordId) {
             const record = await ServiceRecord.findOne({

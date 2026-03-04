@@ -93,7 +93,12 @@ const GarageSchema = new Schema<IGarage>({
 }, { timestamps: true });
 
 GarageSchema.index({ 'location.coordinates': '2dsphere' });
+GarageSchema.index({ userId: 1 });
 GarageSchema.index({ razorpayAccountId: 1 });
 GarageSchema.index({ onboardingStatus: 1 });
+GarageSchema.index({ isVerified: 1 });
+GarageSchema.index({ assignedEmployeeId: 1 });
+GarageSchema.index({ referralCode: 1 });
+GarageSchema.index({ name: 'text' });
 
 export default mongoose.models.Garage || mongoose.model<IGarage>('Garage', GarageSchema);

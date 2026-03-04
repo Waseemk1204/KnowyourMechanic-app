@@ -26,4 +26,9 @@ const UserSchema = new Schema<IUser>({
     fcmToken: { type: String },
 }, { timestamps: true });
 
+// Indexes
+UserSchema.index({ phoneNumber: 1 });
+UserSchema.index({ role: 1 });
+UserSchema.index({ phoneNumber: 1, role: 1 });
+
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

@@ -21,5 +21,7 @@ const ServiceSchema = new Schema<IService>({
 }, { timestamps: true });
 
 ServiceSchema.index({ garageId: 1 });
+ServiceSchema.index({ garageId: 1, isActive: 1 });
+ServiceSchema.index({ isActive: 1 });
 
 export default mongoose.models.Service || mongoose.model<IService>('Service', ServiceSchema);

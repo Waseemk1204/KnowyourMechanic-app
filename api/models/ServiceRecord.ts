@@ -55,6 +55,9 @@ const ServiceRecordSchema = new Schema<IServiceRecord>({
 ServiceRecordSchema.index({ garageId: 1, createdAt: -1 });
 ServiceRecordSchema.index({ customerPhone: 1 });
 ServiceRecordSchema.index({ status: 1 });
+ServiceRecordSchema.index({ customerPhone: 1, garageId: 1, status: 1 }); // report validation
+ServiceRecordSchema.index({ garageId: 1, status: 1 }); // admin aggregations
+ServiceRecordSchema.index({ createdAt: -1 }); // sorted listings
 
 // Static method to calculate fees (static ₹1.90)
 ServiceRecordSchema.statics.calculateFees = function (amount: number) {

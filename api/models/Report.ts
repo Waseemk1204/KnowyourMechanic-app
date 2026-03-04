@@ -31,5 +31,7 @@ const ReportSchema = new Schema<IReport>({
 ReportSchema.index({ reporterId: 1 });
 ReportSchema.index({ garageId: 1 });
 ReportSchema.index({ status: 1 });
+ReportSchema.index({ reporterId: 1, garageId: 1, reason: 1, status: 1 }); // duplicate check
+ReportSchema.index({ createdAt: -1 }); // admin sorted listing
 
 export default mongoose.models.Report || mongoose.model<IReport>('Report', ReportSchema);
