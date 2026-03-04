@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Settings, Plus, Star, LogOut, Wrench, User,
-    X, Headphones, Edit, ChevronRight, Timer, Trash2, Save, Package, Loader2, Calendar, Check, XCircle
+    X, Headphones, ChevronRight, Calendar, Check, XCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -45,13 +45,7 @@ interface ServiceRecord {
     createdAt: string;
 }
 
-interface OfferedService {
-    _id: string;
-    name: string;
-    description?: string;
-    price: number;
-    duration: number;
-}
+
 
 export default function GarageDashboard() {
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -67,13 +61,6 @@ export default function GarageDashboard() {
     const [workingDays, setWorkingDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-    // Service portfolio
-    const [portfolioServices, setPortfolioServices] = useState<OfferedService[]>([]);
-    const [showAddPortfolio, setShowAddPortfolio] = useState(false);
-    const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-    const [portfolioForm, setPortfolioForm] = useState({ name: '', description: '', price: '', duration: '60' });
-    const [savingPortfolio, setSavingPortfolio] = useState(false);
-
     const navigate = useNavigate();
     const { userData, logout } = useAuth();
 
@@ -81,7 +68,6 @@ export default function GarageDashboard() {
         fetchBookings();
         fetchServices();
         fetchGarageProfile();
-        fetchPortfolioServices();
     }, []);
 
     const getApiUrl = () => {
@@ -134,73 +120,6 @@ export default function GarageDashboard() {
             console.error('Error fetching services:', error);
         }
     };
-
-    const fetchPortfolioServices = async () => {
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            const res = await fetch(`${getApiUrl()}/services/my-services`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setPortfolioServices(data);
-            }
-        } catch (err) {
-            console.error('Error fetching portfolio services:', err);
-        }
-    };
-
-    const handleSavePortfolioService = async () => {
-        if (!portfolioForm.name || !portfolioForm.price) return;
-        setSavingPortfolio(true);
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            const url = editingServiceId
-                ? `${getApiUrl()}/services/${editingServiceId}`
-                : `${getApiUrl()}/services`;
-            const method = editingServiceId ? 'PUT' : 'POST';
-            const res = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    name: portfolioForm.name,
-                    description: portfolioForm.description,
-                    price: parseFloat(portfolioForm.price),
-                    duration: parseInt(portfolioForm.duration) || 60,
-                }),
-            });
-            if (res.ok) {
-                setShowAddPortfolio(false);
-                setEditingServiceId(null);
-                setPortfolioForm({ name: '', description: '', price: '', duration: '60' });
-                fetchPortfolioServices();
-            }
-        } catch (err) {
-            console.error('Error saving service:', err);
-        } finally {
-            setSavingPortfolio(false);
-        }
-    };
-
-    const handleDeletePortfolioService = async (serviceId: string) => {
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            await fetch(`${getApiUrl()}/services/${serviceId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            fetchPortfolioServices();
-        } catch (err) {
-            console.error('Error deleting service:', err);
-        }
-    };
-
 
 
     const handleLogout = async () => {
