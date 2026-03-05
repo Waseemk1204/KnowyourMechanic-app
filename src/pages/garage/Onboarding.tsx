@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import {
     Building2, Phone, Mail, CreditCard,
     CheckCircle, ArrowRight, ArrowLeft, Loader2, AlertTriangle,
-    Landmark, User
+    Landmark, User, Camera, Check, X
 } from 'lucide-react';
 import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 import LocationPicker from '../../components/LocationPicker';
 
-type Step = 'business' | 'bank' | 'review' | 'success';
+type Step = 'business' | 'bank' | 'success';
 
 interface BusinessInfo {
     name: string;
@@ -18,11 +18,13 @@ interface BusinessInfo {
     phone: string;
     address: string;
     coordinates: [number, number];
+    hasValidLocation: boolean;
     serviceHours: string;
     workingDays: string[];
     businessType: string;
     legalBusinessName: string;
     referralCode: string;
+    photoBase64: string;
 }
 
 interface BankInfo {
@@ -33,24 +35,37 @@ interface BankInfo {
     bankName: string;
 }
 
+interface FieldErrors {
+    [key: string]: string;
+}
+
+interface ReferralStatus {
+    checking: boolean;
+    valid: boolean | null;
+    employeeName: string;
+}
+
 export default function GarageOnboardingWizard() {
     const navigate = useNavigate();
     const [step, setStep] = useState<Step>('business');
     const [loading, setLoading] = useState(false);
     const [checkingStatus, setCheckingStatus] = useState(true);
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
     const [business, setBusiness] = useState<BusinessInfo>({
         name: '',
         email: '',
         phone: '',
         address: '',
-        coordinates: [73.8567, 18.5204], // Default to Pune
+        coordinates: [0, 0],
+        hasValidLocation: false,
         serviceHours: '9:00 AM - 8:00 PM',
         workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         businessType: 'individual',
         legalBusinessName: '',
         referralCode: '',
+        photoBase64: '',
     });
 
     const [bank, setBank] = useState<BankInfo>({
@@ -59,6 +74,10 @@ export default function GarageOnboardingWizard() {
         ifscCode: '',
         accountHolderName: '',
         bankName: '',
+    });
+
+    const [referralStatus, setReferralStatus] = useState<ReferralStatus>({
+        checking: false, valid: null, employeeName: '',
     });
 
     const getApiUrl = () => {
@@ -96,17 +115,99 @@ export default function GarageOnboardingWizard() {
         }
     };
 
-    const handleBusinessSubmit = async () => {
-        if (!business.name || !business.email || !business.phone) {
-            setError('Name, email, and phone are required');
+    // ---- Validation helpers ----
+    const validatePhone = (phone: string): string => {
+        const digits = phone.replace(/\D/g, '');
+        if (!digits) return 'Phone number is required';
+        if (digits.length !== 10) return 'Phone must be exactly 10 digits';
+        return '';
+    };
+
+    const validateEmail = (email: string): string => {
+        if (!email) return 'Email is required';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address';
+        return '';
+    };
+
+    const validateBusinessStep = (): boolean => {
+        const errors: FieldErrors = {};
+
+        if (business.name.trim().length < 3) errors.name = 'Garage name must be at least 3 characters';
+        const emailErr = validateEmail(business.email);
+        if (emailErr) errors.email = emailErr;
+        const phoneErr = validatePhone(business.phone);
+        if (phoneErr) errors.phone = phoneErr;
+        if (!business.hasValidLocation) errors.location = 'Please detect your GPS location';
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const validateBankStep = (): boolean => {
+        const errors: FieldErrors = {};
+
+        const acctDigits = bank.accountNumber.replace(/\D/g, '');
+        if (acctDigits.length < 9 || acctDigits.length > 18) errors.accountNumber = 'Account number must be 9-18 digits';
+        if (bank.accountNumber !== bank.confirmAccountNumber) errors.confirmAccountNumber = 'Account numbers do not match';
+        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bank.ifscCode.toUpperCase())) errors.ifscCode = 'Invalid IFSC (e.g. SBIN0001234)';
+        if (!/^[a-zA-Z\s]+$/.test(bank.accountHolderName) || bank.accountHolderName.trim().length < 2) {
+            errors.accountHolderName = 'Enter a valid name (letters only)';
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    // ---- Referral live check ----
+    const verifyReferral = async (code: string) => {
+        if (!code || code.length < 5) {
+            setReferralStatus({ checking: false, valid: null, employeeName: '' });
             return;
         }
+        setReferralStatus(prev => ({ ...prev, checking: true }));
+        try {
+            const res = await fetch(`${getApiUrl()}/onboarding/verify-referral/${code.toUpperCase()}`);
+            const data = await res.json();
+            setReferralStatus({
+                checking: false,
+                valid: data.valid,
+                employeeName: data.employeeName || '',
+            });
+        } catch {
+            setReferralStatus({ checking: false, valid: false, employeeName: '' });
+        }
+    };
+
+    // ---- Photo handler ----
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Photo must be under 5MB');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setBusiness(prev => ({ ...prev, photoBase64: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // ---- Submit handlers ----
+    const handleBusinessSubmit = async () => {
+        if (!validateBusinessStep()) return;
 
         setLoading(true);
         setError('');
 
         try {
             const token = await getToken();
+
+            // If photo was uploaded, send it first
+            if (business.photoBase64) {
+                // We'll include it in the business-info call body
+            }
+
             const res = await fetch(`${getApiUrl()}/onboarding/business-info`, {
                 method: 'POST',
                 headers: {
@@ -114,35 +215,36 @@ export default function GarageOnboardingWizard() {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    ...business,
+                    name: business.name.trim(),
+                    email: business.email.trim(),
+                    phone: business.phone.replace(/\D/g, ''),
+                    address: business.address,
+                    coordinates: business.coordinates,
+                    serviceHours: business.serviceHours,
+                    workingDays: business.workingDays,
+                    businessType: business.businessType,
                     legalBusinessName: business.legalBusinessName || business.name,
                     referralCode: business.referralCode || undefined,
+                    photoUrl: business.photoBase64 || undefined,
                 })
             });
 
             if (res.ok) {
+                setFieldErrors({});
                 setStep('bank');
             } else {
                 const data = await res.json();
                 setError(data.message || 'Failed to save');
             }
-        } catch (err) {
-            setError('Network error');
+        } catch {
+            setError('Network error. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleBankSubmit = async () => {
-        if (bank.accountNumber !== bank.confirmAccountNumber) {
-            setError('Account numbers do not match');
-            return;
-        }
-
-        if (!bank.accountNumber || !bank.ifscCode || !bank.accountHolderName) {
-            setError('All bank details are required');
-            return;
-        }
+        if (!validateBankStep()) return;
 
         setLoading(true);
         setError('');
@@ -155,19 +257,24 @@ export default function GarageOnboardingWizard() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(bank)
+                body: JSON.stringify({
+                    accountNumber: bank.accountNumber.replace(/\D/g, ''),
+                    ifscCode: bank.ifscCode.toUpperCase(),
+                    accountHolderName: bank.accountHolderName.trim(),
+                    bankName: bank.bankName.trim(),
+                })
             });
 
-            const data = await res.json();
-
             if (res.ok) {
+                setFieldErrors({});
                 setStep('success');
-                setTimeout(() => navigate('/garage'), 2000);
+                setTimeout(() => navigate('/garage'), 2500);
             } else {
+                const data = await res.json();
                 setError(data.message || 'Failed to save');
             }
-        } catch (err) {
-            setError('Network error');
+        } catch {
+            setError('Network error. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -177,16 +284,33 @@ export default function GarageOnboardingWizard() {
         setLoading(true);
         try {
             const token = await getToken();
-            await fetch(`${getApiUrl()}/onboarding/complete`, {
+            const res = await fetch(`${getApiUrl()}/onboarding/complete`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             });
-            navigate('/garage');
-        } catch (err) {
-            setError('Failed to skip');
+            if (res.ok) {
+                setStep('success');
+                setTimeout(() => navigate('/garage'), 2500);
+            }
+        } catch {
+            setError('Network error');
         } finally {
             setLoading(false);
         }
+    };
+
+    // ---- Render helpers ----
+    const renderFieldError = (field: string) => {
+        if (!fieldErrors[field]) return null;
+        return (
+            <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" />
+                {fieldErrors[field]}
+            </p>
+        );
     };
 
     if (checkingStatus) {
@@ -235,7 +359,7 @@ export default function GarageOnboardingWizard() {
 
                 {error && (
                     <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4" />
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                         {error}
                     </div>
                 )}
@@ -250,6 +374,32 @@ export default function GarageOnboardingWizard() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-4"
                         >
+                            {/* Photo Upload */}
+                            <div className="flex justify-center mb-2">
+                                <label className="cursor-pointer group">
+                                    <div className={`w-24 h-24 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${business.photoBase64
+                                            ? 'border-green-300 bg-green-50'
+                                            : 'border-slate-300 bg-slate-100 group-hover:border-blue-400 group-hover:bg-blue-50'
+                                        }`}>
+                                        {business.photoBase64 ? (
+                                            <img src={business.photoBase64} alt="Preview" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="text-center">
+                                                <Camera className="w-6 h-6 text-slate-400 mx-auto" />
+                                                <span className="text-[10px] text-slate-400 mt-1 block">Add Photo</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+
+                            {/* Garage Name */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Garage Name *</label>
                                 <div className="relative">
@@ -257,13 +407,18 @@ export default function GarageOnboardingWizard() {
                                     <input
                                         type="text"
                                         value={business.name}
-                                        onChange={(e) => setBusiness({ ...business, name: e.target.value })}
+                                        onChange={(e) => {
+                                            setBusiness({ ...business, name: e.target.value });
+                                            if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: '' }));
+                                        }}
                                         placeholder="Your Garage Name"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.name ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
+                                {renderFieldError('name')}
                             </div>
 
+                            {/* Email */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Email *</label>
                                 <div className="relative">
@@ -271,13 +426,22 @@ export default function GarageOnboardingWizard() {
                                     <input
                                         type="email"
                                         value={business.email}
-                                        onChange={(e) => setBusiness({ ...business, email: e.target.value })}
+                                        onChange={(e) => {
+                                            setBusiness({ ...business, email: e.target.value });
+                                            if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: '' }));
+                                        }}
+                                        onBlur={() => {
+                                            const err = validateEmail(business.email);
+                                            if (err) setFieldErrors(prev => ({ ...prev, email: err }));
+                                        }}
                                         placeholder="garage@email.com"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.email ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
+                                {renderFieldError('email')}
                             </div>
 
+                            {/* Phone — digits only */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
                                 <div className="relative">
@@ -285,23 +449,46 @@ export default function GarageOnboardingWizard() {
                                     <input
                                         type="tel"
                                         value={business.phone}
-                                        onChange={(e) => setBusiness({ ...business, phone: e.target.value })}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                            setBusiness({ ...business, phone: digits });
+                                            if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: '' }));
+                                        }}
+                                        onBlur={() => {
+                                            const err = validatePhone(business.phone);
+                                            if (err) setFieldErrors(prev => ({ ...prev, phone: err }));
+                                        }}
                                         placeholder="9876543210"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                        maxLength={10}
+                                        inputMode="numeric"
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.phone ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
                                     />
+                                    {business.phone.length > 0 && (
+                                        <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono ${business.phone.length === 10 ? 'text-green-500' : 'text-slate-400'
+                                            }`}>
+                                            {business.phone.length}/10
+                                        </span>
+                                    )}
                                 </div>
+                                {renderFieldError('phone')}
                             </div>
 
+                            {/* Location — GPS Only */}
                             <LocationPicker
-                                value={business.address}
+                                address={business.address}
                                 coordinates={business.coordinates}
-                                onChange={(address, coords) => setBusiness({
-                                    ...business,
-                                    address,
-                                    coordinates: coords
-                                })}
-                                placeholder="Enter your garage address"
+                                hasValidLocation={business.hasValidLocation}
+                                onLocationDetected={(address, coords) => {
+                                    setBusiness(prev => ({
+                                        ...prev,
+                                        address,
+                                        coordinates: coords,
+                                        hasValidLocation: true,
+                                    }));
+                                    if (fieldErrors.location) setFieldErrors(prev => ({ ...prev, location: '' }));
+                                }}
                             />
+                            {renderFieldError('location')}
 
                             <TimeRangePicker
                                 value={business.serviceHours}
@@ -313,6 +500,7 @@ export default function GarageOnboardingWizard() {
                                 onChange={(value) => setBusiness({ ...business, workingDays: value })}
                             />
 
+                            {/* Business Type */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>
                                 <select
@@ -327,21 +515,50 @@ export default function GarageOnboardingWizard() {
                                 </select>
                             </div>
 
+                            {/* Referral Code with live validation */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Referral Code (optional)</label>
-                                <input
-                                    value={business.referralCode}
-                                    onChange={(e) => setBusiness({ ...business, referralCode: e.target.value.toUpperCase() })}
-                                    placeholder="e.g. KYM-A7X3K"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 font-mono uppercase"
-                                />
-                                <p className="text-xs text-slate-400 mt-1">If provided by a KnowyourMechanic representative</p>
+                                <div className="relative">
+                                    <input
+                                        value={business.referralCode}
+                                        onChange={(e) => {
+                                            const code = e.target.value.toUpperCase().replace(/[^A-Z0-9\-]/g, '');
+                                            setBusiness({ ...business, referralCode: code });
+                                            if (referralStatus.valid !== null) {
+                                                setReferralStatus({ checking: false, valid: null, employeeName: '' });
+                                            }
+                                        }}
+                                        onBlur={() => verifyReferral(business.referralCode)}
+                                        placeholder="e.g. KYM-A7X3K"
+                                        className={`w-full px-4 py-3 rounded-xl border font-mono uppercase focus:ring-2 focus:ring-blue-500 pr-10 ${referralStatus.valid === true ? 'border-green-300 bg-green-50/50' :
+                                                referralStatus.valid === false ? 'border-red-300 bg-red-50/50' :
+                                                    'border-slate-200'
+                                            }`}
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        {referralStatus.checking && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+                                        {referralStatus.valid === true && <Check className="w-5 h-5 text-green-500" />}
+                                        {referralStatus.valid === false && <X className="w-5 h-5 text-red-400" />}
+                                    </div>
+                                </div>
+                                {referralStatus.valid === true && (
+                                    <p className="text-green-600 text-xs mt-1 flex items-center gap-1">
+                                        <Check className="w-3 h-3" />
+                                        Referred by <span className="font-bold">{referralStatus.employeeName}</span>
+                                    </p>
+                                )}
+                                {referralStatus.valid === false && (
+                                    <p className="text-red-500 text-xs mt-1">Invalid referral code</p>
+                                )}
+                                {referralStatus.valid === null && (
+                                    <p className="text-xs text-slate-400 mt-1">If provided by a KnowyourMechanic representative</p>
+                                )}
                             </div>
 
                             <button
                                 onClick={handleBusinessSubmit}
                                 disabled={loading}
-                                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 mt-6"
+                                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 mt-6 disabled:opacity-50 transition-opacity"
                             >
                                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                     <>Continue <ArrowRight className="w-5 h-5" /></>
@@ -365,6 +582,7 @@ export default function GarageOnboardingWizard() {
                                 </p>
                             </div>
 
+                            {/* Account Holder */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Account Holder Name *</label>
                                 <div className="relative">
@@ -372,13 +590,19 @@ export default function GarageOnboardingWizard() {
                                     <input
                                         type="text"
                                         value={bank.accountHolderName}
-                                        onChange={(e) => setBank({ ...bank, accountHolderName: e.target.value })}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                            setBank({ ...bank, accountHolderName: val });
+                                            if (fieldErrors.accountHolderName) setFieldErrors(prev => ({ ...prev, accountHolderName: '' }));
+                                        }}
                                         placeholder="As per bank records"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountHolderName ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
+                                {renderFieldError('accountHolderName')}
                             </div>
 
+                            {/* Account Number */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Account Number *</label>
                                 <div className="relative">
@@ -386,24 +610,43 @@ export default function GarageOnboardingWizard() {
                                     <input
                                         type="text"
                                         value={bank.accountNumber}
-                                        onChange={(e) => setBank({ ...bank, accountNumber: e.target.value })}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, '').slice(0, 18);
+                                            setBank({ ...bank, accountNumber: digits });
+                                            if (fieldErrors.accountNumber) setFieldErrors(prev => ({ ...prev, accountNumber: '' }));
+                                        }}
                                         placeholder="Enter account number"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                        inputMode="numeric"
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
+                                {renderFieldError('accountNumber')}
                             </div>
 
+                            {/* Confirm Account Number */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm Account Number *</label>
-                                <input
-                                    type="text"
-                                    value={bank.confirmAccountNumber}
-                                    onChange={(e) => setBank({ ...bank, confirmAccountNumber: e.target.value })}
-                                    placeholder="Re-enter account number"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={bank.confirmAccountNumber}
+                                        onChange={(e) => {
+                                            const digits = e.target.value.replace(/\D/g, '').slice(0, 18);
+                                            setBank({ ...bank, confirmAccountNumber: digits });
+                                            if (fieldErrors.confirmAccountNumber) setFieldErrors(prev => ({ ...prev, confirmAccountNumber: '' }));
+                                        }}
+                                        placeholder="Re-enter account number"
+                                        inputMode="numeric"
+                                        className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.confirmAccountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                    />
+                                    {bank.confirmAccountNumber && bank.accountNumber === bank.confirmAccountNumber && (
+                                        <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                                    )}
+                                </div>
+                                {renderFieldError('confirmAccountNumber')}
                             </div>
 
+                            {/* IFSC */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">IFSC Code *</label>
                                 <div className="relative">
@@ -411,13 +654,20 @@ export default function GarageOnboardingWizard() {
                                     <input
                                         type="text"
                                         value={bank.ifscCode}
-                                        onChange={(e) => setBank({ ...bank, ifscCode: e.target.value.toUpperCase() })}
+                                        onChange={(e) => {
+                                            const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 11);
+                                            setBank({ ...bank, ifscCode: val });
+                                            if (fieldErrors.ifscCode) setFieldErrors(prev => ({ ...prev, ifscCode: '' }));
+                                        }}
                                         placeholder="SBIN0001234"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 uppercase"
+                                        maxLength={11}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.ifscCode ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500 uppercase font-mono`}
                                     />
                                 </div>
+                                {renderFieldError('ifscCode')}
                             </div>
 
+                            {/* Bank Name */}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">Bank Name</label>
                                 <input
@@ -431,7 +681,7 @@ export default function GarageOnboardingWizard() {
 
                             <div className="flex gap-3 mt-6">
                                 <button
-                                    onClick={() => setStep('business')}
+                                    onClick={() => { setStep('business'); setFieldErrors({}); }}
                                     className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
                                 >
                                     <ArrowLeft className="w-5 h-5" /> Back
@@ -439,7 +689,7 @@ export default function GarageOnboardingWizard() {
                                 <button
                                     onClick={handleBankSubmit}
                                     disabled={loading}
-                                    className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
+                                    className="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                         <>Complete <CheckCircle className="w-5 h-5" /></>

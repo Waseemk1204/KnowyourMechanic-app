@@ -1,24 +1,23 @@
 import { useState } from 'react';
-import { MapPin, Loader2, Navigation, Check } from 'lucide-react';
+import { MapPin, Loader2, Navigation, Check, AlertTriangle } from 'lucide-react';
 
 interface LocationPickerProps {
-    value: string;
-    coordinates?: [number, number];
-    onChange: (address: string, coordinates: [number, number]) => void;
-    placeholder?: string;
+    address: string;
+    coordinates: [number, number];
+    hasValidLocation: boolean;
+    onLocationDetected: (address: string, coordinates: [number, number]) => void;
 }
 
-export default function LocationPicker({ value, coordinates, onChange, placeholder = "Enter your address" }: LocationPickerProps) {
+export default function LocationPicker({ address, coordinates, hasValidLocation, onLocationDetected }: LocationPickerProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [hasValidLocation, setHasValidLocation] = useState(!!coordinates);
 
     const handleAutoDetect = async () => {
         setLoading(true);
         setError('');
 
         if (!('geolocation' in navigator)) {
-            setError('Geolocation not supported');
+            setError('Geolocation is not supported by this browser.');
             setLoading(false);
             return;
         }
@@ -28,7 +27,6 @@ export default function LocationPicker({ value, coordinates, onChange, placehold
                 const { latitude, longitude } = position.coords;
 
                 try {
-                    // Use OpenStreetMap Nominatim for reverse geocoding (free, no API key)
                     const res = await fetch(
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
                         { headers: { 'Accept-Language': 'en' } }
@@ -36,30 +34,24 @@ export default function LocationPicker({ value, coordinates, onChange, placehold
 
                     if (res.ok) {
                         const data = await res.json();
-                        const address = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-                        onChange(address, [longitude, latitude]);
-                        setHasValidLocation(true);
-                        setError('');
+                        const addr = data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                        onLocationDetected(addr, [longitude, latitude]);
                     } else {
-                        // Fallback to coordinates if geocoding fails
-                        onChange(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`, [longitude, latitude]);
-                        setHasValidLocation(true);
+                        onLocationDetected(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`, [longitude, latitude]);
                     }
-                } catch (err) {
-                    console.error('Geocoding error:', err);
-                    // Still use coordinates even if geocoding fails
-                    onChange(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`, [longitude, latitude]);
-                    setHasValidLocation(true);
+                } catch {
+                    onLocationDetected(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`, [longitude, latitude]);
                 }
 
                 setLoading(false);
             },
             (err) => {
-                console.error('Geolocation error:', err);
                 if (err.code === err.PERMISSION_DENIED) {
-                    setError('Location access denied. Please enable it in settings.');
+                    setError('Location access denied. Please enable it in your browser settings.');
+                } else if (err.code === err.TIMEOUT) {
+                    setError('Location detection timed out. Please try again.');
                 } else {
-                    setError('Could not detect location. Please try again.');
+                    setError('Could not detect your location. Please try again.');
                 }
                 setLoading(false);
             },
@@ -71,59 +63,65 @@ export default function LocationPicker({ value, coordinates, onChange, placehold
         );
     };
 
-    const handleManualInput = (newAddress: string) => {
-        // When manually typing, mark as not verified yet
-        setHasValidLocation(false);
-        // Keep existing coordinates or use default Pune coordinates
-        const coords = coordinates || [73.8567, 18.5204];
-        onChange(newAddress, coords);
-    };
-
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-700">Location</label>
-            <div className="relative">
-                <MapPin className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
-                <textarea
-                    value={value}
-                    onChange={(e) => handleManualInput(e.target.value)}
-                    placeholder={placeholder}
-                    rows={2}
-                    className={`w-full pl-12 pr-24 py-3 rounded-xl border ${hasValidLocation ? 'border-green-300 bg-green-50/50' : 'border-slate-200'
-                        } focus:ring-2 focus:ring-blue-500 resize-none transition-colors`}
-                />
-                {hasValidLocation && (
-                    <div className="absolute right-16 top-3.5">
-                        <Check className="w-5 h-5 text-green-500" />
+            <label className="block text-sm font-semibold text-slate-700">Location *</label>
+
+            {hasValidLocation ? (
+                /* Show detected location */
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Check className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-green-800">Location Verified</p>
+                            <p className="text-xs text-green-600 mt-1 line-clamp-2">{address}</p>
+                            <p className="text-[10px] text-green-500 mt-1 font-mono">
+                                {coordinates[1].toFixed(5)}°N, {coordinates[0].toFixed(5)}°E
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleAutoDetect}
+                            disabled={loading}
+                            className="text-xs text-green-700 font-bold underline flex-shrink-0"
+                        >
+                            {loading ? 'Detecting...' : 'Re-detect'}
+                        </button>
                     </div>
-                )}
+                </div>
+            ) : (
+                /* Show detect button */
                 <button
                     type="button"
                     onClick={handleAutoDetect}
                     disabled={loading}
-                    className="absolute right-3 top-2.5 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    title="Auto-detect location"
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-50 transition-colors disabled:opacity-60"
                 >
-                    {loading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <Navigation className="w-4 h-4" />
-                    )}
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                        {loading ? (
+                            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                        ) : (
+                            <Navigation className="w-6 h-6 text-blue-600" />
+                        )}
+                    </div>
+                    <div className="text-left">
+                        <p className="font-bold text-blue-900 text-sm">
+                            {loading ? 'Detecting your location...' : 'Detect My Location'}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-0.5">
+                            Uses your device GPS for exact coordinates
+                        </p>
+                    </div>
                 </button>
-            </div>
+            )}
+
             {error && (
-                <p className="text-red-500 text-xs">{error}</p>
-            )}
-            {hasValidLocation && (
-                <p className="text-green-600 text-xs flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    Location verified
-                </p>
-            )}
-            {!hasValidLocation && value && (
-                <p className="text-amber-600 text-xs">
-                    Tap the navigation button to verify your location
-                </p>
+                <div className="flex items-center gap-2 text-red-600 text-xs bg-red-50 px-3 py-2 rounded-lg">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {error}
+                </div>
             )}
         </div>
     );

@@ -7,6 +7,24 @@ import dbConnect from '../utils/dbConnect.js';
 
 const router = express.Router();
 
+// Verify referral code (public endpoint for live validation)
+router.get('/verify-referral/:code', async (req, res) => {
+    await dbConnect();
+    try {
+        const code = req.params.code.toUpperCase().trim();
+        if (!code) return res.json({ valid: false });
+
+        const employee = await Employee.findOne({ referralCode: code, isActive: true });
+        if (employee) {
+            res.json({ valid: true, employeeName: employee.name });
+        } else {
+            res.json({ valid: false });
+        }
+    } catch {
+        res.json({ valid: false });
+    }
+});
+
 // Step 1: Save basic business info
 router.post('/business-info', authenticate, async (req: AuthRequest, res) => {
     await dbConnect();
@@ -31,6 +49,22 @@ router.post('/business-info', authenticate, async (req: AuthRequest, res) => {
 
         if (!name || !email || !phone) {
             return res.status(400).json({ message: 'Name, email, and phone are required' });
+        }
+
+        // Strict validation
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length !== 10) {
+            return res.status(400).json({ message: 'Phone must be exactly 10 digits' });
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ message: 'Invalid email format' });
+        }
+        if (name.trim().length < 3) {
+            return res.status(400).json({ message: 'Garage name must be at least 3 characters' });
+        }
+        if (!coordinates || (coordinates[0] === 0 && coordinates[1] === 0) ||
+            (coordinates[0] === 73.8567 && coordinates[1] === 18.5204)) {
+            return res.status(400).json({ message: 'Please detect your exact GPS location' });
         }
 
         // Look up referral code if provided
@@ -118,6 +152,18 @@ router.post('/bank-details', authenticate, async (req: AuthRequest, res) => {
 
         if (!accountNumber || !ifscCode || !accountHolderName) {
             return res.status(400).json({ message: 'Account number, IFSC, and holder name are required' });
+        }
+
+        // Strict bank validation
+        const acctDigits = accountNumber.replace(/\D/g, '');
+        if (acctDigits.length < 9 || acctDigits.length > 18) {
+            return res.status(400).json({ message: 'Account number must be 9-18 digits' });
+        }
+        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode.toUpperCase())) {
+            return res.status(400).json({ message: 'Invalid IFSC code format (e.g. SBIN0001234)' });
+        }
+        if (!/^[a-zA-Z\s]+$/.test(accountHolderName) || accountHolderName.trim().length < 2) {
+            return res.status(400).json({ message: 'Account holder name must contain only letters' });
         }
 
         // Save bank details
