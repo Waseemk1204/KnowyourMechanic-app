@@ -240,6 +240,41 @@ router.put('/employees/:id', authenticate, requireAdmin, async (req: AuthRequest
         res.status(500).json({ message: 'Failed to update employee' });
     }
 });
+
+// Delete employee
+router.delete('/employees/:id', authenticate, requireAdmin, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const employee = await Employee.findById(req.params.id);
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+
+        // 1. Delete the Employee record
+        await Employee.deleteOne({ _id: employee._id });
+
+        // 2. Find and delete the corresponding User record
+        const user = await User.findOne({ phoneNumber: employee.phone });
+        if (user) {
+            await User.deleteOne({ _id: user._id });
+
+            // 3. Delete the Firebase user if UID exists
+            if (user.firebaseUid) {
+                try {
+                    await admin.auth().deleteUser(user.firebaseUid);
+                } catch (fbError) {
+                    console.error('Failed to delete Firebase user:', fbError);
+                    // Non-fatal, continue with deletion
+                }
+            }
+        }
+
+        res.json({ message: 'Employee deleted successfully' });
+    } catch (error: any) {
+        console.error('Delete employee error:', error);
+        res.status(500).json({ message: 'Failed to delete employee' });
+    }
+});
 // ─── ADVANCED ANALYTICS (MRR/ARR/Investors) ─────────────────
 router.get('/advanced-stats', authenticate, requireAdmin, async (_req: AuthRequest, res) => {
     await dbConnect();

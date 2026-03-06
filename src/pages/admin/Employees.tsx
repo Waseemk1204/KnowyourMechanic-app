@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Users, UserPlus, Copy, Check, Loader2,
-    X, Phone, Mail, Shield
+    Users, UserPlus, Copy, Check, Loader2,
+    X, Shield
 } from 'lucide-react';
 
 const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
@@ -131,7 +131,9 @@ export default function AdminEmployees() {
                                         <div className="flex items-center gap-2">
                                             <p className={`font-medium text-sm ${emp.isActive ? 'text-white' : 'text-zinc-500'}`}>{emp.name}</p>
                                             {emp.role === 'admin' && (
-                                                <Shield className="w-3 h-3 text-zinc-500" title="Admin" />
+                                                <div title="Admin">
+                                                    <Shield className="w-3 h-3 text-zinc-500" />
+                                                </div>
                                             )}
                                         </div>
                                         <p className="text-xs text-zinc-500 font-mono mt-0.5">{emp.phone}</p>
