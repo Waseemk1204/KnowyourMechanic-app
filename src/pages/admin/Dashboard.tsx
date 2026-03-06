@@ -320,22 +320,35 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* Pagination Controls */}
-                    {filteredGarages.length > garageLimit && (
+                    {filteredGarages.length > 10 && (
                         <div className="px-5 py-3 border-t border-zinc-900 flex items-center justify-between bg-zinc-950">
-                            <p className="text-xs text-zinc-500 font-mono">Showing {Math.min(garageLimit, filteredGarages.length)} of {filteredGarages.length}</p>
+                            <p className="text-xs text-zinc-500 font-mono">
+                                Showing {Math.min(garageLimit, filteredGarages.length)} of {filteredGarages.length}
+                            </p>
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setGarageLimit(prev => prev + 10)}
-                                    className="px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded transition-colors flex items-center gap-1.5"
-                                >
-                                    <ChevronsRight className="w-3.5 h-3.5" /> View More
-                                </button>
-                                <button
-                                    onClick={() => setGarageLimit(filteredGarages.length)}
-                                    className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-                                >
-                                    View All
-                                </button>
+                                {garageLimit < filteredGarages.length ? (
+                                    <>
+                                        <button
+                                            onClick={() => setGarageLimit(prev => prev + 10)}
+                                            className="px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded transition-colors flex items-center gap-1.5"
+                                        >
+                                            <ChevronsRight className="w-3.5 h-3.5" /> View More
+                                        </button>
+                                        <button
+                                            onClick={() => setGarageLimit(filteredGarages.length)}
+                                            className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                                        >
+                                            View All
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        onClick={() => setGarageLimit(10)}
+                                        className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5"
+                                    >
+                                        <ChevronDown className="w-3.5 h-3.5 rotate-180" /> Show Less
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
