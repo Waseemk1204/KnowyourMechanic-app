@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, UserCog, Activity, Flag, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, UserCog, Activity, Flag, LogOut, Menu, X, AlertOctagon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function AdminLayout() {
@@ -8,6 +9,7 @@ export default function AdminLayout() {
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [showSignoutConfirm, setShowSignoutConfirm] = useState(false);
 
     // Auto-scroll to top and close sidebar on route change (for mobile)
     useEffect(() => {
@@ -83,8 +85,8 @@ export default function AdminLayout() {
                                 key={item.path}
                                 to={item.path}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                                        ? 'bg-zinc-900 text-white'
-                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+                                    ? 'bg-zinc-900 text-white'
+                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/50'
                                     }`}
                             >
                                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-zinc-500'}`} />
@@ -97,7 +99,7 @@ export default function AdminLayout() {
                 {/* Bottom Action */}
                 <div className="p-4 border-t border-zinc-900 max-w-full">
                     <button
-                        onClick={handleLogout}
+                        onClick={() => setShowSignoutConfirm(true)}
                         className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
                     >
                         <LogOut className="w-4 h-4 text-zinc-500" />
@@ -110,6 +112,54 @@ export default function AdminLayout() {
             <main className="flex-1 min-w-0 bg-black min-h-[calc(100vh-4rem)] md:min-h-screen">
                 <Outlet />
             </main>
+
+            {/* Signout Confirmation Modal */}
+            <AnimatePresence>
+                {showSignoutConfirm && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            onClick={() => setShowSignoutConfirm(false)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative w-full max-w-md bg-black border border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                                        <AlertOctagon className="w-5 h-5 text-red-500" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-white">Sign out of Admin?</h3>
+                                </div>
+                                <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                                    You will need to authenticate again to access the admin console and its metrics.
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowSignoutConfirm(false)}
+                                        className="flex-1 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded text-sm font-medium transition-colors border border-zinc-800"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex-1 px-4 py-2 bg-white hover:bg-zinc-200 text-black rounded text-sm font-medium transition-colors"
+                                    >
+                                        Yes, Sign out
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
