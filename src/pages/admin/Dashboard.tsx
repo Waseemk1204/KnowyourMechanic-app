@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     Users, Wrench, IndianRupee, TrendingUp, Building2,
     LogOut, Loader2, MapPin, Activity, Flag,
-    ChevronRight, Star, CheckCircle, Clock, Search
+    ChevronRight, Star, Clock, Search
 } from 'lucide-react';
 import GarageMap from '../../components/GarageMap';
 import { useAuth } from '../../contexts/AuthContext';
@@ -92,11 +91,8 @@ export default function AdminDashboard() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto" />
-                    <p className="text-slate-500 text-sm mt-3">Loading dashboard…</p>
-                </div>
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
             </div>
         );
     }
@@ -108,34 +104,35 @@ export default function AdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white">
-            {/* Header */}
-            <header className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/60">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                            KnowyourMechanic
-                        </h1>
-                        <p className="text-slate-500 text-xs font-medium mt-0.5">Admin Console</p>
+        <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
+            {/* Minimal Header */}
+            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
+                                <span className="text-black font-bold text-xs">KYM</span>
+                            </div>
+                            <span className="text-sm font-medium text-zinc-400 tracking-wide">/ admin</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={() => navigate('/admin/reports')}
-                            className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors border border-red-500/20"
+                            className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
                         >
-                            <Flag className="w-3.5 h-3.5" />
-                            Reports
+                            <Flag className="w-3.5 h-3.5" /> Reports
                         </button>
                         <button
                             onClick={() => navigate('/admin/employees')}
-                            className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
+                            className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-2 border-r border-zinc-800 pr-6 mr-2"
                         >
-                            <Users className="w-3.5 h-3.5" />
-                            Employees
+                            <Users className="w-3.5 h-3.5" /> Employees
                         </button>
                         <button
                             onClick={async () => { await logout(); navigate('/auth'); }}
-                            className="p-2 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+                            className="text-zinc-500 hover:text-white transition-colors"
                         >
                             <LogOut className="w-4 h-4" />
                         </button>
@@ -143,220 +140,199 @@ export default function AdminDashboard() {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto p-6 space-y-6">
-                {/* Primary Stat Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <main className="max-w-7xl mx-auto p-6 space-y-6 pt-10">
+
+                {/* Primary Stats: Solid Black, Thin Borders */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        {
-                            label: 'Total Garages',
-                            value: stats?.totalGarages || 0,
-                            icon: Building2,
-                            gradient: 'from-violet-600 to-indigo-700',
-                            glow: 'shadow-violet-500/20',
-                        },
-                        {
-                            label: 'Services Done',
-                            value: stats?.totalServices || 0,
-                            icon: Wrench,
-                            gradient: 'from-blue-600 to-cyan-600',
-                            glow: 'shadow-blue-500/20',
-                        },
-                        {
-                            label: 'Platform Revenue',
-                            value: formatCurrency(stats?.totalRevenue || 0),
-                            icon: IndianRupee,
-                            gradient: 'from-emerald-600 to-teal-600',
-                            glow: 'shadow-emerald-500/20',
-                        },
-                        {
-                            label: 'Avg / Day',
-                            value: stats?.avgServicesPerDay || '0',
-                            icon: TrendingUp,
-                            gradient: 'from-amber-500 to-orange-600',
-                            glow: 'shadow-amber-500/20',
-                        },
-                    ].map((stat, i) => (
-                        <motion.div
-                            key={stat.label}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.08 }}
-                            className={`relative bg-gradient-to-br ${stat.gradient} rounded-2xl p-5 shadow-xl ${stat.glow} overflow-hidden`}
-                        >
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                            <stat.icon className="w-5 h-5 text-white/50 mb-3" />
-                            <p className="text-2xl font-black tracking-tight">{stat.value}</p>
-                            <p className="text-white/50 text-xs font-medium mt-1">{stat.label}</p>
-                        </motion.div>
+                        { label: 'Total Garages', value: stats?.totalGarages || 0, icon: Building2 },
+                        { label: 'Services Completed', value: stats?.totalServices || 0, icon: Wrench },
+                        { label: 'Platform Revenue', value: formatCurrency(stats?.totalRevenue || 0), icon: IndianRupee },
+                        { label: 'Daily Average', value: stats?.avgServicesPerDay || '0', icon: TrendingUp },
+                    ].map((stat) => (
+                        <div key={stat.label} className="bg-black border border-zinc-800/80 rounded-xl p-5 hover:border-zinc-700 transition-colors">
+                            <div className="flex items-center justify-between mb-4">
+                                <p className="text-zinc-500 text-xs font-medium">{stat.label}</p>
+                                <stat.icon className="w-4 h-4 text-zinc-600" />
+                            </div>
+                            <p className="text-3xl font-light tracking-tight text-white">{stat.value}</p>
+                        </div>
                     ))}
                 </div>
 
-                {/* Secondary Stats */}
-                <div className="grid grid-cols-3 gap-3">
+                {/* Secondary Stats Row */}
+                <div className="grid grid-cols-3 gap-4">
                     {[
-                        { label: 'Customers', value: stats?.totalCustomers || 0, icon: Users, color: 'text-blue-400' },
-                        { label: 'Employees', value: stats?.totalEmployees || 0, icon: Users, color: 'text-purple-400' },
-                        { label: 'Referred', value: stats?.referredGarages || 0, icon: Star, color: 'text-amber-400' },
+                        { label: 'Active Customers', value: stats?.totalCustomers || 0 },
+                        { label: 'Field Employees', value: stats?.totalEmployees || 0 },
+                        { label: 'Referred Garages', value: stats?.referredGarages || 0 },
                     ].map(s => (
-                        <div key={s.label} className="bg-slate-900/80 rounded-2xl p-4 border border-slate-800/60">
-                            <div className="flex items-center gap-2 mb-2">
-                                <s.icon className={`w-4 h-4 ${s.color}`} />
-                                <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">{s.label}</p>
-                            </div>
-                            <p className="text-2xl font-black">{s.value}</p>
+                        <div key={s.label} className="bg-zinc-950/50 border border-zinc-900 rounded-lg p-4 flex items-center justify-between">
+                            <p className="text-zinc-500 text-xs">{s.label}</p>
+                            <p className="text-lg font-medium text-zinc-300">{s.value}</p>
                         </div>
                     ))}
                 </div>
 
-                {/* Map */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-slate-900/80 rounded-2xl border border-slate-800/60 overflow-hidden"
-                >
-                    <div className="p-4 border-b border-slate-800/60 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-blue-400" />
-                            <h2 className="font-bold text-sm">Garage Network</h2>
-                        </div>
-                        <span className="text-xs bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full font-bold">
-                            {garages.length} garages
-                        </span>
-                    </div>
-                    <div className="h-[350px]">
-                        {mapGarages.length > 0 && (
-                            <GarageMap
-                                garages={mapGarages}
-                                userLocation={{ lat: 18.5204, lng: 73.8567 }}
-                            />
-                        )}
-                    </div>
-                </motion.div>
-
-                {/* Activity Chart */}
-                {stats && stats.dailyBreakdown.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="bg-slate-900/80 rounded-2xl border border-slate-800/60 p-5"
-                    >
-                        <div className="flex items-center justify-between mb-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Activity Chart */}
+                    <div className="lg:col-span-2 bg-black border border-zinc-800/80 rounded-xl overflow-hidden flex flex-col">
+                        <div className="px-5 py-4 border-b border-zinc-900 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-emerald-400" />
-                                <h2 className="font-bold text-sm">Service Activity</h2>
+                                <Activity className="w-4 h-4 text-zinc-500" />
+                                <h2 className="text-sm font-medium text-zinc-300">Service Volume</h2>
                             </div>
-                            <span className="text-xs text-slate-500">Last 30 days</span>
+                            <span className="text-xs text-zinc-600 font-mono">30D History</span>
                         </div>
-                        <div className="flex items-end gap-[3px] h-28">
-                            {stats.dailyBreakdown.map((day) => {
-                                const height = Math.max(4, (day.count / maxCount) * 100);
-                                return (
-                                    <div
-                                        key={day.date}
-                                        className="flex-1 group relative cursor-pointer"
-                                        title={`${day.date}\n${day.count} services\n₹${day.revenue.toFixed(0)} revenue`}
-                                    >
-                                        <div
-                                            className="bg-gradient-to-t from-blue-600/30 to-blue-400/50 hover:from-blue-600/50 hover:to-blue-400/70 rounded-t-sm transition-colors"
-                                            style={{ height: `${height}%` }}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        <div className="flex justify-between text-[10px] text-slate-600 mt-2 font-mono">
-                            <span>{stats.dailyBreakdown[0]?.date}</span>
-                            <span>Today</span>
-                        </div>
-                    </motion.div>
-                )}
 
-                {/* Garage List */}
-                <div className="bg-slate-900/80 rounded-2xl border border-slate-800/60">
-                    <div className="p-4 border-b border-slate-800/60 flex items-center justify-between gap-4">
-                        <h2 className="font-bold text-sm flex-shrink-0">All Garages</h2>
-                        <div className="relative flex-1 max-w-xs">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <div className="p-5 flex-1 flex flex-col justify-end">
+                            {stats && stats.dailyBreakdown.length > 0 ? (
+                                <>
+                                    <div className="flex items-end gap-1 h-40">
+                                        {stats.dailyBreakdown.map((day) => {
+                                            const height = Math.max(2, (day.count / maxCount) * 100);
+                                            return (
+                                                <div
+                                                    key={day.date}
+                                                    className="flex-1 group relative cursor-pointer flex flex-col justify-end h-full"
+                                                    title={`${day.date}\n${day.count} services\n₹${day.revenue.toFixed(0)}`}
+                                                >
+                                                    <div
+                                                        className="bg-zinc-800 hover:bg-zinc-500 rounded-sm w-full transition-colors"
+                                                        style={{ height: `${height}%`, minHeight: '4px' }}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex justify-between text-[10px] text-zinc-600 mt-3 font-mono">
+                                        <span>{stats.dailyBreakdown[0]?.date}</span>
+                                        <span>Today</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="h-40 flex items-center justify-center text-zinc-600 text-sm">No activity data</div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Network Map */}
+                    <div className="bg-black border border-zinc-800/80 rounded-xl overflow-hidden flex flex-col h-[300px] lg:h-auto">
+                        <div className="px-5 py-4 border-b border-zinc-900 flex items-center justify-between z-10 bg-black">
+                            <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-zinc-500" />
+                                <h2 className="text-sm font-medium text-zinc-300">Location Distribution</h2>
+                            </div>
+                        </div>
+                        <div className="flex-1 relative bg-zinc-950">
+                            {mapGarages.length > 0 ? (
+                                <GarageMap
+                                    garages={mapGarages}
+                                    userLocation={{ lat: 18.5204, lng: 73.8567 }}
+                                />
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center text-zinc-600 text-sm">No map data</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Spreadsheet-like Garage List */}
+                <div className="bg-black border border-zinc-800/80 rounded-xl overflow-hidden">
+                    <div className="px-5 py-3 border-b border-zinc-900 flex items-center justify-between gap-4">
+                        <h2 className="text-sm font-medium text-zinc-300">Garage Directory</h2>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
                             <input
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Search garages..."
-                                className="w-full pl-9 pr-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl text-xs text-white placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                placeholder="Search directory..."
+                                className="w-64 pl-8 pr-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-zinc-300 placeholder-zinc-600 focus:border-zinc-600 focus:outline-none transition-colors"
                             />
                         </div>
                     </div>
-                    <div className="divide-y divide-slate-800/40">
-                        {filteredGarages.map(garage => (
-                            <div key={garage._id} className="p-4 flex items-center gap-4 hover:bg-slate-800/30 transition-colors">
-                                {/* Garage info */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <p className="font-bold text-sm truncate">{garage.name}</p>
-                                        {/* Status pill */}
-                                        {garage.onboardingStatus === 'completed' ? (
-                                            <span className="inline-flex items-center gap-1 text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full font-bold">
-                                                <CheckCircle className="w-3 h-3" /> Active
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full font-bold">
-                                                <Clock className="w-3 h-3" /> {garage.onboardingStatus}
-                                            </span>
-                                        )}
-                                        {/* Referral tag */}
-                                        {garage.assignedEmployeeId && (
-                                            <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-bold font-mono">
-                                                {(garage.assignedEmployeeId as any).referralCode}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-slate-500 mt-1 truncate">{garage.location?.address || 'No address'}</p>
-                                </div>
 
-                                {/* Stats */}
-                                <div className="text-right flex-shrink-0">
-                                    <p className="text-sm font-bold">{garage.serviceCount || 0}</p>
-                                    <p className="text-[10px] text-slate-500">services</p>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                    <p className="text-sm font-bold">{formatCurrency(garage.totalEarnings || 0)}</p>
-                                    <p className="text-[10px] text-slate-500">earned</p>
-                                </div>
-
-                                {/* Rating */}
-                                {garage.rating > 0 && (
-                                    <div className="flex items-center gap-1 text-amber-400 flex-shrink-0">
-                                        <Star className="w-3.5 h-3.5 fill-amber-400" />
-                                        <span className="text-xs font-bold">{garage.rating.toFixed(1)}</span>
-                                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                            <thead className="bg-zinc-950 border-b border-zinc-900 text-xs text-zinc-500">
+                                <tr>
+                                    <th className="px-5 py-3 font-medium">Name</th>
+                                    <th className="px-5 py-3 font-medium">Status</th>
+                                    <th className="px-5 py-3 font-medium">Location</th>
+                                    <th className="px-5 py-3 font-medium text-right">Services</th>
+                                    <th className="px-5 py-3 font-medium text-right">Earnings</th>
+                                    <th className="px-5 py-3 font-medium">Reference</th>
+                                    <th className="px-5 py-3 w-8"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-900/50">
+                                {filteredGarages.map(garage => (
+                                    <tr key={garage._id} className="hover:bg-zinc-900/30 transition-colors group">
+                                        <td className="px-5 py-3 text-zinc-200">
+                                            <div className="flex items-center gap-2">
+                                                {garage.name}
+                                                {garage.rating > 0 && (
+                                                    <span className="flex items-center gap-0.5 text-zinc-500 text-[10px] bg-zinc-900 px-1.5 py-0.5 rounded">
+                                                        <Star className="w-2.5 h-2.5" />
+                                                        {garage.rating.toFixed(1)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            {garage.onboardingStatus === 'completed' ? (
+                                                <span className="flex items-center gap-1.5 text-xs text-zinc-400">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1.5 text-xs text-zinc-500">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Pending
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3 text-xs text-zinc-500 truncate max-w-[200px]">
+                                            {garage.location?.address || '—'}
+                                        </td>
+                                        <td className="px-5 py-3 text-right font-mono text-zinc-400">
+                                            {garage.serviceCount || 0}
+                                        </td>
+                                        <td className="px-5 py-3 text-right font-mono text-zinc-400">
+                                            {formatCurrency(garage.totalEarnings || 0)}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            {garage.assignedEmployeeId ? (
+                                                <span className="font-mono text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded">
+                                                    {(garage.assignedEmployeeId as any).referralCode}
+                                                </span>
+                                            ) : (
+                                                <span className="text-zinc-700 text-xs">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:text-zinc-400 transition-colors" />
+                                        </td>
+                                    </tr>
+                                ))}
+                                {filteredGarages.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} className="px-5 py-12 text-center text-zinc-600 text-sm">
+                                            No garages found
+                                        </td>
+                                    </tr>
                                 )}
-
-                                <ChevronRight className="w-4 h-4 text-slate-600 flex-shrink-0" />
-                            </div>
-                        ))}
-                        {filteredGarages.length === 0 && (
-                            <div className="p-10 text-center">
-                                <Building2 className="w-8 h-8 text-slate-700 mx-auto mb-3" />
-                                <p className="text-slate-500 text-sm">
-                                    {search ? 'No garages match your search' : 'No garages registered yet'}
-                                </p>
-                            </div>
-                        )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {/* GMV Card */}
+                {/* GMV Minimal Strip */}
                 {stats && stats.totalGMV > 0 && (
-                    <div className="bg-gradient-to-r from-slate-900 to-slate-800/80 rounded-2xl border border-slate-700/40 p-5 flex items-center justify-between">
-                        <div>
-                            <p className="text-slate-500 text-xs font-medium uppercase tracking-wide">Total GMV (Gross Merchandise Value)</p>
-                            <p className="text-3xl font-black mt-1">{formatCurrency(stats.totalGMV)}</p>
-                        </div>
-                        <IndianRupee className="w-8 h-8 text-slate-700" />
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-lg px-6 py-4 flex items-center justify-between">
+                        <p className="text-zinc-500 text-xs font-medium tracking-wide">GROSS MERCHANDISE VALUE</p>
+                        <p className="font-mono font-medium text-zinc-300">{formatCurrency(stats.totalGMV)}</p>
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 }

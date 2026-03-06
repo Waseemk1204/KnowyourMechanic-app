@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Loader2, Flag, AlertTriangle, Shield, CheckCircle,
@@ -20,11 +20,11 @@ const REASON_LABELS: Record<string, string> = {
     other: 'Other',
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-    pending: { label: 'Pending', color: 'text-amber-400', bg: 'bg-amber-500/10', icon: Clock },
-    reviewing: { label: 'Reviewing', color: 'text-blue-400', bg: 'bg-blue-500/10', icon: Shield },
-    resolved: { label: 'Resolved', color: 'text-green-400', bg: 'bg-green-500/10', icon: CheckCircle },
-    dismissed: { label: 'Dismissed', color: 'text-slate-400', bg: 'bg-slate-500/10', icon: XCircle },
+const STATUS_CONFIG: Record<string, { label: string; textClass: string; borderClass: string; icon: any; dotClass: string }> = {
+    pending: { label: 'Pending', textClass: 'text-amber-500', borderClass: 'border-amber-500/30 bg-amber-500/5', dotClass: 'bg-amber-500', icon: Clock },
+    reviewing: { label: 'Reviewing', textClass: 'text-blue-400', borderClass: 'border-blue-500/30 bg-blue-500/5', dotClass: 'bg-blue-500', icon: Shield },
+    resolved: { label: 'Resolved', textClass: 'text-emerald-500', borderClass: 'border-emerald-500/30 bg-emerald-500/5', dotClass: 'bg-emerald-500', icon: CheckCircle },
+    dismissed: { label: 'Dismissed', textClass: 'text-zinc-400', borderClass: 'border-zinc-700 bg-zinc-900', dotClass: 'bg-zinc-500', icon: XCircle },
 };
 
 interface ReportItem {
@@ -84,134 +84,145 @@ export default function AdminReports() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
             </div>
         );
     }
 
-    const pendingCount = reports.filter(r => r.status === 'pending').length;
+    const pendingCount = filter === 'all' ? reports.filter(r => r.status === 'pending').length : 0;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white">
-            {/* Header */}
-            <header className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/admin')} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div>
-                        <h1 className="text-xl font-black">Customer Reports</h1>
-                        <p className="text-slate-400 text-sm">
-                            {reports.length} reports · {pendingCount} pending
-                        </p>
+        <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
+            {/* Minimal Header */}
+            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
+                <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate('/admin')} className="text-zinc-500 hover:text-white transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium text-zinc-400 tracking-wide">/ reports</span>
+                            {pendingCount > 0 && (
+                                <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-mono tracking-widest font-bold">
+                                    {pendingCount} PENDING
+                                </span>
+                            )}
+                        </div>
                     </div>
-                </div>
 
-                {/* Filter */}
-                <div className="relative">
-                    <select
-                        value={filter}
-                        onChange={e => { setFilter(e.target.value); setLoading(true); }}
-                        className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white appearance-none pr-8 focus:outline-none focus:border-blue-500"
-                    >
-                        <option value="all">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="reviewing">Reviewing</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="dismissed">Dismissed</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    {/* Filter Dropdown */}
+                    <div className="relative">
+                        <select
+                            value={filter}
+                            onChange={e => { setFilter(e.target.value); setLoading(true); }}
+                            className="bg-black border border-zinc-800 hover:border-zinc-700 transition-colors rounded px-3 py-1.5 text-xs font-mono text-zinc-300 appearance-none pr-8 focus:outline-none focus:border-zinc-600"
+                        >
+                            <option value="all">ALL_REPORTS</option>
+                            <option value="pending">STATUS: PENDING</option>
+                            <option value="reviewing">STATUS: REVIEWING</option>
+                            <option value="resolved">STATUS: RESOLVED</option>
+                            <option value="dismissed">STATUS: DISMISSED</option>
+                        </select>
+                        <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                    </div>
                 </div>
             </header>
 
-            <div className="p-6 max-w-5xl mx-auto">
+            <main className="max-w-5xl mx-auto p-6 space-y-4 pt-10">
+
                 {reports.length === 0 ? (
-                    <div className="text-center py-20 text-slate-500">
-                        <Flag className="w-12 h-12 mx-auto mb-4 opacity-30" />
-                        <p className="text-lg font-bold">No reports found</p>
-                        <p className="text-sm mt-1">{filter !== 'all' ? 'Try a different filter' : 'No reports have been submitted yet'}</p>
+                    <div className="border border-dashed border-zinc-800 rounded-lg py-20 text-center text-zinc-600">
+                        <Flag className="w-8 h-8 mx-auto mb-3 opacity-30 text-zinc-500" />
+                        <p className="text-sm font-medium text-zinc-300 mb-1">Queue is empty</p>
+                        <p className="text-xs">
+                            {filter !== 'all' ? 'No reports matching this filter' : 'No active customer reports requiring attention'}
+                        </p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {reports.map((report, i) => {
-                            const statusConf = STATUS_CONFIG[report.status] || STATUS_CONFIG.pending;
-                            const StatusIcon = statusConf.icon;
+                    <div className="bg-black border border-zinc-800 rounded-xl overflow-hidden">
+                        <div className="divide-y divide-zinc-900">
+                            {reports.map((report, i) => {
+                                const statusConf = STATUS_CONFIG[report.status] || STATUS_CONFIG.pending;
 
-                            return (
-                                <motion.div
-                                    key={report._id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className="bg-slate-900 rounded-2xl border border-slate-800 p-5"
-                                >
-                                    {/* Top row */}
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-                                                <AlertTriangle className="w-5 h-5 text-red-400" />
+                                return (
+                                    <motion.div
+                                        key={report._id}
+                                        initial={{ opacity: 0, x: -5 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.03 }}
+                                        className="p-5 hover:bg-zinc-900/30 transition-colors group"
+                                    >
+                                        <div className="flex items-start justify-between gap-6 mb-3">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-1.5">
+                                                    <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] font-mono tracking-widest font-bold uppercase ${statusConf.borderClass} ${statusConf.textClass}`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusConf.dotClass}`} />
+                                                        {statusConf.label}
+                                                    </span>
+                                                    <span className="text-[10px] text-zinc-500 font-mono">
+                                                        {new Date(report.createdAt).toISOString().split('T')[0]}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <AlertTriangle className="w-4 h-4 text-zinc-500" />
+                                                    <h3 className="text-sm font-medium text-white">{REASON_LABELS[report.reason] || report.reason}</h3>
+                                                </div>
+                                                <p className="text-sm text-zinc-400 leading-relaxed border-l-2 border-zinc-800 pl-3 py-0.5 ml-2 mr-10">
+                                                    "{report.description}"
+                                                </p>
                                             </div>
-                                            <div>
-                                                <span className="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/10 text-red-400 mb-1">
-                                                    {REASON_LABELS[report.reason] || report.reason}
-                                                </span>
-                                                <p className="text-sm text-slate-300">{report.description}</p>
-                                            </div>
-                                        </div>
-                                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${statusConf.bg} ${statusConf.color}`}>
-                                            <StatusIcon className="w-3 h-3" />
-                                            {statusConf.label}
-                                        </div>
-                                    </div>
 
-                                    {/* Info row */}
-                                    <div className="flex items-center gap-4 text-xs text-slate-500 mb-3">
-                                        <span className="flex items-center gap-1">
-                                            <User className="w-3 h-3" />
-                                            {report.reporterId?.name || report.reporterId?.phoneNumber || 'Unknown'}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Building2 className="w-3 h-3" />
-                                            {report.garageId?.name || 'Unknown garage'}
-                                        </span>
-                                        <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                                    </div>
-
-                                    {/* Actions */}
-                                    {report.status !== 'resolved' && report.status !== 'dismissed' && (
-                                        <div className="flex gap-2">
-                                            {report.status === 'pending' && (
-                                                <button
-                                                    onClick={() => updateStatus(report._id, 'reviewing')}
-                                                    disabled={updating === report._id}
-                                                    className="px-3 py-1.5 bg-blue-500/10 text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-500/20 transition-colors disabled:opacity-50"
-                                                >
-                                                    Start Review
-                                                </button>
+                                            {/* Report Actions (Right Aligned) */}
+                                            {report.status !== 'resolved' && report.status !== 'dismissed' && (
+                                                <div className="flex flex-col gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {report.status === 'pending' && (
+                                                        <button
+                                                            onClick={() => updateStatus(report._id, 'reviewing')}
+                                                            disabled={updating === report._id}
+                                                            className="px-3 py-1.5 bg-white text-black text-xs font-semibold rounded hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                                                        >
+                                                            Start Review
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => updateStatus(report._id, 'resolved')}
+                                                        disabled={updating === report._id}
+                                                        className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium rounded hover:bg-zinc-800 hover:text-white transition-colors disabled:opacity-50"
+                                                    >
+                                                        Mark Resolved
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updateStatus(report._id, 'dismissed')}
+                                                        disabled={updating === report._id}
+                                                        className="px-3 py-1.5 bg-transparent border border-zinc-900 text-zinc-600 text-xs font-medium rounded hover:bg-zinc-900 hover:border-zinc-800 hover:text-zinc-400 transition-colors disabled:opacity-50"
+                                                    >
+                                                        Dismiss
+                                                    </button>
+                                                </div>
                                             )}
-                                            <button
-                                                onClick={() => updateStatus(report._id, 'resolved')}
-                                                disabled={updating === report._id}
-                                                className="px-3 py-1.5 bg-green-500/10 text-green-400 rounded-lg text-xs font-bold hover:bg-green-500/20 transition-colors disabled:opacity-50"
-                                            >
-                                                Resolve
-                                            </button>
-                                            <button
-                                                onClick={() => updateStatus(report._id, 'dismissed')}
-                                                disabled={updating === report._id}
-                                                className="px-3 py-1.5 bg-slate-500/10 text-slate-400 rounded-lg text-xs font-bold hover:bg-slate-500/20 transition-colors disabled:opacity-50"
-                                            >
-                                                Dismiss
-                                            </button>
                                         </div>
-                                    )}
-                                </motion.div>
-                            );
-                        })}
+
+                                        <div className="flex items-center gap-6 mt-4 ml-6 pl-1 text-[11px] text-zinc-500">
+                                            <div className="flex items-center gap-1.5">
+                                                <User className="w-3.5 h-3.5 text-zinc-600" />
+                                                <span className="font-mono">{report.reporterId?.name || report.reporterId?.phoneNumber || 'Unknown'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Building2 className="w-3.5 h-3.5 text-zinc-600" />
+                                                <span>{report.garageId?.name || 'Unknown garage'}</span>
+                                                <span className="font-mono text-zinc-700 bg-zinc-900 px-1 py-0.5 rounded cursor-copy hover:text-zinc-400 transition-colors" title="Copy Garage ID">
+                                                    {report.garageId?._id?.slice(-6) || '---'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 }

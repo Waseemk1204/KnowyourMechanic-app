@@ -56,15 +56,15 @@ export default function EmployeeDetail() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
             </div>
         );
     }
 
     if (!data) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
+            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 text-sm">
                 Employee not found
             </div>
         );
@@ -72,108 +72,126 @@ export default function EmployeeDetail() {
 
     const { employee, garages, aggregates } = data;
 
+    const formatCurrency = (val: number) => {
+        if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
+        if (val >= 1000) return `₹${(val / 1000).toFixed(1)}K`;
+        return `₹${val.toFixed(0)}`;
+    };
+
     return (
-        <div className="min-h-screen bg-slate-950 text-white">
-            {/* Header */}
-            <header className="border-b border-slate-800 px-6 py-4">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/admin/employees')} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
-                        <ArrowLeft className="w-5 h-5" />
-                    </button>
-                    <div className="flex-1">
-                        <h1 className="text-xl font-black">{employee.name}</h1>
-                        <p className="text-slate-400 text-sm">{employee.email} · {employee.phone}</p>
+        <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
+            {/* Minimal Header */}
+            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate('/admin/employees')} className="text-zinc-500 hover:text-white transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium text-white">{employee.name}</span>
+                            <span className="text-xs text-zinc-600 font-mono tracking-wide">{employee.phone}</span>
+                        </div>
                     </div>
+
                     <button
                         onClick={copyCode}
-                        className="font-mono font-bold text-lg bg-blue-500/10 text-blue-400 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-blue-500/20 transition-colors"
+                        className="px-3 py-1.5 border border-zinc-800 hover:bg-zinc-900 rounded text-xs font-mono text-zinc-300 transition-colors flex items-center gap-2"
                     >
                         {employee.referralCode}
-                        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3 h-3 text-zinc-500" />}
                     </button>
                 </div>
             </header>
 
-            <div className="p-6 max-w-5xl mx-auto space-y-6">
+            <main className="max-w-5xl mx-auto p-6 space-y-6 pt-10">
                 {/* Aggregate Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { label: 'Total Garages', value: aggregates.totalGarages, icon: Building2, color: 'from-violet-600 to-purple-700' },
-                        { label: 'Total Services', value: aggregates.totalServices, icon: Wrench, color: 'from-blue-600 to-cyan-700' },
-                        { label: 'Total Earnings', value: `₹${aggregates.totalEarnings}`, icon: IndianRupee, color: 'from-emerald-600 to-green-700' },
-                        { label: 'Avg/Garage', value: `${aggregates.avgServicesPerGarage} svc`, icon: TrendingUp, color: 'from-amber-600 to-orange-700' },
+                        { label: 'Total Garages', value: aggregates.totalGarages, icon: Building2 },
+                        { label: 'Total Services', value: aggregates.totalServices, icon: Wrench },
+                        { label: 'Total Earnings', value: formatCurrency(aggregates.totalEarnings), icon: IndianRupee },
+                        { label: 'Avg/Garage', value: `${aggregates.avgServicesPerGarage}`, icon: TrendingUp },
                     ].map((stat, i) => (
                         <motion.div
                             key={stat.label}
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className={`bg-gradient-to-br ${stat.color} rounded-2xl p-5 shadow-lg`}
+                            transition={{ delay: i * 0.05 }}
+                            className="bg-black border border-zinc-800 rounded-lg p-5 hover:border-zinc-700 transition-colors"
                         >
-                            <stat.icon className="w-5 h-5 text-white/60 mb-2" />
-                            <p className="text-2xl font-black">{stat.value}</p>
-                            <p className="text-white/60 text-xs mt-1">{stat.label}</p>
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-zinc-500 text-xs">{stat.label}</p>
+                                <stat.icon className="w-3.5 h-3.5 text-zinc-600" />
+                            </div>
+                            <p className="text-2xl font-light text-white">{stat.value}</p>
                         </motion.div>
                     ))}
                 </div>
 
-                {/* Garage Performance Table */}
-                <div className="bg-slate-900 rounded-2xl border border-slate-800">
-                    <div className="p-4 border-b border-slate-800">
-                        <h2 className="font-bold text-lg">Garage Performance</h2>
+                {/* Garage Portfolio Table */}
+                <div className="bg-black border border-zinc-800 rounded-xl overflow-hidden mt-8">
+                    <div className="px-5 py-4 border-b border-zinc-900">
+                        <h2 className="text-sm font-medium text-white">Garage Portfolio</h2>
+                        <p className="text-xs text-zinc-500 mt-1">Garages onboarded by this employee</p>
                     </div>
 
                     {garages.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500">
-                            <Building2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                        <div className="px-5 py-16 text-center text-zinc-600 text-sm">
                             <p>No garages assigned yet</p>
-                            <p className="text-xs mt-1">Share referral code <span className="text-blue-400 font-mono">{employee.referralCode}</span> with garages</p>
+                            <p className="mt-1 text-xs">Share referral code <span className="font-mono text-zinc-400 border border-zinc-800 bg-zinc-900 px-1 rounded">{employee.referralCode}</span></p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-slate-800">
-                            {(garages as GaragePerf[]).map((garage, i) => (
-                                <motion.div
-                                    key={garage._id}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="p-4 hover:bg-slate-800/50 transition-colors"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-bold">{garage.name}</p>
-                                            <div className="flex items-center gap-3 mt-1 text-sm text-slate-400">
-                                                <span className="flex items-center gap-1">
-                                                    <MapPin className="w-3 h-3" />
-                                                    {garage.location?.address || 'No address'}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Star className="w-3 h-3 text-amber-500" />
-                                                    {garage.rating || 0} ({garage.totalReviews || 0})
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-6 text-right">
-                                            <div>
-                                                <p className="text-xs text-slate-500">Services</p>
-                                                <p className="text-lg font-black">{garage.totalServices}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-500">Avg/Day</p>
-                                                <p className="text-lg font-black text-blue-400">{garage.avgServicesPerDay}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-500">Earnings</p>
-                                                <p className="text-lg font-black text-green-400">₹{garage.totalEarnings.toFixed(0)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm whitespace-nowrap">
+                                <thead className="bg-zinc-950 border-b border-zinc-900 text-xs text-zinc-500">
+                                    <tr>
+                                        <th className="px-5 py-3 font-medium">Garage</th>
+                                        <th className="px-5 py-3 font-medium">Location</th>
+                                        <th className="px-5 py-3 font-medium text-right">Services</th>
+                                        <th className="px-5 py-3 font-medium text-right">Avg/Day</th>
+                                        <th className="px-5 py-3 font-medium text-right">Earnings</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-900/50">
+                                    {(garages as GaragePerf[]).map((garage, i) => (
+                                        <motion.tr
+                                            key={garage._id}
+                                            initial={{ opacity: 0, x: -5 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.05 }}
+                                            className="hover:bg-zinc-900/30 transition-colors"
+                                        >
+                                            <td className="px-5 py-3 text-zinc-200">
+                                                <div className="flex items-center gap-2">
+                                                    {garage.name}
+                                                    {garage.rating > 0 && (
+                                                        <span className="flex items-center gap-0.5 text-zinc-500 text-[10px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">
+                                                            <Star className="w-2.5 h-2.5" />
+                                                            {garage.rating.toFixed(1)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-3 text-xs text-zinc-500 truncate max-w-[200px]">
+                                                {garage.location?.address || '—'}
+                                            </td>
+                                            <td className="px-5 py-3 text-right font-mono text-zinc-400">
+                                                {garage.totalServices}
+                                            </td>
+                                            <td className="px-5 py-3 text-right font-mono text-zinc-400">
+                                                {garage.avgServicesPerDay}
+                                            </td>
+                                            <td className="px-5 py-3 text-right font-mono text-zinc-400">
+                                                {formatCurrency(garage.totalEarnings)}
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>
-            </div>
+            </main>
         </div>
     );
 }
