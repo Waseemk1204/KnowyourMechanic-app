@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     Users, Wrench, IndianRupee, TrendingUp, Building2,
     LogOut, Loader2, MapPin, Activity, Flag,
-    ChevronRight, Star, Clock, Search
+    ChevronRight, Star, Clock, Search, ChevronDown, ChevronsRight
 } from 'lucide-react';
 import GarageMap from '../../components/GarageMap';
 import { useAuth } from '../../contexts/AuthContext';
@@ -47,10 +47,29 @@ export default function AdminDashboard() {
     const [garages, setGarages] = useState<GarageItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [chartRange, setChartRange] = useState('30d');
+    const [garageLimit, setGarageLimit] = useState(10);
 
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Re-fetch stats when chart range changes
+    useEffect(() => {
+        if (!loading) fetchStats();
+    }, [chartRange]);
+
+    const fetchStats = async () => {
+        try {
+            const token = await getToken();
+            const res = await fetch(`${getApiUrl()}/admin/stats?range=${chartRange}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (res.ok) setStats(await res.json());
+        } catch (err) {
+            console.error('Stats fetch error:', err);
+        }
+    };
 
     const fetchData = async () => {
         try {
@@ -58,7 +77,7 @@ export default function AdminDashboard() {
             const headers = { 'Authorization': `Bearer ${token}` };
 
             const [statsRes, garagesRes] = await Promise.all([
-                fetch(`${getApiUrl()}/admin/stats`, { headers }),
+                fetch(`${getApiUrl()}/admin/stats?range=${chartRange}`, { headers }),
                 fetch(`${getApiUrl()}/admin/garages`, { headers }),
             ]);
 
@@ -113,7 +132,7 @@ export default function AdminDashboard() {
                         { label: 'Total Garages', value: stats?.totalGarages || 0, icon: Building2 },
                         { label: 'Services Completed', value: stats?.totalServices || 0, icon: Wrench },
                         { label: 'Platform Revenue', value: formatCurrency(stats?.totalRevenue || 0), icon: IndianRupee },
-                        { label: 'Daily Average', value: stats?.avgServicesPerDay || '0', icon: TrendingUp },
+                        { label: 'Avg Transactions (Per Day)', value: stats?.avgServicesPerDay || '0', icon: TrendingUp },
                     ].map((stat) => (
                         <div key={stat.label} className="bg-black border border-zinc-800/80 rounded-xl p-5 hover:border-zinc-700 transition-colors">
                             <div className="flex items-center justify-between mb-4">
@@ -147,7 +166,22 @@ export default function AdminDashboard() {
                                 <Activity className="w-4 h-4 text-zinc-500" />
                                 <h2 className="text-sm font-medium text-zinc-300">Service Volume</h2>
                             </div>
-                            <span className="text-xs text-zinc-600 font-mono">30D History</span>
+                            <div className="relative">
+                                <select
+                                    value={chartRange}
+                                    onChange={e => setChartRange(e.target.value)}
+                                    className="bg-black border border-zinc-800 hover:border-zinc-700 transition-colors rounded px-3 py-1.5 text-xs font-mono text-zinc-300 appearance-none pr-8 focus:outline-none focus:border-zinc-600"
+                                >
+                                    <option value="1d">Last Day</option>
+                                    <option value="7d">Last Week</option>
+                                    <option value="30d">Last Month</option>
+                                    <option value="90d">Last 3 Months</option>
+                                    <option value="180d">Last 6 Months</option>
+                                    <option value="365d">Last Year</option>
+                                    <option value="all">All Time</option>
+                                </select>
+                                <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                            </div>
                         </div>
 
                         <div className="p-5 flex-1 flex flex-col justify-end">
@@ -231,7 +265,7 @@ export default function AdminDashboard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-zinc-900/50">
-                                {filteredGarages.map(garage => (
+                                {filteredGarages.slice(0, garageLimit).map(garage => (
                                     <tr key={garage._id} className="hover:bg-zinc-900/30 transition-colors group">
                                         <td className="px-5 py-3 text-zinc-200">
                                             <div className="flex items-center gap-2">
@@ -288,6 +322,27 @@ export default function AdminDashboard() {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {filteredGarages.length > garageLimit && (
+                        <div className="px-5 py-3 border-t border-zinc-900 flex items-center justify-between bg-zinc-950">
+                            <p className="text-xs text-zinc-500 font-mono">Showing {Math.min(garageLimit, filteredGarages.length)} of {filteredGarages.length}</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setGarageLimit(prev => prev + 10)}
+                                    className="px-3 py-1.5 text-xs font-medium text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded transition-colors flex items-center gap-1.5"
+                                >
+                                    <ChevronsRight className="w-3.5 h-3.5" /> View More
+                                </button>
+                                <button
+                                    onClick={() => setGarageLimit(filteredGarages.length)}
+                                    className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                                >
+                                    View All
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* GMV Minimal Strip */}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Building2, IndianRupee, Wrench, Loader2, Trophy, ArrowUpRight } from 'lucide-react';
+import { Building2, IndianRupee, Wrench, Loader2, Trophy, ArrowUpRight, CalendarDays } from 'lucide-react';
 
 const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
 const getToken = async () => {
@@ -16,6 +16,8 @@ interface EmployeePerformance {
     totalGarages: number;
     totalServices: number;
     totalRevenue: number;
+    avgGaragesPerDay: string;
+    avgTransactionsPerDay: string;
 }
 
 export default function AdminPerformance() {
@@ -81,9 +83,11 @@ export default function AdminPerformance() {
                                 <tr>
                                     <th className="px-6 py-3 font-medium">Rank</th>
                                     <th className="px-6 py-3 font-medium">Employee</th>
-                                    <th className="px-6 py-3 font-medium text-right">Portfolio Garages</th>
-                                    <th className="px-6 py-3 font-medium text-right">Driven Services</th>
-                                    <th className="px-6 py-3 font-medium text-right">Total Revenue Generated</th>
+                                    <th className="px-6 py-3 font-medium text-right">Garages</th>
+                                    <th className="px-6 py-3 font-medium text-right">Avg Garages/Day</th>
+                                    <th className="px-6 py-3 font-medium text-right">Services</th>
+                                    <th className="px-6 py-3 font-medium text-right">Avg Txn/Day</th>
+                                    <th className="px-6 py-3 font-medium text-right">Revenue</th>
                                     <th className="px-6 py-3 w-8"></th>
                                 </tr>
                             </thead>
@@ -122,10 +126,16 @@ export default function AdminPerformance() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
+                                            <span className="font-mono text-zinc-400">{emp.avgGaragesPerDay}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2 text-zinc-300">
                                                 <span className="font-mono">{emp.totalServices}</span>
                                                 <Wrench className="w-3.5 h-3.5 text-zinc-600" />
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="font-mono text-zinc-400">{emp.avgTransactionsPerDay}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2 text-white font-medium">

@@ -98,8 +98,16 @@ export default function AdminEmployees() {
             <main className="max-w-5xl mx-auto p-6 space-y-6 pt-10">
 
                 <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-2xl font-light tracking-tight text-white">Team Directory</h1>
-                    <p className="text-xs text-zinc-500 font-mono">{employees.length} TOTAL</p>
+                    <div>
+                        <h1 className="text-2xl font-light tracking-tight text-white">Team Directory</h1>
+                        <p className="text-xs text-zinc-500 font-mono mt-1">{employees.length} TOTAL</p>
+                    </div>
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="px-4 py-2 bg-white hover:bg-zinc-200 text-black rounded-lg text-xs font-semibold transition-colors flex items-center gap-2"
+                    >
+                        <UserPlus className="w-3.5 h-3.5" /> New Employee
+                    </button>
                 </div>
 
                 {/* Minimalist Grid */}

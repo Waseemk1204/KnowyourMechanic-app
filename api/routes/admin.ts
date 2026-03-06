@@ -13,9 +13,14 @@ const router = express.Router();
 
 // ─── PLATFORM STATS ────────────────────────────────────────
 
-router.get('/stats', authenticate, requireAdmin, async (_req: AuthRequest, res) => {
+router.get('/stats', authenticate, requireAdmin, async (req: AuthRequest, res) => {
     await dbConnect();
     try {
+        // Parse range for chart: 1d, 7d, 30d, 90d, 180d, 365d, all
+        const rangeParam = (req.query.range as string) || '30d';
+        const rangeDaysMap: Record<string, number> = { '1d': 1, '7d': 7, '30d': 30, '90d': 90, '180d': 180, '365d': 365 };
+        const rangeDays = rangeDaysMap[rangeParam] || 0; // 0 means 'all'
+
         const [
             totalGarages,
             totalCustomers,
@@ -33,17 +38,25 @@ router.get('/stats', authenticate, requireAdmin, async (_req: AuthRequest, res) 
         const totalRevenue = allServices.reduce((sum, s) => sum + s.platformFee, 0);
         const totalGMV = allServices.reduce((sum, s) => sum + s.amount, 0);
 
-        // Services per day (last 30 days)
+        // Services per day (last 30 days - fixed for the stat card)
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const recentServices = allServices.filter(s => new Date(s.createdAt) > thirtyDaysAgo);
-        const avgServicesPerDay = recentServices.length > 0 ? (recentServices.length / 30).toFixed(1) : '0';
+        const last30Services = allServices.filter(s => new Date(s.createdAt) > thirtyDaysAgo);
+        const avgServicesPerDay = last30Services.length > 0 ? (last30Services.length / 30).toFixed(1) : '0';
 
-        // Daily breakdown (last 30 days) for chart
+        // Daily breakdown for chart (respects range param)
+        const chartCutoff = rangeDays > 0 ? new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000) : null;
+        const chartServices = chartCutoff
+            ? allServices.filter(s => new Date(s.createdAt) > chartCutoff)
+            : allServices;
+        const numDays = rangeDays > 0 ? rangeDays : (allServices.length > 0
+            ? Math.max(1, Math.ceil((Date.now() - new Date(allServices[allServices.length - 1].createdAt).getTime()) / (24 * 60 * 60 * 1000)))
+            : 1);
+
         const dailyBreakdown: { date: string; count: number; revenue: number }[] = [];
-        for (let i = 29; i >= 0; i--) {
+        for (let i = numDays - 1; i >= 0; i--) {
             const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
             const dateStr = date.toISOString().split('T')[0];
-            const dayServices = recentServices.filter(s => {
+            const dayServices = chartServices.filter(s => {
                 const d = new Date(s.createdAt).toISOString().split('T')[0];
                 return d === dateStr;
             });
@@ -310,13 +323,20 @@ router.get('/employees/performance/all', authenticate, requireAdmin, async (_req
                 }
             });
 
+            // Calculate days since employee was created (minimum 1)
+            const daysSinceCreation = Math.max(1, Math.ceil((Date.now() - new Date(emp.createdAt).getTime()) / (24 * 60 * 60 * 1000)));
+            const avgGaragesPerDay = (myGarageIds.length / daysSinceCreation).toFixed(2);
+            const avgTransactionsPerDay = (totalServices / daysSinceCreation).toFixed(2);
+
             return {
                 _id: empId,
                 name: emp.name,
                 referralCode: emp.referralCode,
                 totalGarages: myGarageIds.length,
                 totalServices,
-                totalRevenue
+                totalRevenue,
+                avgGaragesPerDay,
+                avgTransactionsPerDay
             };
         });
 
