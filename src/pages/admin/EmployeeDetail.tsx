@@ -80,29 +80,6 @@ export default function EmployeeDetail() {
 
     return (
         <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
-            {/* Minimal Header */}
-            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/admin/employees')} className="text-zinc-500 hover:text-white transition-colors">
-                            <ArrowLeft className="w-4 h-4" />
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-white">{employee.name}</span>
-                            <span className="text-xs text-zinc-600 font-mono tracking-wide">{employee.phone}</span>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={copyCode}
-                        className="px-3 py-1.5 border border-zinc-800 hover:bg-zinc-900 rounded text-xs font-mono text-zinc-300 transition-colors flex items-center gap-2"
-                    >
-                        {employee.referralCode}
-                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3 h-3 text-zinc-500" />}
-                    </button>
-                </div>
-            </header>
-
             <main className="max-w-5xl mx-auto p-6 space-y-6 pt-10">
                 {/* Aggregate Stats */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

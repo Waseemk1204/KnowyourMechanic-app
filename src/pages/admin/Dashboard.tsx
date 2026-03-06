@@ -105,41 +105,6 @@ export default function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
-            {/* Minimal Header */}
-            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-6 h-6 bg-white rounded flex items-center justify-center">
-                                <span className="text-black font-bold text-xs">KYM</span>
-                            </div>
-                            <span className="text-sm font-medium text-zinc-400 tracking-wide">/ admin</span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => navigate('/admin/reports')}
-                            className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-2"
-                        >
-                            <Flag className="w-3.5 h-3.5" /> Reports
-                        </button>
-                        <button
-                            onClick={() => navigate('/admin/employees')}
-                            className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-2 border-r border-zinc-800 pr-6 mr-2"
-                        >
-                            <Users className="w-3.5 h-3.5" /> Employees
-                        </button>
-                        <button
-                            onClick={async () => { await logout(); navigate('/auth'); }}
-                            className="text-zinc-500 hover:text-white transition-colors"
-                        >
-                            <LogOut className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-            </header>
-
             <main className="max-w-7xl mx-auto p-6 space-y-6 pt-10">
 
                 {/* Primary Stats: Solid Black, Thin Borders */}

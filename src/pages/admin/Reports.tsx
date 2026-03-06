@@ -94,21 +94,15 @@ export default function AdminReports() {
 
     return (
         <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
-            {/* Minimal Header */}
-            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
-                <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/admin')} className="text-zinc-500 hover:text-white transition-colors">
-                            <ArrowLeft className="w-4 h-4" />
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-zinc-400 tracking-wide">/ reports</span>
-                            {pendingCount > 0 && (
-                                <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-mono tracking-widest font-bold">
-                                    {pendingCount} PENDING
-                                </span>
-                            )}
-                        </div>
+            <main className="max-w-5xl mx-auto p-6 space-y-4 pt-10">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-light tracking-tight text-white">Reports Queue</h1>
+                        {pendingCount > 0 && (
+                            <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] font-mono tracking-widest font-bold">
+                                {pendingCount} PENDING
+                            </span>
+                        )}
                     </div>
 
                     {/* Filter Dropdown */}
@@ -127,9 +121,6 @@ export default function AdminReports() {
                         <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
                     </div>
                 </div>
-            </header>
-
-            <main className="max-w-5xl mx-auto p-6 space-y-4 pt-10">
 
                 {reports.length === 0 ? (
                     <div className="border border-dashed border-zinc-800 rounded-lg py-20 text-center text-zinc-600">

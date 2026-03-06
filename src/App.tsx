@@ -14,6 +14,9 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminEmployees from './pages/admin/Employees';
 import AdminEmployeeDetail from './pages/admin/EmployeeDetail';
 import AdminReports from './pages/admin/Reports';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminPerformance from './pages/admin/Performance';
+import AdminAdvanced from './pages/admin/Advanced';
 import EmployeeDashboard from './pages/employee/Dashboard';
 import './index.css';
 
@@ -99,11 +102,15 @@ export default function App() {
           <Route path="/garage/settings" element={<ProtectedRoute requiredRole="garage"><GarageSettings /></ProtectedRoute>} />
           <Route path="/garage/support" element={<ProtectedRoute requiredRole="garage"><GarageSupport /></ProtectedRoute>} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/employees" element={<ProtectedRoute requiredRole="admin"><AdminEmployees /></ProtectedRoute>} />
-          <Route path="/admin/employees/:id" element={<ProtectedRoute requiredRole="admin"><AdminEmployeeDetail /></ProtectedRoute>} />
-          <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><AdminReports /></ProtectedRoute>} />
+          {/* Admin Routes (Nested in Layout) */}
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="employees" element={<AdminEmployees />} />
+            <Route path="employees/:id" element={<AdminEmployeeDetail />} />
+            <Route path="performance" element={<AdminPerformance />} />
+            <Route path="reports" element={<AdminReports />} />
+            <Route path="advanced" element={<AdminAdvanced />} />
+          </Route>
 
           {/* Employee Routes */}
           <Route path="/employee" element={<ProtectedRoute requiredRole="employee"><EmployeeDashboard /></ProtectedRoute>} />

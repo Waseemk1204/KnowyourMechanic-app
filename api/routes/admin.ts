@@ -227,6 +227,106 @@ router.put('/employees/:id', authenticate, requireAdmin, async (req: AuthRequest
         res.status(500).json({ message: 'Failed to update employee' });
     }
 });
+// ─── ADVANCED ANALYTICS (MRR/ARR/Investors) ─────────────────
+router.get('/advanced-stats', authenticate, requireAdmin, async (_req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const [
+            totalUsers,
+            totalVehicles,
+            totalGarages,
+            recentServices,
+            allTimeServices
+        ] = await Promise.all([
+            User.countDocuments({ role: 'customer' }),
+            User.countDocuments({ role: 'customer', vehicleMake: { $exists: true, $ne: '' } }),
+            Garage.countDocuments(),
+            ServiceRecord.find({ status: 'completed', createdAt: { $gte: thirtyDaysAgo } }).select('platformFee').lean(),
+            ServiceRecord.find({ status: 'completed' }).select('amount').lean()
+        ]);
+
+        const mrr = recentServices.reduce((sum, s) => sum + (s.platformFee || 0), 0);
+        const arr = mrr * 12;
+        const allTimeGMV = allTimeServices.reduce((sum, s) => sum + (s.amount || 0), 0);
+
+        res.json({
+            totalUsers,
+            totalVehicles,
+            totalGarages,
+            mrr,
+            arr,
+            allTimeGMV,
+        });
+    } catch (error: any) {
+        console.error('Advanced stats error:', error);
+        res.status(500).json({ message: 'Failed to get advanced stats' });
+    }
+});
+
+// ─── ALL EMPLOYEES PERFORMANCE ──────────────────────────────
+router.get('/employees/performance/all', authenticate, requireAdmin, async (_req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const employees = await Employee.find({ isActive: true }).select('name role referralCode createdAt').lean();
+
+        // Map garages to employees
+        const garages = await Garage.find({ assignedEmployeeId: { $exists: true } }).select('_id assignedEmployeeId').lean();
+        const employeeGaragesOutput = new Map(); // employeeId -> array of garageIds
+
+        for (const g of garages) {
+            const empId = g.assignedEmployeeId?.toString();
+            if (!empId) continue;
+            if (!employeeGaragesOutput.has(empId)) employeeGaragesOutput.set(empId, []);
+            employeeGaragesOutput.get(empId).push(g._id);
+        }
+
+        // Get all completed services for those garages
+        const serviceStats = await ServiceRecord.aggregate([
+            { $match: { garageId: { $in: garages.map(g => g._id) }, status: 'completed' } },
+            {
+                $group: {
+                    _id: '$garageId',
+                    totalServices: { $sum: 1 },
+                    totalRevenue: { $sum: '$platformFee' }
+                }
+            }
+        ]);
+        const garageStatsMap = new Map(serviceStats.map(s => [s._id.toString(), s]));
+
+        const performanceData = employees.map(emp => {
+            const empId = (emp as any)._id.toString();
+            const myGarageIds = employeeGaragesOutput.get(empId) || [];
+
+            let totalServices = 0;
+            let totalRevenue = 0;
+
+            myGarageIds.forEach((gid: any) => {
+                const stats = garageStatsMap.get(gid.toString());
+                if (stats) {
+                    totalServices += stats.totalServices;
+                    totalRevenue += stats.totalRevenue;
+                }
+            });
+
+            return {
+                _id: empId,
+                name: emp.name,
+                referralCode: emp.referralCode,
+                totalGarages: myGarageIds.length,
+                totalServices,
+                totalRevenue
+            };
+        });
+
+        res.json(performanceData.sort((a, b) => b.totalRevenue - a.totalRevenue)); // sort by highest revenue
+
+    } catch (error: any) {
+        console.error('All employees performance error:', error);
+        res.status(500).json({ message: 'Failed to get all performance' });
+    }
+});
 
 // Employee performance detail
 router.get('/employees/:id/performance', authenticate, requireAdmin, async (req: AuthRequest, res) => {

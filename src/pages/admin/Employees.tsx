@@ -95,27 +95,6 @@ export default function AdminEmployees() {
 
     return (
         <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
-            {/* Minimal Header */}
-            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-zinc-900">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/admin')} className="text-zinc-500 hover:text-white transition-colors">
-                            <ArrowLeft className="w-4 h-4" />
-                        </button>
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-zinc-400 tracking-wide">/ employees</span>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="px-4 py-1.5 bg-white hover:bg-zinc-200 text-black rounded text-xs font-semibold transition-colors flex items-center gap-2"
-                    >
-                        <UserPlus className="w-3.5 h-3.5" /> New Employee
-                    </button>
-                </div>
-            </header>
-
             <main className="max-w-5xl mx-auto p-6 space-y-6 pt-10">
 
                 <div className="flex items-center justify-between mb-2">
