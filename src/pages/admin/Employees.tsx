@@ -176,57 +176,57 @@ export default function AdminEmployees() {
                             initial={{ scale: 0.95, y: 10 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 10 }}
-                            className="bg-white border border-zinc-200 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl"
+                            className="bg-white border border-gray-200 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl"
                         >
-                            <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
-                                <h3 className="text-sm font-semibold text-zinc-900">Add Employee</h3>
-                                <button onClick={() => setShowAddModal(false)} className="text-zinc-400 hover:text-zinc-600 transition-colors">
+                            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                                <h3 className="text-sm font-bold text-black">Add Employee</h3>
+                                <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-black transition-colors">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
 
                             <div className="p-5 space-y-4">
                                 <div>
-                                    <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1.5">Full Name</label>
+                                    <label className="text-[10px] text-gray-600 font-extrabold uppercase tracking-widest block mb-1.5">Full Name</label>
                                     <input
                                         value={newName}
                                         onChange={e => setNewName(e.target.value)}
                                         placeholder="Jane Doe"
-                                        className="w-full bg-white border border-zinc-300 rounded text-sm px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none transition-colors"
+                                        className="w-full bg-white border border-gray-300 rounded text-sm px-3 py-2 text-black placeholder-gray-400 focus:border-black focus:outline-none transition-colors"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1.5">Email</label>
+                                    <label className="text-[10px] text-gray-600 font-extrabold uppercase tracking-widest block mb-1.5">Email</label>
                                     <input
                                         value={newEmail}
                                         onChange={e => setNewEmail(e.target.value)}
                                         placeholder="jane@company.com"
                                         type="email"
-                                        className="w-full bg-white border border-zinc-300 rounded text-sm px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none transition-colors"
+                                        className="w-full bg-white border border-gray-300 rounded text-sm px-3 py-2 text-black placeholder-gray-400 focus:border-black focus:outline-none transition-colors"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1.5">Phone Component</label>
+                                    <label className="text-[10px] text-gray-600 font-extrabold uppercase tracking-widest block mb-1.5">Phone Component</label>
                                     <input
                                         value={newPhone}
                                         onChange={e => setNewPhone(e.target.value)}
                                         placeholder="+919876543210"
-                                        className="w-full bg-white border border-zinc-300 rounded text-sm px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none transition-colors"
+                                        className="w-full bg-white border border-gray-300 rounded text-sm px-3 py-2 text-black placeholder-gray-400 focus:border-black focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
 
-                            <div className="px-5 py-4 border-t border-zinc-200 bg-zinc-50 flex justify-end gap-2">
+                            <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-2">
                                 <button
                                     onClick={() => setShowAddModal(false)}
-                                    className="px-4 py-2 text-xs font-semibold text-zinc-600 hover:text-zinc-900 transition-colors"
+                                    className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-black transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddEmployee}
                                     disabled={saving || !newName || !newEmail || !newPhone}
-                                    className="px-4 py-2 bg-black text-white hover:bg-zinc-800 rounded text-xs font-semibold disabled:opacity-50 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-black text-white hover:bg-gray-800 rounded text-xs font-bold disabled:opacity-50 transition-colors flex items-center gap-2"
                                 >
                                     {saving && <Loader2 className="w-3 h-3 animate-spin" />}
                                     Create Employee

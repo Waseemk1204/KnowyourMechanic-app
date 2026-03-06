@@ -326,7 +326,7 @@ export default function AdminDashboard() {
                                 Showing {Math.min(garageLimit, filteredGarages.length)} of {filteredGarages.length}
                             </p>
                             <div className="flex items-center gap-2">
-                                {garageLimit < filteredGarages.length ? (
+                                {garageLimit < filteredGarages.length && (
                                     <>
                                         <button
                                             onClick={() => setGarageLimit(prev => prev + 10)}
@@ -341,10 +341,11 @@ export default function AdminDashboard() {
                                             View All
                                         </button>
                                     </>
-                                ) : (
+                                )}
+                                {garageLimit > 10 && (
                                     <button
                                         onClick={() => setGarageLimit(10)}
-                                        className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5"
+                                        className="px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5 ml-2"
                                     >
                                         <ChevronDown className="w-3.5 h-3.5 rotate-180" /> Show Less
                                     </button>
