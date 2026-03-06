@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
-    ArrowLeft, Loader2, Building2, Wrench, IndianRupee, TrendingUp,
-    Copy, Check, MapPin, Star
+    Loader2, Building2, Wrench, IndianRupee, TrendingUp, Star
 } from 'lucide-react';
 
 const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
@@ -25,10 +24,8 @@ interface GaragePerf {
 
 export default function EmployeeDetail() {
     const { id } = useParams();
-    const navigate = useNavigate();
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -46,12 +43,6 @@ export default function EmployeeDetail() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const copyCode = () => {
-        navigator.clipboard.writeText(data.employee.referralCode);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
     };
 
     if (loading) {

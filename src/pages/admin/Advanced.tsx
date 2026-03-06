@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Users, Car, Building2, TrendingUp, IndianRupee, Loader2,
-    CalendarDays, Banknote, ShieldAlert
+    CalendarDays, Banknote, ShieldAlert, Activity
 } from 'lucide-react';
 
 const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
@@ -31,8 +31,8 @@ export default function AdminAdvanced() {
     const fetchStats = async () => {
         try {
             const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/advanced-stats`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+            const res = await fetch(`${getApiUrl()} /admin/advanced - stats`, {
+                headers: { 'Authorization': `Bearer ${token} ` }
             });
             if (res.ok) setStats(await res.json());
         } catch (err) {
@@ -44,11 +44,11 @@ export default function AdminAdvanced() {
 
     const formatCurrency = (val: number, precise = false) => {
         if (!precise) {
-            if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)}Cr`;
-            if (val >= 100000) return `₹${(val / 100000).toFixed(2)}L`;
-            if (val >= 1000) return `₹${(val / 1000).toFixed(1)}K`;
+            if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
+            if (val >= 100000) return `₹${(val / 100000).toFixed(2)} L`;
+            if (val >= 1000) return `₹${(val / 1000).toFixed(1)} K`;
         }
-        return `₹${val.toLocaleString('en-IN')}`;
+        return `₹${val.toLocaleString('en-IN')} `;
     };
 
     if (loading) {
