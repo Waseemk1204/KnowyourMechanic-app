@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Building2, IndianRupee, Wrench, Loader2, Trophy, ArrowUpRight, CalendarDays } from 'lucide-react';
+import { Building2, IndianRupee, Wrench, Loader2, Trophy, ArrowUpRight } from 'lucide-react';
 
 const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
 const getToken = async () => {

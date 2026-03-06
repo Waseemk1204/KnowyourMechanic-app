@@ -358,7 +358,7 @@ router.get('/employees/:id/performance', authenticate, requireAdmin, async (req:
         }
 
         // Get all garages assigned to this employee
-        const garages = await Garage.find({ assignedEmployeeId: employee._id })
+        const garages = await Garage.find({ assignedEmployeeId: (employee as any)._id })
             .select('name location phone rating totalReviews createdAt')
             .lean();
 

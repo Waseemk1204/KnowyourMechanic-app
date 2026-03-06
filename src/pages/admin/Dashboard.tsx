@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-    Users, Wrench, IndianRupee, TrendingUp, Building2,
-    LogOut, Loader2, MapPin, Activity, Flag,
-    ChevronRight, Star, Clock, Search, ChevronDown, ChevronsRight
+    Wrench, IndianRupee, TrendingUp, Building2,
+    Loader2, MapPin, Activity,
+    ChevronRight, Star, Search, ChevronDown, ChevronsRight
 } from 'lucide-react';
 import GarageMap from '../../components/GarageMap';
-import { useAuth } from '../../contexts/AuthContext';
 
 const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
 const getToken = async () => {
@@ -41,8 +39,6 @@ interface GarageItem {
 }
 
 export default function AdminDashboard() {
-    const navigate = useNavigate();
-    const { logout } = useAuth();
     const [stats, setStats] = useState<Stats | null>(null);
     const [garages, setGarages] = useState<GarageItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -348,7 +344,7 @@ export default function AdminDashboard() {
                 {/* GMV Minimal Strip */}
                 {stats && stats.totalGMV > 0 && (
                     <div className="bg-zinc-950 border border-zinc-900 rounded-lg px-6 py-4 flex items-center justify-between">
-                        <p className="text-zinc-500 text-xs font-medium tracking-wide">GROSS MERCHANDISE VALUE</p>
+                        <p className="text-zinc-500 text-xs font-medium tracking-wide">GROSS TRANSACTIONS VALUE</p>
                         <p className="font-mono font-medium text-zinc-300">{formatCurrency(stats.totalGMV)}</p>
                     </div>
                 )}

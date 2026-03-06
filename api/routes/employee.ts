@@ -123,4 +123,37 @@ router.get('/my-stats', authenticate, requireEmployee, async (req: AuthRequest, 
     }
 });
 
+// Get all garages for employee map (own = purple, others = grey)
+router.get('/map-data', authenticate, requireEmployee, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const user = await User.findOne({ firebaseUid: req.user!.uid });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const employee = await Employee.findOne({ phone: user.phoneNumber });
+        if (!employee) return res.status(404).json({ message: 'Employee record not found' });
+
+        const allGarages = await Garage.find()
+            .select('name location phone rating totalReviews assignedEmployeeId')
+            .lean();
+
+        const mapData = allGarages.map(g => ({
+            id: (g as any)._id.toString(),
+            name: g.name,
+            lat: g.location?.coordinates?.[1] || 0,
+            lng: g.location?.coordinates?.[0] || 0,
+            rating: g.rating,
+            reviews: g.totalReviews,
+            address: g.location?.address,
+            phone: g.phone,
+            isMine: g.assignedEmployeeId?.toString() === employee._id.toString(),
+        }));
+
+        res.json(mapData);
+    } catch (error: any) {
+        console.error('Employee map data error:', error);
+        res.status(500).json({ message: 'Failed to get map data' });
+    }
+});
+
 export default router;

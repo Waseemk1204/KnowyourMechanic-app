@@ -15,6 +15,7 @@ interface GarageMapProps {
         photo?: string;
         address?: string;
         phone?: string;
+        color?: string; // optional hex color for marker
     }[];
     userLocation: { lat: number; lng: number };
     onGarageSelect?: (garage: any) => void;
@@ -48,6 +49,30 @@ const garageIcon = L.divIcon({
             border: 3px solid white;
             border-radius: 50%;
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+        </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+});
+
+// Create a dynamically colored garage icon
+const createColoredIcon = (color: string) => L.divIcon({
+    className: 'garage-marker',
+    html: `
+        <div style="
+            width: 36px;
+            height: 36px;
+            background: ${color};
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -99,7 +124,7 @@ export default function GarageMap({ garages, userLocation, onGarageSelect }: Gar
                 <Marker
                     key={garage.id}
                     position={[garage.lat, garage.lng]}
-                    icon={garageIcon}
+                    icon={garage.color ? createColoredIcon(garage.color) : garageIcon}
                     eventHandlers={{
                         click: () => onGarageSelect?.(garage),
                     }}
