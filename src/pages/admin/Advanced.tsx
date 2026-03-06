@@ -31,8 +31,8 @@ export default function AdminAdvanced() {
     const fetchStats = async () => {
         try {
             const token = await getToken();
-            const res = await fetch(`${getApiUrl()} /admin/advanced - stats`, {
-                headers: { 'Authorization': `Bearer ${token} ` }
+            const res = await fetch(`${getApiUrl()}/admin/advanced-stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) setStats(await res.json());
         } catch (err) {
