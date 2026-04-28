@@ -21,49 +21,64 @@ router.get('/stats', authenticate, requireAdmin, async (req: AuthRequest, res) =
         const rangeDaysMap: Record<string, number> = { '1d': 1, '7d': 7, '30d': 30, '90d': 90, '180d': 180, '365d': 365 };
         const rangeDays = rangeDaysMap[rangeParam] || 0; // 0 means 'all'
 
+        // Use aggregation pipeline instead of loading all records into memory
         const [
             totalGarages,
             totalCustomers,
             totalEmployees,
             totalServices,
-            allServices,
+            revenueAgg,
         ] = await Promise.all([
             Garage.countDocuments(),
             User.countDocuments({ role: 'customer' }),
             Employee.countDocuments({ isActive: true }),
             ServiceRecord.countDocuments({ status: 'completed' }),
-            ServiceRecord.find({ status: 'completed' }).select('amount platformFee garageEarnings createdAt').lean(),
+            ServiceRecord.aggregate([
+                { $match: { status: 'completed' } },
+                { $group: { _id: null, totalRevenue: { $sum: '$platformFee' }, totalGMV: { $sum: '$amount' } } },
+            ]),
         ]);
 
-        const totalRevenue = allServices.reduce((sum, s) => sum + s.platformFee, 0);
-        const totalGMV = allServices.reduce((sum, s) => sum + s.amount, 0);
+        const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+        const totalGMV = revenueAgg[0]?.totalGMV || 0;
 
         // Services per day (last 30 days - fixed for the stat card)
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const last30Services = allServices.filter(s => new Date(s.createdAt) > thirtyDaysAgo);
-        const avgServicesPerDay = last30Services.length > 0 ? (last30Services.length / 30).toFixed(1) : '0';
+        const last30Count = await ServiceRecord.countDocuments({
+            status: 'completed',
+            createdAt: { $gte: thirtyDaysAgo },
+        });
+        const avgServicesPerDay = last30Count > 0 ? (last30Count / 30).toFixed(1) : '0';
 
-        // Daily breakdown for chart (respects range param)
+        // Daily breakdown for chart using aggregation (respects range param)
         const chartCutoff = rangeDays > 0 ? new Date(Date.now() - rangeDays * 24 * 60 * 60 * 1000) : null;
-        const chartServices = chartCutoff
-            ? allServices.filter(s => new Date(s.createdAt) > chartCutoff)
-            : allServices;
-        const numDays = rangeDays > 0 ? rangeDays : (allServices.length > 0
-            ? Math.max(1, Math.ceil((Date.now() - new Date(allServices[allServices.length - 1].createdAt).getTime()) / (24 * 60 * 60 * 1000)))
-            : 1);
+        const chartMatch: Record<string, unknown> = { status: 'completed' };
+        if (chartCutoff) chartMatch.createdAt = { $gte: chartCutoff };
 
+        const dailyAgg = await ServiceRecord.aggregate([
+            { $match: chartMatch },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    count: { $sum: 1 },
+                    revenue: { $sum: '$platformFee' },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+
+        // Fill in missing days with zeros
+        const numDays = rangeDays > 0 ? rangeDays : Math.max(1, dailyAgg.length);
+        const aggMap = new Map(dailyAgg.map(d => [d._id, d]));
         const dailyBreakdown: { date: string; count: number; revenue: number }[] = [];
         for (let i = numDays - 1; i >= 0; i--) {
             const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
             const dateStr = date.toISOString().split('T')[0];
-            const dayServices = chartServices.filter(s => {
-                const d = new Date(s.createdAt).toISOString().split('T')[0];
-                return d === dateStr;
-            });
+            const dayData = aggMap.get(dateStr);
             dailyBreakdown.push({
                 date: dateStr,
-                count: dayServices.length,
-                revenue: dayServices.reduce((sum, s) => sum + s.platformFee, 0),
+                count: dayData?.count || 0,
+                revenue: dayData?.revenue || 0,
             });
         }
 

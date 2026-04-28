@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
 import Garage from '../models/Garage.js';
 import User from '../models/User.js';
+import ServiceRecord from '../models/ServiceRecord.js';
 import dbConnect from '../utils/dbConnect.js';
 
 const router = express.Router();
@@ -71,26 +72,14 @@ router.get('/discovery', async (req, res) => {
         const garages = await Garage.find(query).populate('userId', 'phoneNumber').lean();
 
         // Get service record counts for all garages (completed services)
-        const ServiceRecord = (await import('../models/ServiceRecord.js')).default;
         const garageIds = garages.map((g: any) => g._id);
 
-        // Check total service records in database
-        const totalRecords = await ServiceRecord.countDocuments({ status: 'completed' });
-        const allRecords = await ServiceRecord.find({ status: 'completed' }).limit(10).lean();
+
 
         const serviceCounts = await ServiceRecord.aggregate([
             { $match: { garageId: { $in: garageIds }, status: 'completed' } },
             { $group: { _id: '$garageId', count: { $sum: 1 } } }
         ]);
-
-        console.log('Service record count debugging:', {
-            totalGarages: garageIds.length,
-            totalRecordsInDb: totalRecords,
-            sampleRecords: allRecords.map(s => ({ customerPhone: s.customerPhone, garageId: s.garageId?.toString(), amount: s.amount })),
-            garageNames: garages.map((g: any) => ({ id: g._id.toString(), name: g.name })),
-            serviceCounts,
-            serviceCountsLength: serviceCounts.length
-        });
 
         // Create a map of garage ID to service count
         const countMap = new Map(serviceCounts.map((s: any) => [s._id.toString(), s.count]));

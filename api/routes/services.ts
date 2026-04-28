@@ -1,11 +1,38 @@
-import express from 'express';
+import { Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
 import Service from '../models/Service.js';
 import Garage from '../models/Garage.js';
 import User from '../models/User.js';
 import dbConnect from '../utils/dbConnect.js';
 
-const router = express.Router();
+const router = Router();
+
+// ─── STATIC ROUTES FIRST (before parameterized routes) ───
+
+// Get my services (for garage owner)
+// MUST be before /garage/:garageId to avoid matching "my-services" as a garageId
+router.get('/my-services', authenticate, async (req: AuthRequest, res) => {
+    await dbConnect();
+    try {
+        const user = await User.findOne({ firebaseUid: req.user!.uid });
+        if (!user || user.role !== 'garage') {
+            return res.status(403).json({ message: 'Only garages can view their services' });
+        }
+
+        const garage = await Garage.findOne({ userId: user._id });
+        if (!garage) {
+            return res.status(404).json({ message: 'Garage not found' });
+        }
+
+        const services = await Service.find({ garageId: garage._id });
+        res.json(services);
+    } catch (error) {
+        console.error('Get my services error:', error);
+        res.status(500).json({ message: 'Failed to get services' });
+    }
+});
+
+// ─── PARAMETERIZED ROUTES ─────────────────────────────────
 
 // Get services for a garage (public)
 router.get('/garage/:garageId', async (req, res) => {
@@ -115,28 +142,6 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
     } catch (error) {
         console.error('Delete service error:', error);
         res.status(500).json({ message: 'Failed to delete service' });
-    }
-});
-
-// Get my services (for garage owner)
-router.get('/my-services', authenticate, async (req: AuthRequest, res) => {
-    await dbConnect();
-    try {
-        const user = await User.findOne({ firebaseUid: req.user!.uid });
-        if (!user || user.role !== 'garage') {
-            return res.status(403).json({ message: 'Only garages can view their services' });
-        }
-
-        const garage = await Garage.findOne({ userId: user._id });
-        if (!garage) {
-            return res.status(404).json({ message: 'Garage not found' });
-        }
-
-        const services = await Service.find({ garageId: garage._id });
-        res.json(services);
-    } catch (error) {
-        console.error('Get my services error:', error);
-        res.status(500).json({ message: 'Failed to get services' });
     }
 });
 

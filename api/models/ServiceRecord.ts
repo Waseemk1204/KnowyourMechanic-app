@@ -21,6 +21,7 @@ export interface IServiceRecord extends Document {
     razorpayPaymentId?: string;
     verificationMethod?: VerificationMethod;
     approvedByCustomer?: boolean;
+    invoiceNumber?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -49,6 +50,7 @@ const ServiceRecordSchema = new Schema<IServiceRecord>({
     razorpayPaymentId: { type: String },
     verificationMethod: { type: String, enum: ['whatsapp_otp', 'in_app'] },
     approvedByCustomer: { type: Boolean },
+    invoiceNumber: { type: String },
 }, { timestamps: true });
 
 // Indexes
@@ -58,13 +60,6 @@ ServiceRecordSchema.index({ status: 1 });
 ServiceRecordSchema.index({ customerPhone: 1, garageId: 1, status: 1 }); // report validation
 ServiceRecordSchema.index({ garageId: 1, status: 1 }); // admin aggregations
 ServiceRecordSchema.index({ createdAt: -1 }); // sorted listings
-
-// Static method to calculate fees (static ₹1.90)
-ServiceRecordSchema.statics.calculateFees = function (amount: number) {
-    const platformFee = PLATFORM_FEE;
-    const garageEarnings = amount - platformFee;
-    return { platformFee, garageEarnings };
-};
 
 export default mongoose.models.ServiceRecord || mongoose.model<IServiceRecord>('ServiceRecord', ServiceRecordSchema);
 export { PLATFORM_FEE };

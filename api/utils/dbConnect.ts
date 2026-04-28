@@ -12,10 +12,21 @@ try {
     // dotenv not available or .env not found — fine on Vercel
 }
 
-let isConnected = false;
-
-async function dbConnect() {
-    if (isConnected) return;
+/**
+ * Cached MongoDB connection.
+ * Uses mongoose's built-in readyState instead of a manual boolean flag,
+ * so it correctly handles disconnections/reconnections.
+ */
+async function dbConnect(): Promise<void> {
+    // readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+    if (mongoose.connection.readyState === 1) return;
+    if (mongoose.connection.readyState === 2) {
+        // Already connecting — wait for it
+        await new Promise<void>((resolve) => {
+            mongoose.connection.once('connected', resolve);
+        });
+        return;
+    }
 
     const MONGODB_URI = process.env.MONGODB_URI;
     if (!MONGODB_URI) {
@@ -24,7 +35,6 @@ async function dbConnect() {
 
     try {
         await mongoose.connect(MONGODB_URI);
-        isConnected = true;
         console.log('Connected to MongoDB');
     } catch (error) {
         console.error('MongoDB connection error:', error);

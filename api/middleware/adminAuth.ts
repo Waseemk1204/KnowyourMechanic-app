@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth.js';
 import User from '../models/User.js';
-import Employee from '../models/Employee.js';
 import dbConnect from '../utils/dbConnect.js';
 
 /**

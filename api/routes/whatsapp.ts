@@ -8,7 +8,7 @@ const router = Router();
  * Send OTP via WhatsApp
  * POST /api/whatsapp/send-otp
  */
-router.post('/send-otp', async (req, res) => {
+router.post('/send-otp', authenticate, async (req, res) => {
     try {
         const { phoneNumber, otp } = req.body;
 

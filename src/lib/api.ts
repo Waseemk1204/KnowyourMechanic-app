@@ -51,7 +51,7 @@ export interface UserData {
     _id: string;
     firebaseUid: string;
     phoneNumber: string;
-    role: 'customer' | 'garage';
+    role: 'customer' | 'garage' | 'admin' | 'employee';
     createdAt: string;
 }
 

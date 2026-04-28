@@ -31,7 +31,6 @@ function LoadingScreen() {
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'customer' | 'garage' | 'admin' | 'employee' }) {
   const { user, userData, loading } = useAuth();
 
-  console.log('ProtectedRoute:', { loading, hasUser: !!user, role: userData?.role, requiredRole });
 
   if (loading) return <LoadingScreen />;
 

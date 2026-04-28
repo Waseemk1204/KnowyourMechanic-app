@@ -1,4 +1,5 @@
 import Razorpay from 'razorpay';
+import crypto from 'crypto';
 
 // Lazy initialization - only create instance when needed
 let razorpayInstance: Razorpay | null = null;
@@ -69,8 +70,9 @@ export async function createLinkedAccount(params: CreateLinkedAccountParams): Pr
                 },
             },
             legal_info: {
-                pan: 'AAAPA1234A', // Placeholder - should be collected
-                gst: '', // Optional
+                // TODO: Collect PAN during onboarding — this placeholder will fail in production
+                pan: 'AAAPA1234A',
+                gst: '',
             },
             notes: {
                 businessName: params.businessName,
@@ -145,18 +147,29 @@ export async function createOrderWithRoute(params: CreateOrderWithRouteParams) {
 }
 
 /**
- * Verify Razorpay payment signature
+ * Verify Razorpay payment signature using HMAC-SHA256.
+ * Uses timing-safe comparison to prevent timing attacks.
  */
 export function verifyPaymentSignature(
     orderId: string,
     paymentId: string,
     signature: string
 ): boolean {
-    const crypto = require('crypto');
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) return false;
+
     const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+        .createHmac('sha256', secret)
         .update(`${orderId}|${paymentId}`)
         .digest('hex');
 
-    return expectedSignature === signature;
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+        return crypto.timingSafeEqual(
+            Buffer.from(expectedSignature, 'hex'),
+            Buffer.from(signature, 'hex')
+        );
+    } catch {
+        return false;
+    }
 }

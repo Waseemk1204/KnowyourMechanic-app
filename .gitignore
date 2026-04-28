@@ -22,6 +22,17 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets — NEVER commit these
 api/serviceAccountKey.json
 .env
+.env.local
+.env.production
+.env.*.local
+
+# Platform-specific
 android/app/google-services.json
+
+# MCP build artifacts
+mcp-firebase-auth/dist
+mcp-firebase-auth/node_modules

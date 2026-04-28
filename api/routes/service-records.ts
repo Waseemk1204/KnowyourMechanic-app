@@ -1,4 +1,5 @@
-import express from 'express';
+import crypto from 'crypto';
+import { Router } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
 import ServiceRecord from '../models/ServiceRecord.js';
 import Garage from '../models/Garage.js';
@@ -8,14 +9,19 @@ import { sendInvoiceWithPdf, sendOtpWhatsApp, isWhatsAppConfigured } from '../ut
 import { generateInvoicePdf, generateInvoiceNumber } from '../utils/pdfInvoice.js';
 import { sendServiceApprovalNotification } from '../utils/notifications.js';
 
-const router = express.Router();
+const router = Router();
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Static platform fee: ₹1.90
 const PLATFORM_FEE = 1.9;
 
-// Generate 6-digit OTP
+/**
+ * Generate a cryptographically secure 6-digit OTP.
+ * Uses crypto.randomInt instead of Math.random for unpredictability.
+ */
 function generateOTP(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return crypto.randomInt(100000, 999999).toString();
 }
 
 // Calculate fees (static ₹1.90 added to customer payment)
@@ -98,9 +104,8 @@ router.post('/initiate', authenticate, async (req: AuthRequest, res) => {
             if (!pushResult.success && pushResult.error === 'token_expired') {
                 existingCustomer.fcmToken = undefined;
                 await existingCustomer.save();
-                console.log(`FCM token expired for ${customerPhone}, falling back to WhatsApp`);
+                // Falls through to WhatsApp OTP below
             } else {
-                console.log(`In-app approval notification sent to ${customerPhone}`);
                 return res.status(201).json({
                     serviceId: serviceRecord._id,
                     message: 'Approval request sent to customer app',
@@ -122,28 +127,28 @@ router.post('/initiate', authenticate, async (req: AuthRequest, res) => {
                     amount,
                 });
                 otpSent = result.success;
-                if (otpSent) {
-                    console.log(`OTP sent via WhatsApp to ${customerPhone}`);
-                } else {
-                    console.warn(`WhatsApp OTP send failed: ${result.error}`);
-                }
             } catch (whatsappError) {
                 console.error('WhatsApp OTP error:', whatsappError);
             }
         }
 
-        // Fallback: log OTP for development/testing
-        if (!otpSent) {
-            console.log(`OTP for ${customerPhone}: ${otp}`);
-            console.log(`Message: "${garage.name}" wants to record a service: ${description} for Rs.${amount}. Share OTP ${otp} only if this is correct.`);
+        // Only log OTP in development — never in production
+        if (!otpSent && !isProduction) {
+            console.log(`[DEV] OTP for ${customerPhone}: ${otp}`);
         }
 
-        res.status(201).json({
+        const responseBody: Record<string, unknown> = {
             serviceId: serviceRecord._id,
             message: otpSent ? 'OTP sent via WhatsApp' : 'OTP generated (WhatsApp not configured)',
             verificationMethod: 'whatsapp_otp',
-            ...(!otpSent && { _testOTP: otp }),
-        });
+        };
+
+        // Only expose test OTP in non-production environments
+        if (!otpSent && !isProduction) {
+            responseBody._testOTP = otp;
+        }
+
+        res.status(201).json(responseBody);
     } catch (error: any) {
         console.error('Initiate service error:', error);
         res.status(500).json({ message: 'Failed to initiate service', details: error.message });
@@ -178,7 +183,12 @@ router.post('/verify-otp', authenticate, async (req: AuthRequest, res) => {
             return res.status(400).json({ message: 'OTP expired. Please initiate again.' });
         }
 
-        if (serviceRecord.otp !== otp) {
+        // Timing-safe OTP comparison to prevent timing attacks
+        const otpMatch = serviceRecord.otp && otp &&
+            serviceRecord.otp.length === otp.length &&
+            crypto.timingSafeEqual(Buffer.from(serviceRecord.otp), Buffer.from(otp));
+
+        if (!otpMatch) {
             return res.status(400).json({ message: 'Invalid OTP' });
         }
 
@@ -258,7 +268,6 @@ router.post('/complete', authenticate, async (req: AuthRequest, res) => {
                     createdAt: new Date()
                 });
                 await newCustomer.save();
-                console.log(`Auto-created customer account for ${serviceRecord.customerPhone}`);
             }
         } catch (customerError) {
             // Don't fail the service completion if customer creation fails
@@ -276,6 +285,10 @@ router.post('/complete', authenticate, async (req: AuthRequest, res) => {
                     month: 'long',
                     year: 'numeric',
                 });
+
+                // Persist invoice number on the record
+                serviceRecord.invoiceNumber = invoiceNumber;
+                await serviceRecord.save();
 
                 // Generate PDF
                 const pdfBuffer = await generateInvoicePdf({
@@ -307,11 +320,6 @@ router.post('/complete', authenticate, async (req: AuthRequest, res) => {
                 );
 
                 whatsappSent = result.success;
-                if (whatsappSent) {
-                    console.log(`Invoice ${invoiceNumber} sent via WhatsApp to ${serviceRecord.customerPhone}`);
-                } else {
-                    console.warn(`WhatsApp send failed: ${result.error}`);
-                }
             } catch (whatsappError) {
                 console.error('WhatsApp invoice error:', whatsappError);
             }
@@ -390,7 +398,7 @@ router.get('/garage/:garageId', async (req, res) => {
             status: 'completed'
         })
             .sort({ createdAt: -1 })
-            .select('description amount createdAt customerPhone isReliable')
+            .select('description amount createdAt isReliable')
             .lean();
 
         res.json(serviceRecords);
@@ -553,8 +561,17 @@ router.get('/invoice/:serviceId', authenticate, async (req: AuthRequest, res) =>
             return res.status(404).json({ message: 'Service record not found' });
         }
 
-        // Customer can only download their own invoices
-        if (serviceRecord.customerPhone !== user.phoneNumber && user.role !== 'garage') {
+        // Authorization: customer can download own invoices, garage can download their own service records
+        if (user.role === 'customer') {
+            if (serviceRecord.customerPhone !== user.phoneNumber) {
+                return res.status(403).json({ message: 'You can only download your own invoices' });
+            }
+        } else if (user.role === 'garage') {
+            const garage = await Garage.findOne({ userId: user._id });
+            if (!garage || !serviceRecord.garageId.equals(garage._id)) {
+                return res.status(403).json({ message: 'You can only download invoices for your services' });
+            }
+        } else {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
@@ -562,8 +579,15 @@ router.get('/invoice/:serviceId', authenticate, async (req: AuthRequest, res) =>
             return res.status(400).json({ message: 'Invoice only available for completed services' });
         }
 
+        // Reuse existing invoice number or generate a new one and persist it
+        let invoiceNumber = serviceRecord.invoiceNumber;
+        if (!invoiceNumber) {
+            invoiceNumber = generateInvoiceNumber();
+            serviceRecord.invoiceNumber = invoiceNumber;
+            await serviceRecord.save();
+        }
+
         const garage = await Garage.findById(serviceRecord.garageId);
-        const invoiceNumber = generateInvoiceNumber();
         const invoiceDate = new Date(serviceRecord.createdAt).toLocaleDateString('en-IN', {
             day: 'numeric',
             month: 'long',

@@ -135,6 +135,7 @@ export default function EmployeeDetail() {
 
     return (
         <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-zinc-800">
+            <main className="max-w-5xl mx-auto p-6 space-y-6 pt-10">
             {/* Header Section */}
             <div className="flex items-center justify-between">
                 <div>
