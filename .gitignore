@@ -36,3 +36,6 @@ android/app/google-services.json
 # MCP build artifacts
 mcp-firebase-auth/dist
 mcp-firebase-auth/node_modules
+
+# Supabase local metadata
+supabase/.temp
