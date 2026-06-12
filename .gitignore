@@ -39,3 +39,6 @@ mcp-firebase-auth/node_modules
 
 # Supabase local metadata
 supabase/.temp
+
+# Local-only docs
+docs/
