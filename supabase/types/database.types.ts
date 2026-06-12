@@ -727,6 +727,28 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      link_current_auth_profile: {
+        Args: never
+        Returns: {
+          auth_user_id: string | null
+          created_at: string
+          id: string
+          name: string | null
+          phone_number: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_number: string | null
+          vehicle_year: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       owns_garage: { Args: { target_garage_id: string }; Returns: boolean }
     }
     Enums: {
