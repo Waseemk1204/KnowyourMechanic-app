@@ -1,5 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+
+const memoryStorage = new Map<string, string>();
 
 function getWebStorage() {
   return typeof window === "undefined" ? null : window.localStorage;
@@ -11,7 +12,7 @@ export const platformStorage = {
       return getWebStorage()?.getItem(key) ?? null;
     }
 
-    return AsyncStorage.getItem(key);
+    return memoryStorage.get(key) ?? null;
   },
 
   async setItem(key: string, value: string) {
@@ -20,7 +21,7 @@ export const platformStorage = {
       return;
     }
 
-    await AsyncStorage.setItem(key, value);
+    memoryStorage.set(key, value);
   },
 
   async removeItem(key: string) {
@@ -29,6 +30,6 @@ export const platformStorage = {
       return;
     }
 
-    await AsyncStorage.removeItem(key);
+    memoryStorage.delete(key);
   }
 };
