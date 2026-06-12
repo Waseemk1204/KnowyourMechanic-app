@@ -1,6 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { isDevMockAuthAllowed } from "../config/env";
+import { platformStorage } from "../lib/platformStorage";
 import { normalizeIndianPhone } from "./phone";
 import type { AuthProfile, OtpProvider, OtpRequestResult } from "./authTypes";
 
@@ -59,7 +58,7 @@ export const devMockOtpProvider: OtpProvider = {
       throw new Error("Profile not found for this phone number.");
     }
 
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    await platformStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
     return profile;
   },
 
@@ -68,11 +67,11 @@ export const devMockOtpProvider: OtpProvider = {
       return null;
     }
 
-    const storedProfile = await AsyncStorage.getItem(STORAGE_KEY);
+    const storedProfile = await platformStorage.getItem(STORAGE_KEY);
     return storedProfile ? (JSON.parse(storedProfile) as AuthProfile) : null;
   },
 
   async signOut() {
-    await AsyncStorage.removeItem(STORAGE_KEY);
+    await platformStorage.removeItem(STORAGE_KEY);
   }
 };
