@@ -2,7 +2,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "../auth/AuthContext";
 import type { AuthProfile } from "../auth/authTypes";
+import { AdminWorkspace } from "./AdminWorkspace";
 import { CustomerWorkspace } from "./CustomerWorkspace";
+import { EmployeeWorkspace } from "./EmployeeWorkspace";
 import { GarageWorkspace } from "./GarageWorkspace";
 
 const roleLabels: Record<AuthProfile["role"], string> = {
@@ -28,6 +30,14 @@ export function RoleHome({ profile }: { profile: AuthProfile }) {
 
   if (profile.role === "customer") {
     return <CustomerWorkspace profile={profile} />;
+  }
+
+  if (profile.role === "admin") {
+    return <AdminWorkspace profile={profile} />;
+  }
+
+  if (profile.role === "employee") {
+    return <EmployeeWorkspace profile={profile} />;
   }
 
   return (
