@@ -24,6 +24,12 @@ const seedProfiles: Record<string, AuthProfile> = {
     phone_number: "9876543210",
     role: "customer",
     name: "Demo Customer"
+  },
+  "9000000001": {
+    id: "10000000-0000-0000-0000-000000000001",
+    phone_number: "9000000001",
+    role: "employee",
+    name: "Field Executive 1"
   }
 };
 
