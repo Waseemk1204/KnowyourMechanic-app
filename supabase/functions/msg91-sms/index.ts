@@ -40,7 +40,7 @@ function toMsg91Mobile(phone: string) {
 }
 
 async function verifySupabaseHook(req: Request, rawBody: string) {
-  const hookSecret = requireEnv("SUPABASE_HOOK_SECRET");
+  const hookSecret = requireEnv("AUTH_HOOK_SECRET");
   const webhook = new Webhook(hookSecret);
 
   webhook.verify(rawBody, {
