@@ -33,3 +33,6 @@ template = "Your KnowYourMechanic code is {{ .Code }}"
 [storage]
 enabled = true
 file_size_limit = "50MiB"
+
+[functions.msg91-sms]
+verify_jwt = false
