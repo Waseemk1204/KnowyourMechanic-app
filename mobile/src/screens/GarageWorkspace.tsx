@@ -171,15 +171,43 @@ function ServiceRecordCard({
   onVerify(record: GarageServiceRecord): void;
   onComplete(record: GarageServiceRecord): void;
 }) {
+  const vehicleTypeLabel =
+    vehicleTypeOptions.find((option) => option.code === record.vehicleType)?.label ?? "Vehicle";
+  const vehicleSummary = [record.vehicleMakeName, record.vehicleModelName].filter(Boolean).join(" ");
+  const vehicleDetails = [
+    record.modelYear ? `MY ${record.modelYear}` : null,
+    record.odometerKm != null ? `${record.odometerKm.toLocaleString("en-IN")} km` : null
+  ].filter(Boolean);
+
   return (
     <View style={styles.recordCard}>
       <View style={styles.recordTop}>
         <View style={styles.flex}>
           <Text style={styles.recordTitle}>{record.description}</Text>
           <Text style={styles.recordMeta}>{record.customerPhone} | {record.vehicleNumber || "No vehicle number"}</Text>
+          <Text style={styles.recordVehicle}>
+            {vehicleTypeLabel} · {vehicleSummary || "Unknown vehicle"}
+            {vehicleDetails.length ? ` · ${vehicleDetails.join(" · ")}` : ""}
+          </Text>
         </View>
         <Text style={styles.amount}>{money(record.amount)}</Text>
       </View>
+
+      {record.serviceCategoryNames.length ? (
+        <View style={styles.badgeRow}>
+          {record.serviceCategoryNames.map((name) => (
+            <Text key={`svc-${name}`} style={styles.chipService}>{name}</Text>
+          ))}
+        </View>
+      ) : null}
+
+      {record.failureCategoryNames.length ? (
+        <View style={styles.badgeRow}>
+          {record.failureCategoryNames.map((name) => (
+            <Text key={`fail-${name}`} style={styles.chipFailure}>{name}</Text>
+          ))}
+        </View>
+      ) : null}
 
       <View style={styles.badgeRow}>
         <Text style={styles.badge}>{statusLabel(record)}</Text>
@@ -960,11 +988,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "900"
   },
+  recordVehicle: {
+    color: "#0f172a",
+    fontSize: 13,
+    fontWeight: "700",
+    lineHeight: 18,
+    marginTop: 4
+  },
   badgeRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
     marginTop: 10
+  },
+  chipService: {
+    backgroundColor: "#ecfdf5",
+    borderRadius: 999,
+    color: "#047857",
+    fontSize: 12,
+    fontWeight: "700",
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 5
+  },
+  chipFailure: {
+    backgroundColor: "#fef2f2",
+    borderRadius: 999,
+    color: "#b91c1c",
+    fontSize: 12,
+    fontWeight: "700",
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 5
   },
   badge: {
     backgroundColor: "#eff6ff",
