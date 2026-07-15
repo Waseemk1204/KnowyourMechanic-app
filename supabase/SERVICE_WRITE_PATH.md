@@ -38,8 +38,10 @@ sent, never its value (outside dev).
 
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (injected)
 - `SERVICE_OTP_PEPPER` — random server secret used in the OTP hash
-- `MSG91_AUTH_KEY`, `MSG91_SERVICE_OTP_FLOW_ID`, optional `MSG91_OTP_VAR`
-- `ALLOW_DEV_OTP` — `"true"` only in dev/staging
+- `MSG91_AUTH_KEY` — MSG91 account auth key (secret)
+- `MSG91_SERVICE_OTP_TEMPLATE_ID` — MSG91 OTP template id (contains `##OTP##`)
+- `ALLOW_DEV_OTP` — `"true"` only in dev/staging (returns the OTP in the response
+  and lets the flow be tested before DLT/SMS delivery is live)
 
 ## OTP verify (Step 3)
 

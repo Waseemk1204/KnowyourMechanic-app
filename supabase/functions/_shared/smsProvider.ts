@@ -29,38 +29,32 @@ export async function sendServiceOtpSms(
   otp: string
 ): Promise<SmsSendResult> {
   const authKey = requireEnv("MSG91_AUTH_KEY");
-  const flowId = requireEnv("MSG91_SERVICE_OTP_FLOW_ID");
-  const otpVariableName = Deno.env.get("MSG91_OTP_VAR") ?? "otp";
+  const templateId = requireEnv("MSG91_SERVICE_OTP_TEMPLATE_ID");
 
-  const recipient: Record<string, string> = {
-    mobiles: `91${nationalPhone}`,
-    [otpVariableName]: otp
-  };
+  // MSG91 v5 Send OTP API. We generate the OTP ourselves and pass it as `otp`
+  // (the template's ##OTP## placeholder); MSG91 only delivers it.
+  const url = new URL("https://control.msg91.com/api/v5/otp");
+  url.searchParams.set("template_id", templateId);
+  url.searchParams.set("mobile", `91${nationalPhone}`);
+  url.searchParams.set("otp", otp);
 
-  const response = await fetch("https://control.msg91.com/api/v5/flow/", {
+  const response = await fetch(url.toString(), {
     method: "POST",
     headers: {
       authkey: authKey,
       "content-type": "application/json"
-    },
-    body: JSON.stringify({
-      template_id: flowId,
-      short_url: "0",
-      recipients: [recipient]
-    })
+    }
   });
 
-  if (!response.ok) {
-    throw new Error(`MSG91 request failed with status ${response.status}.`);
+  const body = await response.json().catch(() => null);
+
+  // MSG91 returns HTTP 200 with { type: "error", message } on logical failures,
+  // so check the payload, not just the status code.
+  if (!response.ok || body?.type === "error") {
+    const detail = body?.message ?? `status ${response.status}`;
+    throw new Error(`MSG91 send failed: ${detail}`);
   }
 
-  let messageId: string | null = null;
-  try {
-    const body = await response.json();
-    messageId = typeof body?.request_id === "string" ? body.request_id : null;
-  } catch {
-    messageId = null;
-  }
-
+  const messageId = typeof body?.request_id === "string" ? body.request_id : null;
   return { provider: "msg91", messageId };
 }
