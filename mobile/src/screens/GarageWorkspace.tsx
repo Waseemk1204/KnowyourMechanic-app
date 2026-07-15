@@ -58,10 +58,27 @@ function statusLabel(record: GarageServiceRecord) {
   return record.isReliable ? "Completed verified" : "Completed unverified";
 }
 
-function StatBox({ label, value }: { label: string; value: string }) {
+function StatBox({
+  label,
+  value,
+  icon,
+  iconBg,
+  iconFg
+}: {
+  label: string;
+  value: string;
+  icon?: string;
+  iconBg?: string;
+  iconFg?: string;
+}) {
   return (
     <View style={styles.statBox}>
-      <Text style={styles.statValue}>{value}</Text>
+      {icon ? (
+        <View style={[styles.statIcon, iconBg ? { backgroundColor: iconBg } : null]}>
+          <Text style={[styles.statIconText, iconFg ? { color: iconFg } : null]}>{icon}</Text>
+        </View>
+      ) : null}
+      <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
@@ -551,11 +568,13 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>Garage Owner</Text>
-        <Text style={styles.title}>{garage?.name ?? "Garage onboarding"}</Text>
-        <Text style={styles.subtitle}>Garage-first service records. No booking flow.</Text>
-      </View>
+      {mode !== "dashboard" ? (
+        <View style={styles.header}>
+          <Text style={styles.kicker}>Garage Owner</Text>
+          <Text style={styles.title}>{garage?.name ?? "Garage onboarding"}</Text>
+          <Text style={styles.subtitle}>Garage-first service records. No booking flow.</Text>
+        </View>
+      ) : null}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {lastPaymentSummary ? <Text style={styles.success}>{lastPaymentSummary}</Text> : null}
@@ -563,25 +582,25 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
       {mode === "dashboard" && garage ? (
         <>
           <View style={styles.heroCard}>
-            <View style={styles.recordTop}>
-              <View style={styles.flex}>
-                <Text style={styles.heroTitle}>{garage.name}</Text>
-                <Text style={styles.heroMeta}>{garage.address}</Text>
-                <Text style={styles.heroMeta}>{garage.serviceHours} | {garage.workingDays.join(", ")}</Text>
-              </View>
-              <Text style={styles.rating}>★ {garage.rating.toFixed(1)}</Text>
+            <View style={styles.heroGear}>
+              <Text style={styles.heroGearIcon}>⚙️</Text>
             </View>
-            <View style={styles.badgeRow}>
-              <Text style={styles.heroBadge}>{garage.isVerified ? "● Verified garage" : "Pending verification"}</Text>
-              <Text style={styles.heroBadge}>{garage.onboardingStatus}</Text>
+            <Text style={styles.heroTitle}>{garage.name}</Text>
+            <Text style={styles.heroMeta}>{garage.address}</Text>
+            <Text style={styles.heroMeta}>{garage.serviceHours}</Text>
+            <View style={styles.heroPills}>
+              <Text style={styles.heroPillOpen}>
+                ● {garage.isVerified ? "Verified" : "Pending"}
+              </Text>
+              <Text style={styles.heroPillRating}>★ {garage.rating.toFixed(1)}</Text>
             </View>
           </View>
 
           <View style={styles.statsGrid}>
-            <StatBox label="Pending OTP" value={String(stats.pending)} />
-            <StatBox label="Completed" value={String(stats.completed)} />
-            <StatBox label="Verified QR" value={String(stats.verified)} />
-            <StatBox label="Service value" value={money(stats.totalAmount)} />
+            <StatBox label="Pending OTP" value={String(stats.pending)} icon="⏳" iconBg="#FEF3C7" iconFg="#B45309" />
+            <StatBox label="Completed" value={String(stats.completed)} icon="✅" iconBg={colors.green50} iconFg={colors.green700} />
+            <StatBox label="Verified QR" value={String(stats.verified)} icon="🔳" iconBg={colors.softBlue} iconFg={colors.blue700} />
+            <StatBox label="Service value" value={money(stats.totalAmount)} icon="₹" iconBg={colors.softBlue} iconFg={colors.blue700} />
           </View>
 
           <View style={styles.actionRow}>
@@ -808,21 +827,36 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     backgroundColor: colors.blue700,
-    borderRadius: radii.card,
-    marginBottom: 16,
-    overflow: "hidden",
-    padding: 22,
-    shadowColor: colors.blue700,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 4
+    justifyContent: "flex-end",
+    marginBottom: 20,
+    marginHorizontal: -20,
+    marginTop: -20,
+    minHeight: 250,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 68
+  },
+  heroGear: {
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: "center",
+    position: "absolute",
+    right: 20,
+    top: 52,
+    width: 40
+  },
+  heroGearIcon: {
+    fontSize: 16
   },
   heroTitle: {
     color: colors.white,
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: "900",
-    lineHeight: 30
+    lineHeight: 38
   },
   heroMeta: {
     color: "rgba(255, 255, 255, 0.75)",
@@ -830,31 +864,36 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     marginTop: 4
   },
-  heroBadge: {
+  heroPills: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 14
+  },
+  heroPillOpen: {
+    backgroundColor: "rgba(34, 197, 94, 0.2)",
+    borderColor: "rgba(34, 197, 94, 0.3)",
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: "#86EFAC",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    overflow: "hidden",
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    textTransform: "uppercase"
+  },
+  heroPillRating: {
     backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderColor: "rgba(255, 255, 255, 0.25)",
     borderRadius: radii.pill,
     borderWidth: 1,
-    color: "#86EFAC",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1,
-    overflow: "hidden",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    textTransform: "uppercase"
-  },
-  rating: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    borderRadius: radii.pill,
     color: "#FCD34D",
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: "900",
     overflow: "hidden",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    textAlign: "center"
+    paddingHorizontal: 14,
+    paddingVertical: 7
   },
   statsGrid: {
     display: "flex",
@@ -865,22 +904,35 @@ const styles = StyleSheet.create({
   },
   statBox: {
     alignItems: "center",
-    backgroundColor: colors.white,
+    ...cardShadow,
     borderColor: colors.slate100,
-    borderRadius: radii.control,
-    borderWidth: 1,
-    minWidth: "47%",
-    padding: 16
+    flexBasis: "47%",
+    flexGrow: 1,
+    maxWidth: "48%",
+    paddingHorizontal: 12,
+    paddingVertical: 20
+  },
+  statIcon: {
+    alignItems: "center",
+    backgroundColor: colors.softBlue,
+    borderRadius: 14,
+    height: 44,
+    justifyContent: "center",
+    marginBottom: 12,
+    width: 44
+  },
+  statIconText: {
+    fontSize: 20
   },
   statValue: {
     color: colors.slate900,
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "900"
   },
   statLabel: {
     color: colors.slate400,
     fontSize: 10,
-    fontWeight: "700",
+    fontWeight: "800",
     letterSpacing: 0.5,
     marginTop: 4,
     textTransform: "uppercase"

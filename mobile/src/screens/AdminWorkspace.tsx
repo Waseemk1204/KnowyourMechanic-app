@@ -131,7 +131,7 @@ function Field({
       <TextInput
         keyboardType={keyboardType}
         onChangeText={onChangeText}
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor="#71717A"
         style={styles.input}
         value={value}
       />
@@ -339,7 +339,7 @@ export function AdminWorkspace({ profile }: { profile: AuthProfile }) {
         <TabButton active={tab === "garages"} label="Garages" onPress={() => setTab("garages")} />
       </View>
 
-      <ScrollView style={{ backgroundColor: "#F8FAFC" }} contentContainerStyle={styles.content}>
+      <ScrollView style={{ backgroundColor: "#09090B" }} contentContainerStyle={styles.content}>
         {tab === "overview" && metrics ? (
           <>
             <View style={styles.statsGrid}>
@@ -460,16 +460,16 @@ export function AdminWorkspace({ profile }: { profile: AuthProfile }) {
 
 const styles = StyleSheet.create({
   activeOption: {
-    backgroundColor: "#0f172a",
-    borderColor: "#0f172a"
+    backgroundColor: "#F4F4F5",
+    borderColor: "#F4F4F5"
   },
   activeOptionText: {
-    color: "#ffffff"
+    color: "#131316"
   },
   activePill: {
-    backgroundColor: "#dcfce7",
+    backgroundColor: "rgba(34,197,94,0.15)",
     borderRadius: 16,
-    color: "#166534",
+    color: "#4ADE80",
     fontSize: 12,
     fontWeight: "800",
     paddingHorizontal: 10,
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0A58CA"
   },
   activeTabText: {
-    color: "#ffffff"
+    color: "#131316"
   },
   assignGrid: {
     flexDirection: "row",
@@ -488,9 +488,9 @@ const styles = StyleSheet.create({
     marginTop: 12
   },
   badge: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#18181B",
     borderRadius: 16,
-    color: "#475569",
+    color: "#A1A1AA",
     fontSize: 12,
     fontWeight: "700",
     paddingHorizontal: 9,
@@ -511,20 +511,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14
   },
   buttonText: {
-    color: "#ffffff",
+    color: "#131316",
     fontSize: 14,
     fontWeight: "800"
   },
   card: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
+    backgroundColor: "#131316",
+    borderColor: "rgba(255,255,255,0.08)",
     borderRadius: 16,
     borderWidth: 1,
     marginBottom: 12,
     padding: 16
   },
   cardTitle: {
-    color: "#0f172a",
+    color: "#F4F4F5",
     fontSize: 17,
     fontWeight: "800"
   },
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   container: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#18181B",
     flex: 1
   },
   content: {
@@ -542,17 +542,17 @@ const styles = StyleSheet.create({
     paddingBottom: 40
   },
   dangerButton: {
-    backgroundColor: "#ef4444"
+    backgroundColor: "#F87171"
   },
   darkButton: {
-    backgroundColor: "#0f172a"
+    backgroundColor: "#F4F4F5"
   },
   disabledButton: {
     opacity: 0.5
   },
   error: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
+    backgroundColor: "rgba(239,68,68,0.15)",
+    color: "#F87171",
     fontSize: 14,
     fontWeight: "700",
     marginHorizontal: 16,
@@ -567,29 +567,29 @@ const styles = StyleSheet.create({
     flex: 1
   },
   greenTag: {
-    backgroundColor: "#dcfce7",
-    color: "#166534"
+    backgroundColor: "rgba(34,197,94,0.15)",
+    color: "#4ADE80"
   },
   header: {
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderBottomColor: "#e2e8f0",
+    backgroundColor: "#131316",
+    borderBottomColor: "rgba(255,255,255,0.08)",
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 16
   },
   inactivePill: {
-    backgroundColor: "#fee2e2",
+    backgroundColor: "rgba(239,68,68,0.15)",
     borderRadius: 16,
-    color: "#991b1b",
+    color: "#F87171",
     fontSize: 12,
     fontWeight: "800",
     paddingHorizontal: 10,
     paddingVertical: 5
   },
   infoLine: {
-    color: "#64748b",
+    color: "#8B8B93",
     fontSize: 13,
     marginTop: 8
   },
@@ -600,11 +600,11 @@ const styles = StyleSheet.create({
     marginTop: 14
   },
   input: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#cbd5e1",
+    backgroundColor: "#18181B",
+    borderColor: "rgba(255,255,255,0.12)",
     borderRadius: 16,
     borderWidth: 1,
-    color: "#0f172a",
+    color: "#F4F4F5",
     fontSize: 15,
     minHeight: 44,
     paddingHorizontal: 12
@@ -615,18 +615,18 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   label: {
-    color: "#475569",
+    color: "#A1A1AA",
     fontSize: 13,
     fontWeight: "800",
     marginBottom: 6
   },
   muted: {
-    color: "#64748b",
+    color: "#8B8B93",
     fontSize: 13,
     marginTop: 4
   },
   option: {
-    borderColor: "#cbd5e1",
+    borderColor: "rgba(255,255,255,0.12)",
     borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 11,
@@ -639,21 +639,21 @@ const styles = StyleSheet.create({
     marginTop: 12
   },
   optionText: {
-    color: "#475569",
+    color: "#A1A1AA",
     fontSize: 13,
     fontWeight: "800"
   },
   outlineButton: {
-    backgroundColor: "#ffffff",
-    borderColor: "#cbd5e1",
+    backgroundColor: "#131316",
+    borderColor: "rgba(255,255,255,0.12)",
     borderWidth: 1
   },
   outlineButtonText: {
-    color: "#0f172a"
+    color: "#F4F4F5"
   },
   redTag: {
-    backgroundColor: "#fee2e2",
-    color: "#991b1b"
+    backgroundColor: "rgba(239,68,68,0.15)",
+    color: "#F87171"
   },
   rowBetween: {
     alignItems: "flex-start",
@@ -662,13 +662,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   sectionTitle: {
-    color: "#0f172a",
+    color: "#F4F4F5",
     fontSize: 18,
     fontWeight: "800"
   },
   statBox: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
+    backgroundColor: "#131316",
+    borderColor: "rgba(255,255,255,0.08)",
     borderRadius: 16,
     borderWidth: 1,
     flexBasis: "48%",
@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     padding: 16
   },
   statLabel: {
-    color: "#64748b",
+    color: "#8B8B93",
     fontSize: 12,
     fontWeight: "700",
     marginTop: 5
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   statValue: {
-    color: "#0f172a",
+    color: "#F4F4F5",
     fontSize: 24,
     fontWeight: "900"
   },
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6
   },
   subtitle: {
-    color: "#64748b",
+    color: "#8B8B93",
     fontSize: 13,
     marginTop: 3
   },
@@ -713,7 +713,7 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   tabs: {
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "rgba(255,255,255,0.08)",
     borderRadius: 16,
     flexDirection: "row",
     gap: 4,
@@ -722,17 +722,17 @@ const styles = StyleSheet.create({
     padding: 4
   },
   tabText: {
-    color: "#475569",
+    color: "#A1A1AA",
     fontSize: 13,
     fontWeight: "800"
   },
   title: {
-    color: "#0f172a",
+    color: "#F4F4F5",
     fontSize: 24,
     fontWeight: "900"
   },
   yellowTag: {
-    backgroundColor: "#fef3c7",
-    color: "#92400e"
+    backgroundColor: "rgba(245,158,11,0.15)",
+    color: "#FBBF24"
   }
 });

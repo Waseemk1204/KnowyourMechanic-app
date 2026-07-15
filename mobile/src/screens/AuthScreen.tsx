@@ -75,7 +75,7 @@ export function AuthScreen({ loadingSession }: { loadingSession: boolean }) {
           <Text style={styles.logoEmoji}>🔧</Text>
         </View>
 
-        <Text style={styles.title}>KnowyourMechanic</Text>
+        <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>KnowyourMechanic</Text>
         <Text style={styles.subtitle}>Trusted mechanics at your fingertips</Text>
 
         {step === "phone" ? (
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.navy,
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: "900",
     textAlign: "center"
   },
