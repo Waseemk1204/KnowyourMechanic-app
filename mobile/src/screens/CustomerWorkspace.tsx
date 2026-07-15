@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "../auth/AuthContext";
+import { AppMap, type MapMarker } from "../ui/AppMap";
 import type { AuthProfile } from "../auth/authTypes";
 import {
   getCustomerWorkspace,
@@ -254,6 +255,16 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
     );
   }, [search, state]);
 
+  // Prototype garages carry no coordinates yet, so scatter markers around Pune
+  // so the map reads like the real one. Replace with real lat/lng once stored.
+  const mapMarkers = useMemo<MapMarker[]>(() => {
+    return filteredGarages.slice(0, 8).map((garage, index) => ({
+      lat: 18.5204 + ((index % 4) - 1.5) * 0.012,
+      lng: 73.8567 + (Math.floor(index / 4) - 0.5) * 0.02 + (index % 3) * 0.006,
+      title: garage.name
+    }));
+  }, [filteredGarages]);
+
   function setProfileField<Key extends keyof CustomerProfileInput>(key: Key, value: CustomerProfileInput[Key]) {
     setProfileForm((current) => ({ ...current, [key]: value }));
   }
@@ -408,8 +419,7 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
             </View>
 
             <View style={styles.mapCard}>
-              <Text style={styles.mapPlaceholderText}>🗺  Map view</Text>
-              <Text style={styles.mapPlaceholderSub}>Nearby garages appear here</Text>
+              <AppMap height={200} markers={mapMarkers} />
             </View>
 
             <View style={styles.nearbyHeader}>
@@ -802,22 +812,10 @@ const styles = StyleSheet.create({
     fontSize: 22
   },
   mapCard: {
-    alignItems: "center",
     backgroundColor: "#E8EEF7",
     borderRadius: 20,
-    height: 180,
-    justifyContent: "center",
-    marginBottom: 18
-  },
-  mapPlaceholderText: {
-    color: "#475569",
-    fontSize: 17,
-    fontWeight: "800"
-  },
-  mapPlaceholderSub: {
-    color: "#94A3B8",
-    fontSize: 13,
-    marginTop: 4
+    marginBottom: 18,
+    overflow: "hidden"
   },
   nearbyHeader: {
     alignItems: "baseline",
