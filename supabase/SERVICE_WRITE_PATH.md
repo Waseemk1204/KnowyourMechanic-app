@@ -55,9 +55,25 @@ sent, never its value (outside dev).
 - **Mobile** `verifyServiceOtpViaSupabase(recordId, otp)` in `serviceRecordApi.ts`.
 - OTP hashing is shared in `functions/_shared/otpHash.ts` (used by create + verify).
 
+## Payment completion (Step 4)
+
+- **Migration** `migrations/20260630000250_payment_method_qr.sql` — adds `qr` to
+  the `payment_method` enum (verified UPI, distinct from legacy `razorpay`).
+- **Migration** `migrations/20260630000300_payment_completion.sql` —
+  `invoice_seq` sequence + `complete_service_payment(record_id, method)` RPC
+  (`SECURITY DEFINER`). Ownership check, requires `otp_verified`, then:
+  QR → verified, `platform_fee = 1.90`, `is_reliable = true`; cash → unverified,
+  no fee. Writes a strong invoice code `KYM-YYYYMMDD-<garage short>-<seq>`
+  (unique via the global sequence + the existing `invoice_number` unique
+  constraint), inserts a `payments` ledger row, and sets the record to
+  `completed` with `invoice_notification_status = 'pending'`.
+- **Mobile** `completeServicePaymentViaSupabase(recordId, method)` — a direct
+  `supabase.rpc` call (no Edge Function; no provider call at this step).
+
 ## Not done yet
 
-- Wire `GarageWorkspace` to call the Edge Functions when Supabase is configured.
-- Apply the migrations to a real Supabase DB and regenerate `database.types.ts`.
+- Wire `GarageWorkspace` to call the Edge Functions / RPCs when Supabase is configured.
+- Apply the migrations to a real Supabase DB and regenerate `database.types.ts`
+  (until then, the mobile payment wrapper calls the RPC through a narrow shim).
 - OTP **resend** endpoint (`resend_count` column already present).
-- Payment completion, invoice code, notifications (Steps 4–5).
+- Invoice/report delivery: push + WhatsApp dispatch of the `pending` notification (Step 5).
