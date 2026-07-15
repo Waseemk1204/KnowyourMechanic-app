@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 import { normalizeIndianPhone, sendServiceOtpSms } from "../_shared/smsProvider.ts";
+import { generateOtp, hashServiceOtp, randomOtpSalt } from "../_shared/otpHash.ts";
 
 const OTP_TTL_MINUTES = 10;
 
@@ -41,22 +42,6 @@ function requireEnv(name: string): string {
     throw new Error(`${name} is not configured.`);
   }
   return value;
-}
-
-function generateOtp(): string {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000;
-  return n.toString().padStart(6, "0");
-}
-
-function randomSalt(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-async function hashOtp(otp: string, salt: string, pepper: string): Promise<string> {
-  const data = new TextEncoder().encode(`${pepper}:${salt}:${otp}`);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 Deno.serve(async (req) => {
@@ -134,8 +119,8 @@ Deno.serve(async (req) => {
   // OTP is generated, stored (hashed), and sent entirely server-side.
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
   const otp = generateOtp();
-  const salt = randomSalt();
-  const otpHash = await hashOtp(otp, salt, pepper);
+  const salt = randomOtpSalt();
+  const otpHash = await hashServiceOtp(otp, salt, pepper);
   const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000).toISOString();
 
   let sendResult: { provider: string; messageId: string | null } = { provider: "none", messageId: null };

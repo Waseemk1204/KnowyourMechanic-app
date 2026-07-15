@@ -41,9 +41,23 @@ sent, never its value (outside dev).
 - `MSG91_AUTH_KEY`, `MSG91_SERVICE_OTP_FLOW_ID`, optional `MSG91_OTP_VAR`
 - `ALLOW_DEV_OTP` — `"true"` only in dev/staging
 
+## OTP verify (Step 3)
+
+- **Migration** `migrations/20260630000200_service_otp_verify.sql` — `verify_service_otp(record_id, otp_hash_candidate)` `SECURITY DEFINER` RPC.
+  Checks ownership, loads the active OTP `for update`, enforces expiry and
+  `attempt_count < max_attempts`, compares the candidate hash, and on success
+  consumes the OTP + sets the record to `otp_verified` / `approved_by_customer`.
+  A wrong OTP is **returned** (`ok=false`), not raised, so the attempt increment
+  persists; the row is consumed on expiry or attempt-limit.
+- **Edge Function** `functions/service-otp-verify/` — reads the per-row salt
+  (service role), computes `SHA-256(pepper:salt:otp)`, and calls the RPC with the
+  caller's identity. Returns `{ ok, status }` or `{ ok:false, reason, remainingAttempts }`.
+- **Mobile** `verifyServiceOtpViaSupabase(recordId, otp)` in `serviceRecordApi.ts`.
+- OTP hashing is shared in `functions/_shared/otpHash.ts` (used by create + verify).
+
 ## Not done yet
 
-- Wire `GarageWorkspace` to call the Edge Function when Supabase is configured.
-- Apply the migration to a real Supabase DB and regenerate `database.types.ts`.
-- OTP **verify** endpoint + attempt/resend enforcement (Step 3).
+- Wire `GarageWorkspace` to call the Edge Functions when Supabase is configured.
+- Apply the migrations to a real Supabase DB and regenerate `database.types.ts`.
+- OTP **resend** endpoint (`resend_count` column already present).
 - Payment completion, invoice code, notifications (Steps 4–5).

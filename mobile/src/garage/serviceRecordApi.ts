@@ -57,3 +57,44 @@ export async function createServiceRecordViaSupabase(
   }
   return data;
 }
+
+export type VerifyServiceOtpResult = {
+  ok: boolean;
+  status?: "otp_verified";
+  error?: string;
+  reason?: "invalid" | "expired" | "locked";
+  remainingAttempts?: number;
+};
+
+/**
+ * Verifies the OTP the customer shared with the garage. On success the service
+ * record advances to `otp_verified`. Returns `ok: false` with a reason for a
+ * wrong/expired/locked OTP (the Edge Function returns HTTP 400 in those cases).
+ */
+export async function verifyServiceOtpViaSupabase(
+  serviceRecordId: string,
+  otp: string
+): Promise<VerifyServiceOtpResult> {
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const { data, error } = await supabase.functions.invoke<VerifyServiceOtpResult>(
+    "service-otp-verify",
+    { body: { serviceRecordId, otp } }
+  );
+
+  // supabase-js surfaces non-2xx as an error, but the body still carries our
+  // structured reason/remainingAttempts; prefer that when present.
+  if (error) {
+    const context = (error as { context?: { body?: VerifyServiceOtpResult } }).context;
+    if (context?.body && typeof context.body.ok === "boolean") {
+      return context.body;
+    }
+    throw new Error(error.message ?? "Failed to verify OTP.");
+  }
+  if (!data) {
+    throw new Error("Empty response from service-otp-verify.");
+  }
+  return data;
+}
