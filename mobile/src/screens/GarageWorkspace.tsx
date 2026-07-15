@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -35,6 +36,7 @@ import {
   vehicleTypeOptions
 } from "../garage/serviceTaxonomy";
 import { buttonShadow, cardShadow, colors, radii, sectionLabel } from "../ui/tokens";
+import { StatTile } from "../ui/components";
 
 type ViewMode = "dashboard" | "onboarding" | "settings" | "addService" | "otp" | "payment";
 
@@ -581,34 +583,37 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 
       {mode === "dashboard" && garage ? (
         <>
-          <View style={styles.heroCard}>
-            <View style={styles.heroGear}>
+          <ImageBackground
+            source={garage.photoUrl ? { uri: garage.photoUrl } : undefined}
+            style={[styles.hero, !garage.photoUrl ? styles.heroBlue : null]}
+            imageStyle={styles.heroImage}
+          >
+            {garage.photoUrl ? <View style={styles.heroScrim} /> : null}
+            <Pressable style={styles.heroGear} onPress={() => setMode("settings")} hitSlop={8}>
               <Text style={styles.heroGearIcon}>⚙️</Text>
-            </View>
+            </Pressable>
             <Text style={styles.heroTitle}>{garage.name}</Text>
-            <Text style={styles.heroMeta}>{garage.address}</Text>
-            <Text style={styles.heroMeta}>{garage.serviceHours}</Text>
             <View style={styles.heroPills}>
-              <Text style={styles.heroPillOpen}>
-                ● {garage.isVerified ? "Verified" : "Pending"}
-              </Text>
-              <Text style={styles.heroPillRating}>★ {garage.rating.toFixed(1)}</Text>
+              <Text style={styles.heroPillOpen}>● OPEN NOW</Text>
+              <Text style={styles.heroPillRating}>★ {garage.rating.toFixed(1)} Rating</Text>
             </View>
-          </View>
+          </ImageBackground>
 
           <View style={styles.statsGrid}>
-            <StatBox label="Pending OTP" value={String(stats.pending)} icon="⏳" iconBg="#FEF3C7" iconFg="#B45309" />
-            <StatBox label="Completed" value={String(stats.completed)} icon="✅" iconBg={colors.green50} iconFg={colors.green700} />
-            <StatBox label="Verified QR" value={String(stats.verified)} icon="🔳" iconBg={colors.softBlue} iconFg={colors.blue700} />
-            <StatBox label="Service value" value={money(stats.totalAmount)} icon="₹" iconBg={colors.softBlue} iconFg={colors.blue700} />
+            <StatTile value={String(records.length)} label="Total Services" glyph="🔧" tone="blue" />
+            <StatTile
+              value={garage.rating.toFixed(1)}
+              label={`Rating (${garage.totalReviews ?? 0})`}
+              glyph="★"
+              tone="amber"
+            />
           </View>
 
           <View style={styles.actionRow}>
-            <PrimaryButton label="Add Service" onPress={() => setMode("addService")} />
-            <PrimaryButton label="Settings" onPress={() => setMode("settings")} variant="outline" />
+            <PrimaryButton label="＋  Add Service" onPress={() => setMode("addService")} />
           </View>
 
-          <SectionTitle title="Service Records" hint="Invoice appears here after payment completion." />
+          <SectionTitle title="Recent Services" hint="Invoice appears here after payment completion." />
           {records.length === 0 ? (
             <Text style={styles.empty}>No service records yet.</Text>
           ) : (
@@ -825,38 +830,54 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginTop: 6
   },
-  heroCard: {
-    backgroundColor: colors.blue700,
+  hero: {
     justifyContent: "flex-end",
     marginBottom: 20,
     marginHorizontal: -20,
     marginTop: -20,
-    minHeight: 250,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
+    minHeight: 300,
+    paddingBottom: 22,
+    paddingHorizontal: 22,
     paddingTop: 68
+  },
+  heroBlue: {
+    backgroundColor: colors.primary
+  },
+  heroImage: {
+    // photo fills the hero; scrim adds contrast for the text
+  },
+  heroScrim: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(8,15,35,0.35)"
   },
   heroGear: {
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderColor: "rgba(255, 255, 255, 0.25)",
     borderRadius: radii.pill,
     borderWidth: 1,
-    height: 40,
+    height: 44,
     justifyContent: "center",
     position: "absolute",
     right: 20,
     top: 52,
-    width: 40
+    width: 44
   },
   heroGearIcon: {
-    fontSize: 16
+    fontSize: 18
   },
   heroTitle: {
     color: colors.white,
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: "900",
-    lineHeight: 38
+    lineHeight: 40,
+    textShadowColor: "rgba(0,0,0,0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6
   },
   heroMeta: {
     color: "rgba(255, 255, 255, 0.75)",
