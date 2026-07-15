@@ -122,19 +122,28 @@ function LabeledInput({
 }
 
 function GarageCard({ garage }: { garage: CustomerGarage }) {
+  const initial = garage.name.trim().charAt(0).toUpperCase() || "G";
   return (
-    <View style={styles.card}>
-      <View style={styles.rowBetween}>
-        <View style={styles.flex}>
-          <Text style={styles.cardTitle}>{garage.name}</Text>
-          <Text style={styles.muted}>{garage.address || "Address not available"}</Text>
-        </View>
-        <Text style={styles.rating}>{garage.rating.toFixed(1)}</Text>
+    <View style={styles.garageCard}>
+      <View style={styles.garageThumb}>
+        <Text style={styles.garageThumbText}>{initial}</Text>
       </View>
-      <View style={styles.badgeRow}>
-        <Text style={styles.badge}>{garage.isVerified ? "Verified" : "Pending"}</Text>
-        <Text style={styles.badge}>{garage.totalReviews} reviews</Text>
-        {garage.serviceHours ? <Text style={styles.badge}>{garage.serviceHours}</Text> : null}
+      <View style={styles.flex}>
+        <Text style={styles.garageName} numberOfLines={1}>{garage.name}</Text>
+        <View style={styles.garageMetaRow}>
+          <Text style={styles.ratingChip}>★ {garage.rating.toFixed(1)}</Text>
+          <Text style={styles.muted}>({garage.totalReviews} reviews)</Text>
+        </View>
+        <Text style={styles.garageSub}>
+          <Text style={styles.dotBlue}>● </Text>
+          {garage.totalReviews} services
+          <Text style={styles.dotGreen}>   ● </Text>
+          <Text style={styles.openText}>Open Now</Text>
+        </Text>
+      </View>
+      <View style={styles.garageActions}>
+        <View style={styles.roundBtnBlue}><Text style={styles.roundBtnBlueIcon}>➤</Text></View>
+        <View style={styles.roundBtnGreen}><Text style={styles.roundBtnGreenIcon}>✆</Text></View>
       </View>
     </View>
   );
@@ -333,9 +342,25 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
     <View style={styles.shell}>
       <ScrollView style={{ backgroundColor: "#F8FAFC" }} contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.kicker}>Customer</Text>
-          <Text style={styles.title}>{state?.profile.name ?? "Customer"}</Text>
-          <Text style={styles.subtitle}>Service history, invoices, reviews, reports. No booking flow.</Text>
+          {activeTab === "home" ? (
+            <>
+              <Text style={styles.bigTitle}>Find a Mechanic</Text>
+              <Text style={styles.locationLine}>➤ Pune City Center</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.kicker}>Customer</Text>
+              <Text style={styles.title}>
+                {activeTab === "activity"
+                  ? "Activity"
+                  : activeTab === "profile"
+                    ? "My Profile"
+                    : activeTab === "reports"
+                      ? "Reports"
+                      : "Support"}
+              </Text>
+            </>
+          )}
         </View>
 
         <View style={styles.tabs}>
@@ -369,13 +394,29 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
               </View>
             ))}
 
-            <TextInput
-              onChangeText={setSearch}
-              placeholder="Search garages"
-              placeholderTextColor="#94a3b8"
-              style={styles.searchInput}
-              value={search}
-            />
+            <View style={styles.searchRow}>
+              <TextInput
+                onChangeText={setSearch}
+                placeholder="Search mechanics or garages"
+                placeholderTextColor="#94a3b8"
+                style={styles.searchInput}
+                value={search}
+              />
+              <View style={styles.filterButton}>
+                <Text style={styles.filterIcon}>⚙</Text>
+              </View>
+            </View>
+
+            <View style={styles.mapCard}>
+              <Text style={styles.mapPlaceholderText}>🗺  Map view</Text>
+              <Text style={styles.mapPlaceholderSub}>Nearby garages appear here</Text>
+            </View>
+
+            <View style={styles.nearbyHeader}>
+              <Text style={styles.nearbyTitle}>Nearby Garages</Text>
+              <Text style={styles.nearbyCount}>{filteredGarages.length} found</Text>
+            </View>
+
             {filteredGarages.map((garage) => (
               <GarageCard key={garage.id} garage={garage} />
             ))}
@@ -717,17 +758,162 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10
   },
+  bigTitle: {
+    color: "#0F172A",
+    fontSize: 34,
+    fontWeight: "900"
+  },
+  locationLine: {
+    color: "#2563EB",
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 4
+  },
+  searchRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 14
+  },
   searchInput: {
     backgroundColor: "#ffffff",
     borderColor: "rgba(15, 23, 42, 0.05)",
     borderRadius: 16,
     borderWidth: 1,
     color: "#0f172a",
+    flex: 1,
     fontSize: 16,
-    marginBottom: 12,
-    minHeight: 48,
-    paddingHorizontal: 12
+    minHeight: 56,
+    paddingHorizontal: 18,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10
   },
+  filterButton: {
+    alignItems: "center",
+    backgroundColor: "#2563EB",
+    borderRadius: 16,
+    height: 56,
+    justifyContent: "center",
+    width: 56
+  },
+  filterIcon: {
+    color: "#FFFFFF",
+    fontSize: 22
+  },
+  mapCard: {
+    alignItems: "center",
+    backgroundColor: "#E8EEF7",
+    borderRadius: 20,
+    height: 180,
+    justifyContent: "center",
+    marginBottom: 18
+  },
+  mapPlaceholderText: {
+    color: "#475569",
+    fontSize: 17,
+    fontWeight: "800"
+  },
+  mapPlaceholderSub: {
+    color: "#94A3B8",
+    fontSize: 13,
+    marginTop: 4
+  },
+  nearbyHeader: {
+    alignItems: "baseline",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12
+  },
+  nearbyTitle: {
+    color: "#0F172A",
+    fontSize: 22,
+    fontWeight: "900"
+  },
+  nearbyCount: {
+    color: "#94A3B8",
+    fontSize: 15,
+    fontWeight: "600"
+  },
+  garageCard: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(15, 23, 42, 0.05)",
+    borderRadius: 20,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 12,
+    padding: 14,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14
+  },
+  garageThumb: {
+    alignItems: "center",
+    backgroundColor: "#EFF3FF",
+    borderRadius: 16,
+    height: 64,
+    justifyContent: "center",
+    width: 64
+  },
+  garageThumbText: {
+    color: "#2563EB",
+    fontSize: 26,
+    fontWeight: "900"
+  },
+  garageName: {
+    color: "#0F172A",
+    fontSize: 18,
+    fontWeight: "800"
+  },
+  garageMetaRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 4
+  },
+  ratingChip: {
+    backgroundColor: "#FFF7E6",
+    borderRadius: 999,
+    color: "#D97706",
+    fontSize: 12,
+    fontWeight: "800",
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 3
+  },
+  garageSub: {
+    color: "#64748B",
+    fontSize: 13,
+    marginTop: 6
+  },
+  dotBlue: { color: "#2563EB" },
+  dotGreen: { color: "#22C55E" },
+  openText: { color: "#16A34A", fontWeight: "700" },
+  garageActions: {
+    flexDirection: "row",
+    gap: 8
+  },
+  roundBtnBlue: {
+    alignItems: "center",
+    backgroundColor: "#EFF3FF",
+    borderRadius: 999,
+    height: 44,
+    justifyContent: "center",
+    width: 44
+  },
+  roundBtnBlueIcon: { color: "#2563EB", fontSize: 18 },
+  roundBtnGreen: {
+    alignItems: "center",
+    backgroundColor: "#E9F9EF",
+    borderRadius: 999,
+    height: 44,
+    justifyContent: "center",
+    width: 44
+  },
+  roundBtnGreenIcon: { color: "#16A34A", fontSize: 18 },
   field: {
     marginTop: 10
   },
