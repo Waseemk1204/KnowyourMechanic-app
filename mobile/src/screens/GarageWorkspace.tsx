@@ -37,6 +37,7 @@ import {
 } from "../garage/serviceTaxonomy";
 import { buttonShadow, cardShadow, colors, radii, sectionLabel } from "../ui/tokens";
 import { StatTile } from "../ui/components";
+import { AppDrawer } from "../ui/AppDrawer";
 
 type ViewMode = "dashboard" | "onboarding" | "settings" | "addService" | "otp" | "payment";
 
@@ -295,6 +296,7 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
   const { signOut } = useAuth();
   const [state, setState] = useState<GarageDashboardState | null>(null);
   const [mode, setMode] = useState<ViewMode>("dashboard");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -570,6 +572,31 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <AppDrawer
+        visible={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={garage?.name ?? "Your Garage"}
+        statusText={garage?.isVerified ? "Active" : "Pending"}
+        photoUrl={garage?.photoUrl}
+        glyph="🔧"
+        items={[
+          { glyph: "✎", tone: "blue", title: "Profile Settings", subtitle: "Edit garage details & photo", onPress: () => setMode("settings") },
+          {
+            glyph: "🎧",
+            tone: "green",
+            title: "Support",
+            subtitle: "Get help & contact us",
+            onPress: () =>
+              Alert.alert("Partner Support", "Call +91 8070604004\nknowyourmechanic@gmail.com")
+          }
+        ]}
+        onLogout={() =>
+          Alert.alert("Logout", "Leave garage workspace?", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Logout", style: "destructive", onPress: signOut }
+          ])
+        }
+      />
       {mode !== "dashboard" ? (
         <View style={styles.header}>
           <Text style={styles.kicker}>Garage Owner</Text>
@@ -589,7 +616,7 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
             imageStyle={styles.heroImage}
           >
             {garage.photoUrl ? <View style={styles.heroScrim} /> : null}
-            <Pressable style={styles.heroGear} onPress={() => setMode("settings")} hitSlop={8}>
+            <Pressable style={styles.heroGear} onPress={() => setDrawerOpen(true)} hitSlop={8}>
               <Text style={styles.heroGearIcon}>⚙️</Text>
             </Pressable>
             <Text style={styles.heroTitle}>{garage.name}</Text>
