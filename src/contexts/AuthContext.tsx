@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import type { User } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { signOut } from '../lib/auth';
 
 interface UserData {
@@ -35,68 +35,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            setUser(firebaseUser);
-
-            if (!firebaseUser) {
+    // Links the signed-in auth user to its profile row (by phone) and loads it.
+    async function loadProfile() {
+        try {
+            const { data, error } = await supabase.rpc('link_current_auth_profile');
+            if (error || !data) {
+                // New user with no profile yet — handled by role selection elsewhere.
                 setUserData(null);
-                setLoading(false);
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('userData');
-            } else {
-                // Check local storage first
-                const savedUserData = localStorage.getItem('userData');
-                if (savedUserData) {
-                    try {
-                        const parsed = JSON.parse(savedUserData);
-                        setUserData(parsed);
-                        setLoading(false);
-                    } catch (e) {
-                        console.error('Error parsing saved user data:', e);
-                        // If parse fails, fetch from API
-                        fetchUserProfile();
-                    }
-                } else {
-                    // No local data, fetch from API
-                    fetchUserProfile();
-                }
+                return;
             }
+            const row = Array.isArray(data) ? data[0] : data;
+            setUserData({
+                _id: row.id,
+                firebaseUid: row.auth_user_id,
+                phoneNumber: row.phone_number,
+                role: row.role,
+            });
+        } catch {
+            setUserData(null);
+        }
+    }
+
+    useEffect(() => {
+        supabase.auth.getSession().then(async ({ data }) => {
+            const sessionUser = data.session?.user ?? null;
+            setUser(sessionUser);
+            if (sessionUser) {
+                await loadProfile();
+            }
+            setLoading(false);
         });
 
-        return () => unsubscribe();
-    }, []);
-
-    const fetchUserProfile = async () => {
-        try {
-            // dynamic import to avoid circular dependency if possible, or just standard import
-            const { getCurrentUserData } = await import('../lib/api');
-            const result = await getCurrentUserData();
-
-            if (result.data) {
-                setUserData(result.data);
-                localStorage.setItem('userData', JSON.stringify(result.data));
-                localStorage.setItem('userRole', result.data.role);
+        const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+            const sessionUser = session?.user ?? null;
+            setUser(sessionUser);
+            if (sessionUser) {
+                loadProfile();
             } else {
-                console.log('User profile not found in backend (New User)');
-                // Ideally redirect to role selection, but for now we leave userData null
-                // effectively treating as "Need Onboarding"
+                setUserData(null);
             }
-        } catch (error) {
-            console.error('Error fetching user profile:', error);
-        } finally {
             setLoading(false);
-        }
-    };
+        });
+
+        return () => sub.subscription.unsubscribe();
+    }, []);
 
     const logout = async () => {
         try {
             await signOut();
+            setUser(null);
             setUserData(null);
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userData');
-            localStorage.removeItem('garageOnboarded');
-            localStorage.removeItem('garageProfile');
         } catch (error) {
             console.error('Logout error:', error);
         }

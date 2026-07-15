@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Loader2, Wrench, Car, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../lib/auth';
-import { syncUser } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 type Step = 'phone' | 'otp' | 'role';
@@ -52,37 +52,35 @@ export default function AuthPage() {
             const user = await verifyOtp(otp);
             setUser(user);
 
-            // Check if user exists in backend
-            try {
-                // Check if user exists in backend
-                const { getCurrentUserData } = await import('../lib/api');
-                const response = await getCurrentUserData();
+            // Link the auth user to its profile (by phone) and route by role.
+            const { data, error } = await supabase.rpc('link_current_auth_profile');
+            const row = Array.isArray(data) ? data[0] : data;
 
-                if (response.data) {
-                    const userData = response.data;
-                    setUserData(userData);
-                    localStorage.setItem('userRole', userData.role);
-                    localStorage.setItem('userData', JSON.stringify(userData));
+            if (!error && row) {
+                const userData = {
+                    _id: row.id,
+                    firebaseUid: row.auth_user_id,
+                    phoneNumber: row.phone_number,
+                    role: row.role,
+                };
+                setUserData(userData);
+                localStorage.setItem('userRole', userData.role);
+                localStorage.setItem('userData', JSON.stringify(userData));
 
-                    if (userData.role === 'admin') {
-                        navigate('/admin');
-                    } else if (userData.role === 'employee') {
-                        navigate('/employee');
-                    } else if (userData.role === 'garage') {
-                        navigate('/garage');
-                    } else {
-                        navigate('/customer');
-                    }
-                    return;
+                if (userData.role === 'admin') {
+                    navigate('/admin');
+                } else if (userData.role === 'employee') {
+                    navigate('/employee');
+                } else if (userData.role === 'garage') {
+                    navigate('/garage');
                 } else {
-                    // User not found in backend - proceed to role selection
-                    console.log('New user detected');
-                    setStep('role');
+                    navigate('/customer');
                 }
-            } catch (e) {
-                console.log('Error checking user:', e);
-                setStep('role');
+                return;
             }
+
+            // No profile yet — new user, choose a role.
+            setStep('role');
         } catch (err: any) {
             setError(err.message || 'Invalid OTP code');
         } finally {
@@ -95,25 +93,38 @@ export default function AuthPage() {
         setError('');
 
         try {
-            const result = await syncUser(role);
-            if (result.error) {
-                setError(result.error);
+            const { data: userResult } = await supabase.auth.getUser();
+            const authUser = userResult.user;
+            if (!authUser) {
+                setError('Session expired. Please sign in again.');
+                return;
+            }
+            const phoneDigits = (authUser.phone || '').replace(/\D/g, '').slice(-10);
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .insert({ auth_user_id: authUser.id, phone_number: phoneDigits, role })
+                .select()
+                .single();
+
+            if (error || !data) {
+                setError(error?.message || 'Error creating profile');
                 return;
             }
 
-            if (result.data) {
-                setUserData(result.data);
-                localStorage.setItem('userRole', role);
-                localStorage.setItem('userData', JSON.stringify(result.data));
+            const userData = {
+                _id: data.id,
+                firebaseUid: data.auth_user_id,
+                phoneNumber: data.phone_number,
+                role: data.role,
+            };
+            setUserData(userData);
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userData', JSON.stringify(userData));
 
-                setTimeout(() => {
-                    if (role === 'garage') {
-                        navigate('/garage/onboarding');
-                    } else {
-                        navigate('/customer');
-                    }
-                }, 400);
-            }
+            setTimeout(() => {
+                navigate(role === 'garage' ? '/garage/onboarding' : '/customer');
+            }, 400);
         } catch (err: any) {
             setError(err.message || 'Error creating profile');
         } finally {
@@ -162,12 +173,6 @@ export default function AuthPage() {
                                             onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                         />
                                     </div>
-                                </div>
-
-                                {/* reCAPTCHA centered below phone field */}
-                                <div className="flex flex-col items-center">
-                                    <div id="recaptcha-container" className="flex justify-center"></div>
-                                    <p className="text-slate-400 text-xs mt-2 text-center">Complete the verification above to continue</p>
                                 </div>
 
                                 {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
