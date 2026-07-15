@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "../auth/AuthContext";
+import { AppDrawer } from "../ui/AppDrawer";
 import { AppMap, type MapMarker } from "../ui/AppMap";
 import type { AuthProfile } from "../auth/authTypes";
 import {
@@ -216,6 +217,7 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
   const { signOut } = useAuth();
   const [state, setState] = useState<CustomerWorkspaceState | null>(null);
   const [activeTab, setActiveTab] = useState<CustomerTab>("home");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -352,35 +354,54 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
   return (
     <View style={styles.shell}>
       <ScrollView style={{ backgroundColor: "#F8FAFC" }} contentContainerStyle={styles.container}>
-        <View style={styles.header}>
-          {activeTab === "home" ? (
-            <>
-              <Text style={styles.bigTitle}>Find a Mechanic</Text>
-              <Text style={styles.locationLine}>➤ Pune City Center</Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.kicker}>Customer</Text>
-              <Text style={styles.title}>
-                {activeTab === "activity"
-                  ? "Activity"
-                  : activeTab === "profile"
-                    ? "My Profile"
-                    : activeTab === "reports"
-                      ? "Reports"
-                      : "Support"}
-              </Text>
-            </>
-          )}
+        <View style={styles.headerRow}>
+          <View style={styles.flex}>
+            {activeTab === "home" ? (
+              <>
+                <Text style={styles.bigTitle}>Find a Mechanic</Text>
+                <Text style={styles.locationLine}>➤ Pune City Center</Text>
+              </>
+            ) : (
+              <>
+                <Pressable onPress={() => setActiveTab("home")}>
+                  <Text style={styles.backLink}>← Back</Text>
+                </Pressable>
+                <Text style={styles.title}>
+                  {activeTab === "activity"
+                    ? "Activity"
+                    : activeTab === "profile"
+                      ? "My Profile"
+                      : activeTab === "reports"
+                        ? "Reports"
+                        : "Support"}
+                </Text>
+              </>
+            )}
+          </View>
+          <Pressable style={styles.menuBtn} onPress={() => setDrawerOpen(true)}>
+            <Text style={styles.menuIcon}>☰</Text>
+          </Pressable>
         </View>
 
-        <View style={styles.tabs}>
-          <TabButton active={activeTab === "home"} label="Home" onPress={() => setActiveTab("home")} />
-          <TabButton active={activeTab === "activity"} label="Activity" onPress={() => setActiveTab("activity")} />
-          <TabButton active={activeTab === "profile"} label="Profile" onPress={() => setActiveTab("profile")} />
-          <TabButton active={activeTab === "reports"} label="Reports" onPress={() => setActiveTab("reports")} />
-          <TabButton active={activeTab === "support"} label="Support" onPress={() => setActiveTab("support")} />
-        </View>
+        <AppDrawer
+          visible={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          title="Customer"
+          subtitle="Find a Mechanic"
+          glyph="👤"
+          items={[
+            { glyph: "👤", tone: "purple", title: "Profile", subtitle: "Your info & vehicle", onPress: () => setActiveTab("profile") },
+            { glyph: "🕐", tone: "blue", title: "Activity", subtitle: "View your service history", onPress: () => setActiveTab("activity") },
+            { glyph: "🎧", tone: "green", title: "Support", subtitle: "Get help & contact us", onPress: () => setActiveTab("support") },
+            { glyph: "⚑", tone: "red", title: "Reports", subtitle: "Raise or track a report", onPress: () => setActiveTab("reports") }
+          ]}
+          onLogout={() =>
+            Alert.alert("Logout", "Leave customer workspace?", [
+              { text: "Cancel", style: "cancel" },
+              { text: "Logout", style: "destructive", onPress: signOut }
+            ])
+          }
+        />
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -768,6 +789,23 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 10
   },
+  headerRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    marginBottom: 16
+  },
+  menuBtn: {
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(15,23,42,0.06)",
+    borderRadius: 14,
+    borderWidth: 1,
+    height: 48,
+    justifyContent: "center",
+    width: 48
+  },
+  menuIcon: { color: "#0F172A", fontSize: 22 },
+  backLink: { color: "#2563EB", fontSize: 16, fontWeight: "700", marginBottom: 6 },
   bigTitle: {
     color: "#0F172A",
     fontSize: 34,
