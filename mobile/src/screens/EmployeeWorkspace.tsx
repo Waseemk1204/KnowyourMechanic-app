@@ -179,7 +179,7 @@ export function EmployeeWorkspace({ profile }: { profile: AuthProfile }) {
         <TabButton active={tab === "followups"} label="Follow-ups" onPress={() => setTab("followups")} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={{ backgroundColor: "#F8FAFC" }} contentContainerStyle={styles.content}>
         {tab === "overview" && metrics ? (
           <>
             <View style={styles.statsGrid}>
@@ -279,14 +279,14 @@ const styles = StyleSheet.create({
     color: "#ffffff"
   },
   activeTab: {
-    backgroundColor: "#2563eb"
+    backgroundColor: "#0A58CA"
   },
   activeTabText: {
     color: "#ffffff"
   },
   badge: {
     backgroundColor: "#f1f5f9",
-    borderRadius: 8,
+    borderRadius: 16,
     color: "#475569",
     fontSize: 12,
     fontWeight: "700",
@@ -301,8 +301,8 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
+    backgroundColor: "#0A58CA",
+    borderRadius: 16,
     justifyContent: "center",
     minHeight: 42,
     paddingHorizontal: 14
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
     borderColor: "#e2e8f0",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 12,
     padding: 16
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#f8fafc",
     borderColor: "#cbd5e1",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     color: "#0f172a",
     fontSize: 15,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     gap: 7
   },
   mapDot: {
-    borderRadius: 8,
+    borderRadius: 16,
     height: 14,
     width: 14
   },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   mineDot: {
-    backgroundColor: "#2563eb"
+    backgroundColor: "#0A58CA"
   },
   muted: {
     color: "#64748b",
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   },
   option: {
     borderColor: "#cbd5e1",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 11,
     paddingVertical: 8
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   },
   priority: {
     backgroundColor: "#fef3c7",
-    borderRadius: 8,
+    borderRadius: 16,
     color: "#92400e",
     fontSize: 12,
     fontWeight: "900",
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   statBox: {
     backgroundColor: "#ffffff",
     borderColor: "#e2e8f0",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     flexBasis: "48%",
     flexGrow: 1,
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     fontWeight: "900"
   },
   statusTag: {
-    borderRadius: 8,
+    borderRadius: 16,
     fontSize: 12,
     fontWeight: "900",
     overflow: "hidden",
@@ -515,14 +515,14 @@ const styles = StyleSheet.create({
   },
   tab: {
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: 16,
     flex: 1,
     minHeight: 42,
     justifyContent: "center"
   },
   tabs: {
     backgroundColor: "#e2e8f0",
-    borderRadius: 8,
+    borderRadius: 16,
     flexDirection: "row",
     gap: 4,
     margin: 16,

@@ -331,7 +331,7 @@ export function CustomerWorkspace({ profile }: { profile: AuthProfile }) {
 
   return (
     <View style={styles.shell}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={{ backgroundColor: "#F8FAFC" }} contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text style={styles.kicker}>Customer</Text>
           <Text style={styles.title}>{state?.profile.name ?? "Customer"}</Text>
@@ -581,14 +581,14 @@ const styles = StyleSheet.create({
   },
   tab: {
     backgroundColor: "#ffffff",
-    borderColor: "#dbe3ef",
+    borderColor: "rgba(15, 23, 42, 0.05)",
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 13,
     paddingVertical: 9
   },
   activeTab: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#0A58CA",
     borderColor: "#2563eb"
   },
   tabText: {
@@ -601,8 +601,8 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#ffffff",
-    borderColor: "#dbe3ef",
-    borderRadius: 8,
+    borderColor: "rgba(15, 23, 42, 0.05)",
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 12,
     padding: 15
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: "#eff6ff",
     borderColor: "#bfdbfe",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 12,
     padding: 15
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
   warningCard: {
     backgroundColor: "#fff7ed",
     borderColor: "#fed7aa",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 12,
     padding: 15
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
   modalCard: {
     backgroundColor: "#ffffff",
     borderColor: "#94a3b8",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     marginBottom: 14,
     padding: 15
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
   },
   rating: {
     backgroundColor: "#fef3c7",
-    borderRadius: 8,
+    borderRadius: 16,
     color: "#92400e",
     fontSize: 16,
     fontWeight: "900",
@@ -719,8 +719,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: "#ffffff",
-    borderColor: "#dbe3ef",
-    borderRadius: 8,
+    borderColor: "rgba(15, 23, 42, 0.05)",
+    borderRadius: 16,
     borderWidth: 1,
     color: "#0f172a",
     fontSize: 16,
@@ -740,7 +740,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#f8fafc",
     borderColor: "#cbd5e1",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     color: "#0f172a",
     fontSize: 16,
@@ -754,8 +754,8 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
+    backgroundColor: "#0A58CA",
+    borderRadius: 16,
     justifyContent: "center",
     marginTop: 10,
     minHeight: 48,
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
   },
   error: {
     backgroundColor: "#fef2f2",
-    borderRadius: 8,
+    borderRadius: 16,
     color: "#dc2626",
     fontSize: 14,
     fontWeight: "800",
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
   faqBox: {
     backgroundColor: "#f8fafc",
     borderColor: "#e2e8f0",
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     marginTop: 12,
     padding: 12

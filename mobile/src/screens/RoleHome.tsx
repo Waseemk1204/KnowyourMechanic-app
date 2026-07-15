@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAuth } from "../auth/AuthContext";
 import type { AuthProfile } from "../auth/authTypes";
+import { cardShadow, colors, radii, sectionLabel } from "../ui/tokens";
 import { AdminWorkspace } from "./AdminWorkspace";
 import { CustomerWorkspace } from "./CustomerWorkspace";
 import { EmployeeWorkspace } from "./EmployeeWorkspace";
@@ -64,64 +65,61 @@ export function RoleHome({ profile }: { profile: AuthProfile }) {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: colors.slate50,
     flex: 1,
     justifyContent: "center",
     padding: 24
   },
   header: {
-    marginBottom: 22
+    marginBottom: 24
   },
   kicker: {
-    color: "#2563eb",
-    fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 0,
+    ...sectionLabel,
+    color: colors.blue600,
     marginBottom: 8,
     textAlign: "center"
   },
   title: {
-    color: "#0f172a",
+    color: colors.navy,
     fontSize: 30,
-    fontWeight: "800",
-    letterSpacing: 0,
+    fontWeight: "900",
     textAlign: "center"
   },
   subtitle: {
-    color: "#64748b",
+    color: colors.slate500,
     fontSize: 16,
     marginTop: 8,
     textAlign: "center"
   },
   infoPanel: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 18
+    ...cardShadow,
+    padding: 20
   },
   infoLabel: {
-    color: "#64748b",
-    fontSize: 13,
+    color: colors.slate400,
+    fontSize: 11,
     fontWeight: "700",
-    marginTop: 8
+    letterSpacing: 0.5,
+    marginTop: 10,
+    textTransform: "uppercase"
   },
   infoValue: {
-    color: "#0f172a",
+    color: colors.slate900,
     fontSize: 15,
     fontWeight: "700",
     marginTop: 3
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#0f172a",
-    borderRadius: 8,
-    marginTop: 18,
-    minHeight: 52,
+    backgroundColor: colors.navy,
+    borderRadius: radii.control,
+    marginTop: 20,
+    minHeight: 56,
     justifyContent: "center"
   },
   buttonText: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 17,
-    fontWeight: "800"
+    fontWeight: "700"
   }
 });

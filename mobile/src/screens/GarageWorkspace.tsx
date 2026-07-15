@@ -34,6 +34,7 @@ import {
   loadServiceTaxonomy,
   vehicleTypeOptions
 } from "../garage/serviceTaxonomy";
+import { buttonShadow, cardShadow, colors, radii, sectionLabel } from "../ui/tokens";
 
 type ViewMode = "dashboard" | "onboarding" | "settings" | "addService" | "otp" | "payment";
 
@@ -549,7 +550,7 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
     : [];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.kicker}>Garage Owner</Text>
         <Text style={styles.title}>{garage?.name ?? "Garage onboarding"}</Text>
@@ -565,14 +566,14 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
             <View style={styles.recordTop}>
               <View style={styles.flex}>
                 <Text style={styles.heroTitle}>{garage.name}</Text>
-                <Text style={styles.recordMeta}>{garage.address}</Text>
-                <Text style={styles.recordMeta}>{garage.serviceHours} | {garage.workingDays.join(", ")}</Text>
+                <Text style={styles.heroMeta}>{garage.address}</Text>
+                <Text style={styles.heroMeta}>{garage.serviceHours} | {garage.workingDays.join(", ")}</Text>
               </View>
-              <Text style={styles.rating}>{garage.rating.toFixed(1)}</Text>
+              <Text style={styles.rating}>★ {garage.rating.toFixed(1)}</Text>
             </View>
             <View style={styles.badgeRow}>
-              <Text style={styles.badge}>{garage.isVerified ? "Verified garage" : "Pending verification"}</Text>
-              <Text style={styles.badge}>{garage.onboardingStatus}</Text>
+              <Text style={styles.heroBadge}>{garage.isVerified ? "● Verified garage" : "Pending verification"}</Text>
+              <Text style={styles.heroBadge}>{garage.onboardingStatus}</Text>
             </View>
           </View>
 
@@ -768,120 +769,145 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 const PLATFORM_FEE = 1.9;
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: colors.slate50
+  },
   container: {
-    padding: 18,
-    paddingBottom: 34
+    padding: 20,
+    paddingBottom: 40
   },
   center: {
     alignItems: "center",
+    backgroundColor: colors.slate50,
     flex: 1,
     justifyContent: "center",
     padding: 20
   },
   loadingText: {
-    color: "#64748b",
+    color: colors.slate500,
     fontSize: 15,
     marginTop: 10
   },
   header: {
-    marginBottom: 18
+    marginBottom: 20
   },
   kicker: {
-    color: "#2563eb",
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0,
-    textTransform: "uppercase"
+    ...sectionLabel,
+    color: colors.blue600
   },
   title: {
-    color: "#0f172a",
+    color: colors.navy,
     fontSize: 30,
     fontWeight: "900",
-    letterSpacing: 0,
     marginTop: 4
   },
   subtitle: {
-    color: "#64748b",
+    color: colors.slate500,
     fontSize: 15,
     marginTop: 6
   },
   heroCard: {
-    backgroundColor: "#ffffff",
-    borderColor: "#dbe3ef",
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 14,
-    padding: 16
+    backgroundColor: colors.blue700,
+    borderRadius: radii.card,
+    marginBottom: 16,
+    overflow: "hidden",
+    padding: 22,
+    shadowColor: colors.blue700,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 4
   },
   heroTitle: {
-    color: "#0f172a",
-    fontSize: 22,
-    fontWeight: "900"
+    color: colors.white,
+    fontSize: 24,
+    fontWeight: "900",
+    lineHeight: 30
+  },
+  heroMeta: {
+    color: "rgba(255, 255, 255, 0.75)",
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 4
+  },
+  heroBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderColor: "rgba(255, 255, 255, 0.25)",
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: "#86EFAC",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1,
+    overflow: "hidden",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    textTransform: "uppercase"
   },
   rating: {
-    backgroundColor: "#fef3c7",
-    borderRadius: 8,
-    color: "#92400e",
-    fontSize: 18,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: radii.pill,
+    color: "#FCD34D",
+    fontSize: 15,
     fontWeight: "900",
-    minWidth: 46,
-    padding: 8,
+    overflow: "hidden",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     textAlign: "center"
   },
   statsGrid: {
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 14
+    gap: 12,
+    marginBottom: 16
   },
   statBox: {
-    backgroundColor: "#ffffff",
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderColor: colors.slate100,
+    borderRadius: radii.control,
     borderWidth: 1,
     minWidth: "47%",
-    padding: 14
+    padding: 16
   },
   statValue: {
-    color: "#0f172a",
-    fontSize: 20,
+    color: colors.slate900,
+    fontSize: 24,
     fontWeight: "900"
   },
   statLabel: {
-    color: "#64748b",
-    fontSize: 12,
+    color: colors.slate400,
+    fontSize: 10,
     fontWeight: "700",
-    marginTop: 4
+    letterSpacing: 0.5,
+    marginTop: 4,
+    textTransform: "uppercase"
   },
   actionRow: {
-    gap: 10,
-    marginBottom: 18
+    gap: 12,
+    marginBottom: 22
   },
   panel: {
-    backgroundColor: "#ffffff",
-    borderColor: "#dbe3ef",
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 16,
-    padding: 16
+    ...cardShadow,
+    marginBottom: 18,
+    padding: 20
   },
   sectionHeader: {
-    marginBottom: 12
+    marginBottom: 14
   },
   sectionTitle: {
-    color: "#0f172a",
-    fontSize: 19,
-    fontWeight: "900"
+    ...sectionLabel
   },
   sectionHint: {
-    color: "#64748b",
+    color: colors.slate500,
     fontSize: 13,
     lineHeight: 18,
-    marginTop: 3
+    marginTop: 6
   },
   field: {
-    marginBottom: 12
+    marginBottom: 14
   },
   chipGrid: {
     flexDirection: "row",
@@ -889,81 +915,85 @@ const styles = StyleSheet.create({
     gap: 8
   },
   choiceChip: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#cbd5e1",
-    borderRadius: 999,
+    backgroundColor: colors.slate50,
+    borderColor: colors.slate200,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 8
+    paddingHorizontal: 14,
+    paddingVertical: 9
   },
   choiceChipSelected: {
-    backgroundColor: "#2563eb",
-    borderColor: "#2563eb"
+    backgroundColor: colors.blue600,
+    borderColor: colors.blue600
   },
   choiceChipText: {
-    color: "#334155",
+    color: colors.slate600,
     fontSize: 13,
     fontWeight: "700"
   },
   choiceChipTextSelected: {
-    color: "#ffffff"
+    color: colors.white
   },
   label: {
-    color: "#334155",
+    color: colors.slate600,
     fontSize: 13,
-    fontWeight: "800",
-    marginBottom: 6
+    fontWeight: "700",
+    marginBottom: 6,
+    marginLeft: 2
   },
   input: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    borderWidth: 1,
-    color: "#0f172a",
+    backgroundColor: colors.slate50,
+    borderColor: colors.slate200,
+    borderRadius: radii.control,
+    borderWidth: 1.5,
+    color: colors.navy,
     fontSize: 16,
-    minHeight: 48,
-    paddingHorizontal: 12,
-    paddingVertical: 10
+    fontWeight: "600",
+    minHeight: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 12
   },
   textArea: {
-    minHeight: 82,
+    minHeight: 88,
     textAlignVertical: "top"
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
+    backgroundColor: colors.primary,
+    borderRadius: radii.control,
     justifyContent: "center",
     marginTop: 10,
-    minHeight: 50,
-    paddingHorizontal: 14
+    minHeight: 56,
+    paddingHorizontal: 16,
+    ...buttonShadow
   },
   darkButton: {
-    backgroundColor: "#0f172a"
+    backgroundColor: colors.navy,
+    shadowColor: colors.navy
   },
   outlineButton: {
-    backgroundColor: "#ffffff",
-    borderColor: "#2563eb",
-    borderWidth: 1
+    backgroundColor: colors.white,
+    borderColor: colors.slate200,
+    borderWidth: 1.5,
+    shadowOpacity: 0,
+    elevation: 0
   },
   disabledButton: {
-    opacity: 0.6
+    opacity: 0.4,
+    shadowOpacity: 0
   },
   buttonText: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 16,
-    fontWeight: "900"
+    fontWeight: "700"
   },
   outlineButtonText: {
-    color: "#2563eb"
+    color: colors.blue600
   },
   recordCard: {
-    backgroundColor: "#ffffff",
-    borderColor: "#dbe3ef",
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 12,
-    padding: 14
+    ...cardShadow,
+    marginBottom: 14,
+    padding: 18
   },
   recordTop: {
     flexDirection: "row",
@@ -973,23 +1003,23 @@ const styles = StyleSheet.create({
     flex: 1
   },
   recordTitle: {
-    color: "#0f172a",
+    color: colors.slate900,
     fontSize: 16,
-    fontWeight: "900"
+    fontWeight: "800"
   },
   recordMeta: {
-    color: "#64748b",
+    color: colors.slate500,
     fontSize: 13,
     lineHeight: 18,
     marginTop: 4
   },
   amount: {
-    color: "#0f172a",
-    fontSize: 16,
+    color: colors.slate900,
+    fontSize: 17,
     fontWeight: "900"
   },
   recordVehicle: {
-    color: "#0f172a",
+    color: colors.slate600,
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 18,
@@ -999,45 +1029,45 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 10
+    marginTop: 12
   },
   chipService: {
-    backgroundColor: "#ecfdf5",
-    borderRadius: 999,
-    color: "#047857",
+    backgroundColor: colors.green50,
+    borderRadius: radii.pill,
+    color: colors.green700,
     fontSize: 12,
     fontWeight: "700",
     overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 5
+    paddingHorizontal: 12,
+    paddingVertical: 6
   },
   chipFailure: {
-    backgroundColor: "#fef2f2",
-    borderRadius: 999,
-    color: "#b91c1c",
+    backgroundColor: colors.red50,
+    borderRadius: radii.pill,
+    color: colors.red600,
     fontSize: 12,
     fontWeight: "700",
     overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 5
+    paddingHorizontal: 12,
+    paddingVertical: 6
   },
   badge: {
-    backgroundColor: "#eff6ff",
-    borderRadius: 999,
-    color: "#1d4ed8",
+    backgroundColor: colors.softBlue,
+    borderRadius: radii.pill,
+    color: colors.blue700,
     fontSize: 12,
     fontWeight: "800",
     overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 5
+    paddingHorizontal: 12,
+    paddingVertical: 6
   },
   invoiceLine: {
-    color: "#475569",
+    color: colors.slate600,
     fontSize: 12,
-    marginTop: 10
+    marginTop: 12
   },
   empty: {
-    color: "#64748b",
+    color: colors.slate500,
     fontSize: 15,
     marginBottom: 16
   },
@@ -1048,56 +1078,58 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   delivery: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
+    backgroundColor: colors.slate50,
+    borderColor: colors.slate200,
+    borderRadius: radii.control,
     borderWidth: 1,
-    color: "#334155",
+    color: colors.slate600,
     fontSize: 13,
-    fontWeight: "800",
+    fontWeight: "700",
     marginVertical: 12,
-    padding: 10
+    padding: 12
   },
   devOtp: {
-    backgroundColor: "#fff7ed",
-    borderColor: "#fed7aa",
-    borderRadius: 8,
+    backgroundColor: colors.amber50,
+    borderColor: "#FDE68A",
+    borderRadius: radii.control,
     borderWidth: 1,
-    color: "#9a3412",
+    color: "#92400E",
     fontSize: 15,
     fontWeight: "900",
     marginBottom: 12,
-    padding: 10
+    padding: 12
   },
   paymentBox: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
+    backgroundColor: colors.slate50,
+    borderColor: colors.slate100,
+    borderRadius: radii.control,
     borderWidth: 1,
     marginTop: 12,
-    padding: 12
+    padding: 16
   },
   paymentTitle: {
-    color: "#0f172a",
+    color: colors.slate900,
     fontSize: 16,
-    fontWeight: "900"
+    fontWeight: "800"
   },
   error: {
-    backgroundColor: "#fef2f2",
-    borderRadius: 8,
-    color: "#dc2626",
+    backgroundColor: colors.red50,
+    borderRadius: radii.control,
+    color: colors.red600,
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "700",
     marginBottom: 12,
-    padding: 12
+    padding: 12,
+    textAlign: "center"
   },
   success: {
-    backgroundColor: "#ecfdf5",
-    borderRadius: 8,
-    color: "#047857",
+    backgroundColor: colors.green50,
+    borderRadius: radii.control,
+    color: colors.green700,
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "700",
     marginBottom: 12,
-    padding: 12
+    padding: 12,
+    textAlign: "center"
   }
 });
