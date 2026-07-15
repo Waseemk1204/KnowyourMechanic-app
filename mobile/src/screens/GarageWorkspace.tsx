@@ -36,6 +36,8 @@ import {
   vehicleTypeOptions
 } from "../garage/serviceTaxonomy";
 import { buttonShadow, cardShadow, colors, radii, sectionLabel } from "../ui/tokens";
+import { LinearGradient } from "expo-linear-gradient";
+
 import { StatTile } from "../ui/components";
 import { AppDrawer } from "../ui/AppDrawer";
 
@@ -171,11 +173,12 @@ function PrimaryButton({
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      style={[
+      style={({ pressed }) => [
         styles.button,
         variant === "dark" ? styles.darkButton : null,
         variant === "outline" ? styles.outlineButton : null,
-        disabled ? styles.disabledButton : null
+        disabled ? styles.disabledButton : null,
+        pressed && !disabled ? styles.pressed : null
       ]}
     >
       <Text style={[styles.buttonText, variant === "outline" ? styles.outlineButtonText : null]}>{label}</Text>
@@ -615,7 +618,16 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
             style={[styles.hero, !garage.photoUrl ? styles.heroBlue : null]}
             imageStyle={styles.heroImage}
           >
-            {garage.photoUrl ? <View style={styles.heroScrim} /> : null}
+            {garage.photoUrl ? (
+              <View style={styles.heroScrim} />
+            ) : (
+              <LinearGradient
+                colors={["#3B82F6", "#2563EB", "#1E40AF"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.heroScrim}
+              />
+            )}
             <Pressable style={styles.heroGear} onPress={() => setDrawerOpen(true)} hitSlop={8}>
               <Text style={styles.heroGearIcon}>⚙️</Text>
             </Pressable>
@@ -1081,6 +1093,10 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.4,
     shadowOpacity: 0
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }]
   },
   buttonText: {
     color: colors.white,

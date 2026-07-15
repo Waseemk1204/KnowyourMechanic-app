@@ -82,12 +82,13 @@ function PrimaryButton({
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      style={[
+      style={({ pressed }) => [
         styles.button,
         variant === "dark" ? styles.darkButton : null,
         variant === "outline" ? styles.outlineButton : null,
         variant === "danger" ? styles.dangerButton : null,
-        disabled ? styles.disabledButton : null
+        disabled ? styles.disabledButton : null,
+        pressed && !disabled ? styles.pressed : null
       ]}
     >
       <Text style={[styles.buttonText, variant === "outline" ? styles.outlineButtonText : null]}>{label}</Text>
@@ -996,6 +997,10 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }]
   },
   buttonText: {
     color: "#ffffff",

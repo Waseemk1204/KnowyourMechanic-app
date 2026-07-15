@@ -1,4 +1,6 @@
+import { useEffect, useRef } from "react";
 import {
+  Animated,
   ImageBackground,
   Modal,
   Pressable,
@@ -7,6 +9,7 @@ import {
   Text,
   View
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 import { chip, colors, radii } from "./tokens";
 
@@ -41,6 +44,16 @@ export function AppDrawer({
   items: DrawerItem[];
   onLogout: () => void;
 }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: visible ? 1 : 0,
+      duration: 220,
+      useNativeDriver: false
+    }).start();
+  }, [anim, visible]);
+  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [420, 0] });
+
   const HeaderInner = (
     <>
       <Pressable style={styles.close} onPress={onClose} hitSlop={8}>
@@ -60,22 +73,31 @@ export function AppDrawer({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.panel}>
+      <Animated.View style={[styles.backdrop, { opacity: anim }]}>
+        <Pressable style={styles.backdropPress} onPress={onClose} />
+      </Animated.View>
+      <Animated.View style={[styles.panel, { transform: [{ translateX }] }]}>
         {photoUrl ? (
           <ImageBackground source={{ uri: photoUrl }} style={styles.header} imageStyle={styles.headerImg}>
             <View style={styles.headerScrim} />
             {HeaderInner}
           </ImageBackground>
         ) : (
-          <View style={[styles.header, styles.headerBlue]}>{HeaderInner}</View>
+          <LinearGradient
+            colors={["#3B82F6", "#2563EB", "#1E40AF"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.header}
+          >
+            {HeaderInner}
+          </LinearGradient>
         )}
 
         <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
           {items.map((item) => (
             <Pressable
               key={item.title}
-              style={styles.row}
+              style={({ pressed }) => [styles.row, pressed ? styles.rowPressed : null]}
               onPress={() => {
                 onClose();
                 item.onPress();
@@ -94,7 +116,7 @@ export function AppDrawer({
         </ScrollView>
 
         <Pressable
-          style={styles.logout}
+          style={({ pressed }) => [styles.logout, pressed ? styles.rowPressed : null]}
           onPress={() => {
             onClose();
             onLogout();
@@ -102,7 +124,7 @@ export function AppDrawer({
         >
           <Text style={styles.logoutText}>⇥  Logout</Text>
         </Pressable>
-      </View>
+      </Animated.View>
     </Modal>
   );
 }
@@ -117,6 +139,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: "rgba(15,23,42,0.4)"
   },
+  backdropPress: { flex: 1 },
   panel: {
     position: "absolute",
     top: 0,
@@ -160,9 +183,16 @@ const styles = StyleSheet.create({
   bodyContent: { padding: 18 },
   row: {
     alignItems: "center",
+    borderRadius: radii.control,
     flexDirection: "row",
     gap: 14,
+    marginHorizontal: -8,
+    paddingHorizontal: 8,
     paddingVertical: 14
+  },
+  rowPressed: {
+    backgroundColor: colors.slate50,
+    opacity: 0.9
   },
   rowChip: {
     alignItems: "center",

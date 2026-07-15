@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
     "expo": "56.0.0",
+    "expo-linear-gradient": "~15.0.7",
     "expo-status-bar": "56.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",

@@ -2,6 +2,8 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
+import "./src/ui/loadFonts";
+
 import { AuthProvider, useAuth } from "./src/auth/AuthContext";
 import { AuthScreen } from "./src/screens/AuthScreen";
 import { RoleHome } from "./src/screens/RoleHome";
