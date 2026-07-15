@@ -35,6 +35,34 @@ function generateId(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 }
 
+function normalizeStructuredService(input: CreateServiceRecordInput) {
+  if (!input.vehicleType) throw new Error("Vehicle type is required.");
+  const makeName = (input.vehicleMakeCode ? input.vehicleMakeName : input.vehicleMakeOther).trim();
+  const modelName = (input.vehicleModelCode ? input.vehicleModelName : input.vehicleModelOther).trim();
+  const serviceCategoryCodes = [...new Set(input.serviceCategoryCodes)];
+  const failureCategoryCodes = [...new Set(input.failureCategoryCodes)];
+
+  if (!makeName || !modelName) throw new Error("Vehicle make and model are required.");
+  if (serviceCategoryCodes.length === 0) throw new Error("Select at least one service category.");
+  if (failureCategoryCodes.length === 0) throw new Error("Select at least one failure category.");
+  if (input.modelYear !== null && (input.modelYear < 1950 || input.modelYear > new Date().getFullYear() + 1)) {
+    throw new Error("Vehicle model year is invalid.");
+  }
+  if (input.odometerKm !== null && (input.odometerKm < 0 || input.odometerKm > 5000000)) {
+    throw new Error("Odometer reading is invalid.");
+  }
+
+  return {
+    vehicleType: input.vehicleType,
+    makeName,
+    modelName,
+    serviceCategoryCodes,
+    failureCategoryCodes,
+    vehicleInfo: [makeName, modelName, input.modelYear].filter(Boolean).join(" "),
+    description: input.serviceCategoryNames.join(", ")
+  };
+}
+
 function createDefaultGarage(profile: AuthProfile): GarageProfile {
   return {
     id: DEMO_GARAGE_ID,
@@ -109,6 +137,18 @@ function createSeedRecords(garage: GarageProfile): GarageServiceRecord[] {
       customerHasApp: true,
       vehicleNumber: "MH12AB1234",
       vehicleInfo: "Maruti Swift 2020",
+      vehicleType: "4w",
+      vehicleMakeCode: "maruti-suzuki",
+      vehicleModelCode: "maruti-suzuki-swift",
+      vehicleMakeName: "Maruti Suzuki",
+      vehicleModelName: "Swift",
+      modelYear: 2020,
+      odometerKm: 48000,
+      serviceCategoryCodes: ["periodic-maintenance", "brakes"],
+      serviceCategoryNames: ["Periodic Maintenance", "Brakes"],
+      failureCategoryCodes: ["routine-no-fault", "brake-noise"],
+      failureCategoryNames: ["Routine service / no fault", "Brake noise"],
+      serviceNotes: "Oil change and brake inspection",
       description: "Oil change and brake inspection",
       amount: 2200,
       platformFee: PLATFORM_FEE,
@@ -131,6 +171,18 @@ function createSeedRecords(garage: GarageProfile): GarageServiceRecord[] {
       customerHasApp: false,
       vehicleNumber: "MH14CD4567",
       vehicleInfo: "Hyundai i20",
+      vehicleType: "4w",
+      vehicleMakeCode: "hyundai",
+      vehicleModelCode: "hyundai-i20",
+      vehicleMakeName: "Hyundai",
+      vehicleModelName: "i20",
+      modelYear: null,
+      odometerKm: null,
+      serviceCategoryCodes: ["periodic-maintenance", "washing-detailing"],
+      serviceCategoryNames: ["Periodic Maintenance", "Washing & Detailing"],
+      failureCategoryCodes: ["routine-no-fault"],
+      failureCategoryNames: ["Routine service / no fault"],
+      serviceNotes: "General service and washing",
       description: "General service and washing",
       amount: 1800,
       platformFee: 0,
@@ -235,6 +287,7 @@ export async function createGarageServiceRecord(
     throw new Error("Complete garage onboarding first.");
   }
 
+  const structured = normalizeStructuredService(input);
   const otp = generateOtp();
   const record: GarageServiceRecord = {
     id: generateId("service"),
@@ -243,8 +296,20 @@ export async function createGarageServiceRecord(
     customerPhone: normalizePhone(input.customerPhone),
     customerHasApp: input.customerHasApp,
     vehicleNumber: input.vehicleNumber.trim().toUpperCase(),
-    vehicleInfo: input.vehicleInfo.trim(),
-    description: input.description.trim(),
+    vehicleInfo: structured.vehicleInfo,
+    vehicleType: structured.vehicleType,
+    vehicleMakeCode: input.vehicleMakeCode,
+    vehicleModelCode: input.vehicleModelCode,
+    vehicleMakeName: structured.makeName,
+    vehicleModelName: structured.modelName,
+    modelYear: input.modelYear,
+    odometerKm: input.odometerKm,
+    serviceCategoryCodes: structured.serviceCategoryCodes,
+    serviceCategoryNames: input.serviceCategoryNames,
+    failureCategoryCodes: structured.failureCategoryCodes,
+    failureCategoryNames: input.failureCategoryNames,
+    serviceNotes: input.serviceNotes.trim(),
+    description: structured.description,
     amount: input.amount,
     platformFee: 0,
     garageEarnings: input.amount,

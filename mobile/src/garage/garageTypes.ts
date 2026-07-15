@@ -4,6 +4,8 @@ export type GarageServiceStatus = "pending_otp" | "otp_verified" | "completed";
 
 export type GarageVerificationMethod = "in_app" | "whatsapp";
 
+export type VehicleType = "2w" | "3w" | "4w" | "other";
+
 export type GarageProfile = {
   id: string;
   ownerProfileId: string;
@@ -34,6 +36,18 @@ export type GarageServiceRecord = {
   customerHasApp: boolean;
   vehicleNumber: string;
   vehicleInfo: string;
+  vehicleType: VehicleType;
+  vehicleMakeCode: string | null;
+  vehicleModelCode: string | null;
+  vehicleMakeName: string;
+  vehicleModelName: string;
+  modelYear: number | null;
+  odometerKm: number | null;
+  serviceCategoryCodes: string[];
+  serviceCategoryNames: string[];
+  failureCategoryCodes: string[];
+  failureCategoryNames: string[];
+  serviceNotes: string;
   description: string;
   amount: number;
   platformFee: number;
@@ -78,8 +92,20 @@ export type CreateServiceRecordInput = {
   customerPhone: string;
   customerHasApp: boolean;
   vehicleNumber: string;
-  vehicleInfo: string;
-  description: string;
+  vehicleType: VehicleType | null;
+  vehicleMakeCode: string | null;
+  vehicleModelCode: string | null;
+  vehicleMakeOther: string;
+  vehicleModelOther: string;
+  vehicleMakeName: string;
+  vehicleModelName: string;
+  modelYear: number | null;
+  odometerKm: number | null;
+  serviceCategoryCodes: string[];
+  serviceCategoryNames: string[];
+  failureCategoryCodes: string[];
+  failureCategoryNames: string[];
+  serviceNotes: string;
   amount: number;
 };
 

@@ -125,6 +125,47 @@ export type Database = {
           },
         ]
       }
+      failure_categories: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          display_name: string
+          is_active: boolean
+          recommended_service_code: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          is_active?: boolean
+          recommended_service_code?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          is_active?: boolean
+          recommended_service_code?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "failure_categories_recommended_service_code_fkey"
+            columns: ["recommended_service_code"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       garage_services: {
         Row: {
           created_at: string
@@ -574,6 +615,102 @@ export type Database = {
           },
         ]
       }
+      service_categories: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          display_name: string
+          is_active: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_record_failures: {
+        Row: {
+          created_at: string
+          failure_category_code: string
+          service_record_id: string
+        }
+        Insert: {
+          created_at?: string
+          failure_category_code: string
+          service_record_id: string
+        }
+        Update: {
+          created_at?: string
+          failure_category_code?: string
+          service_record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_record_failures_failure_category_code_fkey"
+            columns: ["failure_category_code"]
+            isOneToOne: false
+            referencedRelation: "failure_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "service_record_failures_service_record_id_fkey"
+            columns: ["service_record_id"]
+            isOneToOne: false
+            referencedRelation: "service_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_record_services: {
+        Row: {
+          created_at: string
+          service_category_code: string
+          service_record_id: string
+        }
+        Insert: {
+          created_at?: string
+          service_category_code: string
+          service_record_id: string
+        }
+        Update: {
+          created_at?: string
+          service_category_code?: string
+          service_record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_record_services_service_category_code_fkey"
+            columns: ["service_category_code"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "service_record_services_service_record_id_fkey"
+            columns: ["service_record_id"]
+            isOneToOne: false
+            referencedRelation: "service_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_records: {
         Row: {
           amount: number
@@ -590,13 +727,22 @@ export type Database = {
           invoice_notification_status: Database["public"]["Enums"]["invoice_notification_status"]
           invoice_number: string | null
           is_reliable: boolean
+          model_year: number | null
+          odometer_km: number | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           platform_fee: number
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
+          service_notes: string | null
           status: Database["public"]["Enums"]["service_record_status"]
+          taxonomy_version: number
           updated_at: string
+          vehicle_make_code: string | null
+          vehicle_make_other: string | null
+          vehicle_model_code: string | null
+          vehicle_model_other: string | null
           vehicle_number: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
           verification_method:
             | Database["public"]["Enums"]["verification_method"]
             | null
@@ -616,13 +762,22 @@ export type Database = {
           invoice_notification_status?: Database["public"]["Enums"]["invoice_notification_status"]
           invoice_number?: string | null
           is_reliable?: boolean
+          model_year?: number | null
+          odometer_km?: number | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           platform_fee?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          service_notes?: string | null
           status?: Database["public"]["Enums"]["service_record_status"]
+          taxonomy_version?: number
           updated_at?: string
+          vehicle_make_code?: string | null
+          vehicle_make_other?: string | null
+          vehicle_model_code?: string | null
+          vehicle_model_other?: string | null
           vehicle_number?: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
           verification_method?:
             | Database["public"]["Enums"]["verification_method"]
             | null
@@ -642,13 +797,22 @@ export type Database = {
           invoice_notification_status?: Database["public"]["Enums"]["invoice_notification_status"]
           invoice_number?: string | null
           is_reliable?: boolean
+          model_year?: number | null
+          odometer_km?: number | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           platform_fee?: number
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          service_notes?: string | null
           status?: Database["public"]["Enums"]["service_record_status"]
+          taxonomy_version?: number
           updated_at?: string
+          vehicle_make_code?: string | null
+          vehicle_make_other?: string | null
+          vehicle_model_code?: string | null
+          vehicle_model_other?: string | null
           vehicle_number?: string | null
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
           verification_method?:
             | Database["public"]["Enums"]["verification_method"]
             | null
@@ -667,6 +831,91 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "garages"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_records_vehicle_make_code_fkey"
+            columns: ["vehicle_make_code"]
+            isOneToOne: false
+            referencedRelation: "vehicle_makes"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "service_records_vehicle_model_taxonomy_fkey"
+            columns: ["vehicle_model_code", "vehicle_make_code", "vehicle_type"]
+            isOneToOne: false
+            referencedRelation: "vehicle_models"
+            referencedColumns: ["code", "make_code", "vehicle_type"]
+          },
+        ]
+      }
+      vehicle_makes: {
+        Row: {
+          code: string
+          created_at: string
+          display_name: string
+          is_active: boolean
+          sort_order: number
+          updated_at: string
+          vehicle_types: Database["public"]["Enums"]["vehicle_type"][]
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_name: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+          vehicle_types: Database["public"]["Enums"]["vehicle_type"][]
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_name?: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+          vehicle_types?: Database["public"]["Enums"]["vehicle_type"][]
+        }
+        Relationships: []
+      }
+      vehicle_models: {
+        Row: {
+          code: string
+          created_at: string
+          display_name: string
+          is_active: boolean
+          make_code: string
+          sort_order: number
+          updated_at: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_name: string
+          is_active?: boolean
+          make_code: string
+          sort_order?: number
+          updated_at?: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_name?: string
+          is_active?: boolean
+          make_code?: string
+          sort_order?: number
+          updated_at?: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_models_make_code_fkey"
+            columns: ["make_code"]
+            isOneToOne: false
+            referencedRelation: "vehicle_makes"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -792,6 +1041,7 @@ export type Database = {
         | "completed"
         | "cancelled"
       verification_method: "whatsapp_otp" | "in_app"
+      vehicle_type: "2w" | "3w" | "4w" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -965,6 +1215,7 @@ export const Constants = {
         "cancelled",
       ],
       verification_method: ["whatsapp_otp", "in_app"],
+      vehicle_type: ["2w", "3w", "4w", "other"],
     },
   },
 } as const

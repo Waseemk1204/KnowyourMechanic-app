@@ -29,6 +29,11 @@ import type {
   GarageProfile,
   GarageServiceRecord
 } from "../garage/garageTypes";
+import {
+  fallbackServiceTaxonomy,
+  loadServiceTaxonomy,
+  vehicleTypeOptions
+} from "../garage/serviceTaxonomy";
 
 type ViewMode = "dashboard" | "onboarding" | "settings" | "addService" | "otp" | "payment";
 
@@ -94,6 +99,38 @@ function LabeledInput({
         style={[styles.input, multiline ? styles.textArea : null]}
         value={value}
       />
+    </View>
+  );
+}
+
+function ChipGroup({
+  label,
+  options,
+  selectedCodes,
+  onPress
+}: {
+  label: string;
+  options: Array<{ code: string; label: string }>;
+  selectedCodes: string[];
+  onPress(option: { code: string; label: string }): void;
+}) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.chipGrid}>
+        {options.map((option) => {
+          const selected = selectedCodes.includes(option.code);
+          return (
+            <Pressable
+              key={option.code}
+              onPress={() => onPress(option)}
+              style={[styles.choiceChip, selected ? styles.choiceChipSelected : null]}
+            >
+              <Text style={[styles.choiceChipText, selected ? styles.choiceChipTextSelected : null]}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -183,6 +220,29 @@ function buildOnboardingInput(garage: GarageProfile | null): GarageOnboardingInp
   };
 }
 
+function emptyServiceForm(): CreateServiceRecordInput {
+  return {
+    customerPhone: "",
+    customerHasApp: true,
+    vehicleNumber: "",
+    vehicleType: null,
+    vehicleMakeCode: null,
+    vehicleModelCode: null,
+    vehicleMakeOther: "",
+    vehicleModelOther: "",
+    vehicleMakeName: "",
+    vehicleModelName: "",
+    modelYear: null,
+    odometerKm: null,
+    serviceCategoryCodes: [],
+    serviceCategoryNames: [],
+    failureCategoryCodes: [],
+    failureCategoryNames: [],
+    serviceNotes: "",
+    amount: 0
+  };
+}
+
 export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
   const { signOut } = useAuth();
   const [state, setState] = useState<GarageDashboardState | null>(null);
@@ -191,14 +251,10 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [onboardingForm, setOnboardingForm] = useState<GarageOnboardingInput>(buildOnboardingInput(null));
-  const [serviceForm, setServiceForm] = useState<CreateServiceRecordInput>({
-    customerPhone: "",
-    customerHasApp: true,
-    vehicleNumber: "",
-    vehicleInfo: "",
-    description: "",
-    amount: 0
-  });
+  const [serviceForm, setServiceForm] = useState<CreateServiceRecordInput>(emptyServiceForm);
+  const [taxonomy, setTaxonomy] = useState(fallbackServiceTaxonomy);
+  const [useOtherMake, setUseOtherMake] = useState(false);
+  const [useOtherModel, setUseOtherModel] = useState(false);
   const [activeRecord, setActiveRecord] = useState<GarageServiceRecord | null>(null);
   const [otp, setOtp] = useState("");
   const [devOtp, setDevOtp] = useState("");
@@ -225,6 +281,7 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 
   useEffect(() => {
     refresh();
+    loadServiceTaxonomy().then(setTaxonomy);
   }, []);
 
   const stats = useMemo(() => {
@@ -260,10 +317,88 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 
   function validateService() {
     if (!phoneValid(serviceForm.customerPhone)) return "Valid customer phone is required.";
-    if (!required(serviceForm.vehicleNumber) && !required(serviceForm.vehicleInfo)) return "Vehicle number or vehicle info is required.";
-    if (!required(serviceForm.description)) return "Service description is required.";
+    if (!serviceForm.vehicleType) return "Vehicle type is required.";
+    if (serviceForm.vehicleType !== "other" && !required(serviceForm.vehicleNumber)) return "Vehicle number is required.";
+    if (!required(useOtherMake ? serviceForm.vehicleMakeOther : serviceForm.vehicleMakeName)) return "Vehicle make is required.";
+    if (!required(useOtherModel ? serviceForm.vehicleModelOther : serviceForm.vehicleModelName)) return "Vehicle model is required.";
+    if (serviceForm.modelYear !== null && (serviceForm.modelYear < 1950 || serviceForm.modelYear > new Date().getFullYear() + 1)) return "Valid model year is required.";
+    if (serviceForm.odometerKm !== null && (serviceForm.odometerKm < 0 || serviceForm.odometerKm > 5000000)) return "Valid odometer is required.";
+    if (serviceForm.serviceCategoryCodes.length === 0) return "Select at least one service category.";
+    if (serviceForm.failureCategoryCodes.length === 0) return "Select at least one failure category.";
     if (!serviceForm.amount || serviceForm.amount < 1) return "Amount must be at least Rs 1.";
     return "";
+  }
+
+  function selectVehicleType(code: string) {
+    const vehicleType = vehicleTypeOptions.find((option) => option.code === code)?.code ?? null;
+    setServiceForm((current) => ({
+      ...current,
+      vehicleType,
+      vehicleMakeCode: null,
+      vehicleModelCode: null,
+      vehicleMakeOther: "",
+      vehicleModelOther: "",
+      vehicleMakeName: "",
+      vehicleModelName: ""
+    }));
+    setUseOtherMake(vehicleType === "other");
+    setUseOtherModel(vehicleType === "other");
+  }
+
+  function selectMake(option: { code: string; label: string }) {
+    const other = option.code === "__other__";
+    setUseOtherMake(other);
+    setUseOtherModel(other);
+    setServiceForm((current) => ({
+      ...current,
+      vehicleMakeCode: other ? null : option.code,
+      vehicleMakeName: other ? "" : option.label,
+      vehicleMakeOther: "",
+      vehicleModelCode: null,
+      vehicleModelName: "",
+      vehicleModelOther: ""
+    }));
+  }
+
+  function selectModel(option: { code: string; label: string }) {
+    const other = option.code === "__other__";
+    setUseOtherModel(other);
+    setServiceForm((current) => ({
+      ...current,
+      vehicleModelCode: other ? null : option.code,
+      vehicleModelName: other ? "" : option.label,
+      vehicleModelOther: ""
+    }));
+  }
+
+  function toggleServiceCategory(option: { code: string; label: string }) {
+    setServiceForm((current) => {
+      const selected = current.serviceCategoryCodes.includes(option.code);
+      return {
+        ...current,
+        serviceCategoryCodes: selected
+          ? current.serviceCategoryCodes.filter((code) => code !== option.code)
+          : [...current.serviceCategoryCodes, option.code],
+        serviceCategoryNames: selected
+          ? current.serviceCategoryNames.filter((_, index) => current.serviceCategoryCodes[index] !== option.code)
+          : [...current.serviceCategoryNames, option.label]
+      };
+    });
+  }
+
+  function toggleFailureCategory(option: { code: string; label: string }) {
+    setServiceForm((current) => {
+      const selected = current.failureCategoryCodes.includes(option.code);
+      return {
+        ...current,
+        failureCategoryCodes: selected
+          ? current.failureCategoryCodes.filter((code) => code !== option.code)
+          : [...current.failureCategoryCodes, option.code],
+        failureCategoryNames: selected
+          ? current.failureCategoryNames.filter((_, index) => current.failureCategoryCodes[index] !== option.code)
+          : [...current.failureCategoryNames, option.label]
+      };
+    });
   }
 
   async function handleSaveOnboarding() {
@@ -313,14 +448,9 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
       setDevOtp(result.otp);
       setOtp("");
       await refresh("otp");
-      setServiceForm({
-        customerPhone: "",
-        customerHasApp: true,
-        vehicleNumber: "",
-        vehicleInfo: "",
-        description: "",
-        amount: 0
-      });
+      setServiceForm(emptyServiceForm());
+      setUseOtherMake(false);
+      setUseOtherModel(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create service record.");
     } finally {
@@ -381,6 +511,14 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
 
   const garage = state?.garage;
   const records = state?.serviceRecords ?? [];
+  const availableMakes = serviceForm.vehicleType
+    ? taxonomy.vehicleMakes.filter((make) => make.vehicleTypes.includes(serviceForm.vehicleType!))
+    : [];
+  const availableModels = serviceForm.vehicleType && serviceForm.vehicleMakeCode
+    ? taxonomy.vehicleModels.filter(
+        (model) => model.vehicleType === serviceForm.vehicleType && model.makeCode === serviceForm.vehicleMakeCode
+      )
+    : [];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -477,9 +615,62 @@ export function GarageWorkspace({ profile }: { profile: AuthProfile }) {
         <View style={styles.panel}>
           <SectionTitle title="Add Service Record" hint="Garage creates the record using customer mobile number." />
           <LabeledInput label="Customer phone" value={serviceForm.customerPhone} onChangeText={(value) => setServiceField("customerPhone", value)} keyboardType="phone-pad" />
-          <LabeledInput label="Vehicle number" value={serviceForm.vehicleNumber} onChangeText={(value) => setServiceField("vehicleNumber", value)} />
-          <LabeledInput label="Vehicle info" value={serviceForm.vehicleInfo} onChangeText={(value) => setServiceField("vehicleInfo", value)} />
-          <LabeledInput label="Service description" value={serviceForm.description} onChangeText={(value) => setServiceField("description", value)} multiline />
+          <ChipGroup
+            label="Vehicle type"
+            options={vehicleTypeOptions}
+            selectedCodes={serviceForm.vehicleType ? [serviceForm.vehicleType] : []}
+            onPress={(option) => selectVehicleType(option.code)}
+          />
+          {serviceForm.vehicleType ? (
+            <ChipGroup
+              label="Vehicle make"
+              options={[...availableMakes, { code: "__other__", label: "Other" }]}
+              selectedCodes={useOtherMake ? ["__other__"] : serviceForm.vehicleMakeCode ? [serviceForm.vehicleMakeCode] : []}
+              onPress={selectMake}
+            />
+          ) : null}
+          {useOtherMake ? (
+            <LabeledInput label="Other make" value={serviceForm.vehicleMakeOther} onChangeText={(value) => setServiceField("vehicleMakeOther", value)} />
+          ) : null}
+          {serviceForm.vehicleMakeCode || useOtherMake ? (
+            useOtherMake ? null : (
+              <ChipGroup
+                label="Vehicle model"
+                options={[...availableModels, { code: "__other__", label: "Other" }]}
+                selectedCodes={useOtherModel ? ["__other__"] : serviceForm.vehicleModelCode ? [serviceForm.vehicleModelCode] : []}
+                onPress={selectModel}
+              />
+            )
+          ) : null}
+          {useOtherModel ? (
+            <LabeledInput label="Other model" value={serviceForm.vehicleModelOther} onChangeText={(value) => setServiceField("vehicleModelOther", value)} />
+          ) : null}
+          <LabeledInput label="Vehicle number" value={serviceForm.vehicleNumber} onChangeText={(value) => setServiceField("vehicleNumber", value.toUpperCase())} />
+          <LabeledInput
+            label="Model year (optional)"
+            value={serviceForm.modelYear ? String(serviceForm.modelYear) : ""}
+            onChangeText={(value) => setServiceField("modelYear", value ? Number(value.replace(/\D/g, "")) : null)}
+            keyboardType="numeric"
+          />
+          <LabeledInput
+            label="Odometer km (optional)"
+            value={serviceForm.odometerKm !== null ? String(serviceForm.odometerKm) : ""}
+            onChangeText={(value) => setServiceField("odometerKm", value ? Number(value.replace(/\D/g, "")) : null)}
+            keyboardType="numeric"
+          />
+          <ChipGroup
+            label="Services performed (select all)"
+            options={taxonomy.serviceCategories}
+            selectedCodes={serviceForm.serviceCategoryCodes}
+            onPress={toggleServiceCategory}
+          />
+          <ChipGroup
+            label="Failures / symptoms (select all)"
+            options={taxonomy.failureCategories}
+            selectedCodes={serviceForm.failureCategoryCodes}
+            onPress={toggleFailureCategory}
+          />
+          <LabeledInput label="Service notes (optional)" value={serviceForm.serviceNotes} onChangeText={(value) => setServiceField("serviceNotes", value)} multiline />
           <LabeledInput
             label="Total amount"
             value={serviceForm.amount ? String(serviceForm.amount) : ""}
@@ -663,6 +854,31 @@ const styles = StyleSheet.create({
   },
   field: {
     marginBottom: 12
+  },
+  chipGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  choiceChip: {
+    backgroundColor: "#f8fafc",
+    borderColor: "#cbd5e1",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  choiceChipSelected: {
+    backgroundColor: "#2563eb",
+    borderColor: "#2563eb"
+  },
+  choiceChipText: {
+    color: "#334155",
+    fontSize: 13,
+    fontWeight: "700"
+  },
+  choiceChipTextSelected: {
+    color: "#ffffff"
   },
   label: {
     color: "#334155",
