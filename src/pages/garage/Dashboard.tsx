@@ -428,6 +428,7 @@ export default function GarageDashboard() {
                 {/* Add Service Modal */}
                 <AddServiceModal
                     isOpen={showAddService}
+                    garageId={garageId}
                     onClose={() => setShowAddService(false)}
                     onSuccess={() => {
                         setShowAddService(false);

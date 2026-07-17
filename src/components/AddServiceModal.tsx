@@ -1,529 +1,270 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X, Phone, IndianRupee, Send, Loader2, Check } from 'lucide-react';
 import {
-    X, Phone, FileText, IndianRupee, Send, Loader2,
-    Check, AlertTriangle, QrCode, Banknote, ArrowLeft
-} from 'lucide-react';
-
-type Step = 'form' | 'otp' | 'payment' | 'success';
+    getTaxonomy,
+    createServiceRecord,
+    type Taxonomy,
+} from '../lib/data';
 
 interface AddServiceModalProps {
     isOpen: boolean;
+    garageId: string;
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export default function AddServiceModal({ isOpen, onClose, onSuccess }: AddServiceModalProps) {
-    const [step, setStep] = useState<Step>('form');
+const VEHICLE_TYPES: Array<{ code: string; label: string }> = [
+    { code: '2w', label: '2W' },
+    { code: '3w', label: '3W' },
+    { code: '4w', label: '4W' },
+    { code: 'other', label: 'Other' },
+];
+
+export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }: AddServiceModalProps) {
+    const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [done, setDone] = useState(false);
 
-    // Form data
     const [customerPhone, setCustomerPhone] = useState('');
-    const [description, setDescription] = useState('');
+    const [vehicleType, setVehicleType] = useState('');
+    const [makeCode, setMakeCode] = useState('');
+    const [modelCode, setModelCode] = useState('');
+    const [vehicleNumber, setVehicleNumber] = useState('');
+    const [modelYear, setModelYear] = useState('');
+    const [odometer, setOdometer] = useState('');
+    const [serviceCodes, setServiceCodes] = useState<string[]>([]);
+    const [failureCodes, setFailureCodes] = useState<string[]>([]);
+    const [notes, setNotes] = useState('');
     const [amount, setAmount] = useState('');
 
-    // Service tracking
-    const [serviceId, setServiceId] = useState('');
-    const [otp, setOtp] = useState('');
-    const [serviceDetails, setServiceDetails] = useState<any>(null);
-    const [showCashWarning, setShowCashWarning] = useState(false);
-
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-    const getToken = async () => {
-        const { auth } = await import('../lib/firebase');
-        return auth.currentUser?.getIdToken();
-    };
-
-    const handleInitiate = async () => {
-        if (!customerPhone || !description || !amount) {
-            setError('All fields are required');
-            return;
+    useEffect(() => {
+        if (isOpen && !taxonomy) {
+            getTaxonomy().then(setTaxonomy).catch(() => setError('Could not load service options.'));
         }
+        if (!isOpen) {
+            setDone(false); setError(''); setCustomerPhone(''); setVehicleType('');
+            setMakeCode(''); setModelCode(''); setVehicleNumber(''); setModelYear('');
+            setOdometer(''); setServiceCodes([]); setFailureCodes([]); setNotes(''); setAmount('');
+        }
+    }, [isOpen, taxonomy]);
 
-        setLoading(true);
+    const makes = useMemo(
+        () => (taxonomy?.makes ?? []).filter((m) => !vehicleType || m.vehicle_types.includes(vehicleType)),
+        [taxonomy, vehicleType]
+    );
+    const models = useMemo(
+        () => (taxonomy?.models ?? []).filter((m) => m.make_code === makeCode && m.vehicle_type === vehicleType),
+        [taxonomy, makeCode, vehicleType]
+    );
+
+    const toggle = (list: string[], code: string, set: (v: string[]) => void) =>
+        set(list.includes(code) ? list.filter((c) => c !== code) : [...list, code]);
+
+    const canSubmit =
+        customerPhone.replace(/\D/g, '').length === 10 &&
+        !!vehicleType &&
+        (!!makeCode || vehicleType === 'other') &&
+        (!!modelCode || vehicleType === 'other') &&
+        serviceCodes.length > 0 &&
+        failureCodes.length > 0 &&
+        Number(amount) > 0;
+
+    const handleSubmit = async () => {
         setError('');
-
+        if (!garageId) { setError('Garage not loaded yet.'); return; }
+        setLoading(true);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/service-records/initiate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    customerPhone: customerPhone.startsWith('+91') ? customerPhone : `+91${customerPhone}`,
-                    description,
-                    amount: parseFloat(amount),
-                })
+            await createServiceRecord({
+                garageId,
+                customerPhone,
+                vehicleType,
+                vehicleMakeCode: makeCode || null,
+                vehicleModelCode: modelCode || null,
+                vehicleMakeOther: vehicleType === 'other' ? 'Other' : null,
+                vehicleModelOther: vehicleType === 'other' ? 'Other' : null,
+                vehicleNumber: vehicleNumber.trim().toUpperCase() || null,
+                modelYear: modelYear ? Number(modelYear) : null,
+                odometerKm: odometer ? Number(odometer) : null,
+                serviceCodes,
+                failureCodes,
+                serviceNotes: notes.trim() || null,
+                amount: Number(amount),
+                customerHasApp: true,
             });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setServiceId(data.serviceId);
-                setStep('otp');
-                // For testing, show OTP visibly
-                if (data._testOTP) {
-                    console.log('Test OTP:', data._testOTP);
-                    alert(`TEST OTP: ${data._testOTP}\n\nIn production, this will be sent via WhatsApp.`);
-                }
-            } else {
-                console.error('Service initiate error:', data);
-                setError(data.message || 'Failed to send OTP');
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
+            setDone(true);
+            onSuccess();
+        } catch (err: any) {
+            setError(err.message || 'Could not create the service record.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleVerifyOtp = async () => {
-        if (!otp || otp.length !== 6) {
-            setError('Please enter 6-digit OTP');
-            return;
-        }
-
-        setLoading(true);
-        setError('');
-
-        try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/service-records/verify-otp`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ serviceId, otp })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setServiceDetails(data);
-                setStep('payment');
-            } else {
-                setError(data.message || 'Invalid OTP');
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlePayment = async (method: 'cash' | 'razorpay') => {
-        setLoading(true);
-        setError('');
-
-        try {
-            const token = await getToken();
-
-            if (method === 'razorpay') {
-                // Step 1: Create order via backend
-                const orderRes = await fetch(`${getApiUrl()}/payments/create-order`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ serviceId }),
-                });
-
-                if (!orderRes.ok) {
-                    const err = await orderRes.json();
-                    if (orderRes.status === 503) {
-                        // Razorpay not configured — fall back to cash
-                        setError('Online payment not available yet. Please use cash.');
-                        setLoading(false);
-                        return;
-                    }
-                    setError(err.message || 'Failed to create payment order');
-                    setLoading(false);
-                    return;
-                }
-
-                const orderData = await orderRes.json();
-
-                // Step 2: Load Razorpay script if not already loaded
-                if (!(window as any).Razorpay) {
-                    await new Promise<void>((resolve, reject) => {
-                        const script = document.createElement('script');
-                        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-                        script.onload = () => resolve();
-                        script.onerror = () => reject(new Error('Failed to load Razorpay'));
-                        document.body.appendChild(script);
-                    });
-                }
-
-                // Step 3: Open Razorpay checkout
-                setLoading(false); // Allow user to interact with popup
-                const rzp = new (window as any).Razorpay({
-                    key: orderData.keyId,
-                    amount: orderData.amount,
-                    currency: orderData.currency,
-                    name: 'KnowyourMechanic',
-                    description: description || 'Service Payment',
-                    order_id: orderData.orderId,
-                    handler: async (response: any) => {
-                        // Step 4: Verify payment
-                        setLoading(true);
-                        try {
-                            const verifyRes = await fetch(`${getApiUrl()}/payments/verify`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({
-                                    orderId: response.razorpay_order_id,
-                                    paymentId: response.razorpay_payment_id,
-                                    signature: response.razorpay_signature,
-                                    serviceId,
-                                }),
-                            });
-
-                            if (verifyRes.ok) {
-                                // Step 5: Complete the service
-                                const completeRes = await fetch(`${getApiUrl()}/service-records/complete`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${token}`,
-                                    },
-                                    body: JSON.stringify({
-                                        serviceId,
-                                        paymentMethod: 'razorpay',
-                                    }),
-                                });
-
-                                if (completeRes.ok) {
-                                    setStep('success');
-                                    setTimeout(() => {
-                                        onSuccess();
-                                        resetForm();
-                                    }, 2000);
-                                } else {
-                                    setError('Payment verified but service completion failed. Contact support.');
-                                }
-                            } else {
-                                setError('Payment verification failed');
-                            }
-                        } catch {
-                            setError('Error verifying payment');
-                        } finally {
-                            setLoading(false);
-                        }
-                    },
-                    modal: {
-                        ondismiss: () => {
-                            setLoading(false);
-                        },
-                    },
-                    theme: {
-                        color: '#2563eb',
-                    },
-                });
-                rzp.open();
-                return; // Don't proceed to complete below
-            }
-
-            // Cash payment flow
-            const res = await fetch(`${getApiUrl()}/service-records/complete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    serviceId,
-                    paymentMethod: method,
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                setStep('success');
-                setTimeout(() => {
-                    onSuccess();
-                    resetForm();
-                }, 2000);
-            } else {
-                setError(data.message || 'Payment failed');
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const resetForm = () => {
-        setStep('form');
-        setCustomerPhone('');
-        setDescription('');
-        setAmount('');
-        setOtp('');
-        setServiceId('');
-        setServiceDetails(null);
-        setError('');
-    };
-
-    const handleClose = () => {
-        resetForm();
-        onClose();
-    };
-
-    if (!isOpen) return null;
+    const chip = (active: boolean) =>
+        `px-4 py-2 rounded-full text-sm font-semibold transition-all ${active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`;
 
     return (
         <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center"
-                onClick={handleClose}
-            >
+            {isOpen && (
                 <motion.div
-                    initial={{ y: '100%' }}
-                    animate={{ y: 0 }}
-                    exit={{ y: '100%' }}
-                    onClick={(e) => e.stopPropagation()}
-                    className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center"
+                    onClick={onClose}
                 >
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
-                        {step !== 'form' && step !== 'success' && (
-                            <button onClick={() => setStep(step === 'payment' ? 'otp' : 'form')}>
-                                <ArrowLeft className="w-6 h-6 text-slate-400" />
-                            </button>
-                        )}
-                        <h3 className="text-xl font-bold text-slate-900 flex-1 text-center">
-                            {step === 'form' && 'Add Service'}
-                            {step === 'otp' && 'Verify OTP'}
-                            {step === 'payment' && 'Select Payment'}
-                            {step === 'success' && 'Success!'}
-                        </h3>
-                        <button onClick={handleClose}>
-                            <X className="w-6 h-6 text-slate-400" />
-                        </button>
-                    </div>
-
-                    {error && (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4" />
-                            {error}
-                        </div>
-                    )}
-
-                    {/* Step: Form */}
-                    {step === 'form' && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                    Customer Phone
-                                </label>
-                                <div className="relative">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                    <input
-                                        type="tel"
-                                        value={customerPhone}
-                                        onChange={(e) => setCustomerPhone(e.target.value)}
-                                        placeholder="9876543210"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                    Service Description
-                                </label>
-                                <div className="relative">
-                                    <FileText className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
-                                    <textarea
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Oil change, brake repair, etc."
-                                        rows={3}
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                    Amount (₹)
-                                </label>
-                                <div className="relative">
-                                    <IndianRupee className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                    <input
-                                        type="number"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        placeholder="500"
-                                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={handleInitiate}
-                                disabled={loading}
-                                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        <Send className="w-5 h-5" />
-                                        Send OTP to Customer
-                                    </>
-                                )}
+                    <motion.div
+                        initial={{ y: 60, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 60, opacity: 0 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+                        className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sticky top-0 bg-white flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+                            <h2 className="text-2xl font-black text-slate-900">Add Service</h2>
+                            <button onClick={onClose} className="text-slate-400 active:scale-90 transition-transform">
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
-                    )}
 
-                    {/* Step: OTP */}
-                    {step === 'otp' && (
-                        <div className="space-y-4">
-                            <p className="text-slate-500 text-center mb-4">
-                                Ask the customer for the OTP sent to their phone.
-                            </p>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2 text-center">
-                                    Enter 6-digit OTP
-                                </label>
-                                <input
-                                    type="text"
-                                    value={otp}
-                                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    placeholder="000000"
-                                    className="w-full text-center text-2xl tracking-widest py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    maxLength={6}
-                                />
+                        {done ? (
+                            <div className="p-8 flex flex-col items-center text-center">
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                                    <Check className="w-8 h-8 text-green-600" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-1">Service record created</h3>
+                                <p className="text-slate-500">
+                                    The customer OTP will be sent once SMS delivery is live. It now appears on your dashboard.
+                                </p>
+                                <button onClick={onClose} className="mt-6 w-full h-14 btn-premium rounded-2xl font-bold text-white">
+                                    Done
+                                </button>
                             </div>
-
-                            <button
-                                onClick={handleVerifyOtp}
-                                disabled={loading || otp.length !== 6}
-                                className="w-full bg-green-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        <Check className="w-5 h-5" />
-                                        Verify OTP
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Step: Payment */}
-                    {step === 'payment' && serviceDetails && (
-                        <div className="space-y-4">
-                            <div className="bg-slate-50 rounded-2xl p-4 mb-4">
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-slate-500">Service Amount</span>
-                                    <span className="text-slate-900">₹{serviceDetails.garageEarnings}</span>
-                                </div>
-                                <div className="flex justify-between mb-2">
-                                    <span className="text-slate-500">Platform Fee</span>
-                                    <span className="text-slate-500">+₹{serviceDetails.platformFee}</span>
-                                </div>
-                                <div className="flex justify-between pt-2 border-t border-slate-200">
-                                    <span className="font-bold">Total Amount</span>
-                                    <span className="font-bold text-slate-900">₹{(parseFloat(serviceDetails.garageEarnings) + parseFloat(serviceDetails.platformFee)).toFixed(2)}</span>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => handlePayment('razorpay')}
-                                disabled={loading}
-                                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 disabled:opacity-50"
-                            >
-                                <QrCode className="w-5 h-5" />
-                                Pay with QR / Razorpay
-                            </button>
-
-                            <button
-                                onClick={() => setShowCashWarning(true)}
-                                disabled={loading}
-                                className="w-full bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 disabled:opacity-50"
-                            >
-                                <Banknote className="w-5 h-5" />
-                                Cash Payment
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Cash Payment Warning Modal */}
-                    <AnimatePresence>
-                        {showCashWarning && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-10 flex items-center justify-center p-6"
-                            >
-                                <div className="flex flex-col items-center text-center w-full max-w-xs">
-                                    <div className="w-28 h-28 bg-amber-500/20 rounded-full flex items-center justify-center mb-6">
-                                        <AlertTriangle className="w-14 h-14 text-amber-400" />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-white mb-2">Cash Payment</h3>
-                                    <p className="text-white/70 text-base mb-8">
-                                        Will be marked as less reliable
-                                    </p>
-                                    <div className="w-full space-y-3">
-                                        <button
-                                            onClick={() => setShowCashWarning(false)}
-                                            className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold"
-                                        >
-                                            Use QR / Razorpay
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setShowCashWarning(false);
-                                                handlePayment('cash');
-                                            }}
-                                            disabled={loading}
-                                            className="w-full bg-white/10 text-white/80 py-4 rounded-2xl font-medium disabled:opacity-50"
-                                        >
-                                            {loading ? (
-                                                <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                                            ) : (
-                                                'Continue with Cash'
-                                            )}
-                                        </button>
+                        ) : (
+                            <div className="p-6 space-y-5">
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Customer phone</label>
+                                    <div className="relative mt-2">
+                                        <Phone className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                                        <input
+                                            type="tel"
+                                            value={customerPhone}
+                                            onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                            placeholder="10-digit number"
+                                            className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-4 text-lg font-medium"
+                                        />
                                     </div>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
 
-                    {/* Step: Success */}
-                    {step === 'success' && (
-                        <div className="text-center py-8">
-                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Check className="w-10 h-10 text-green-600" />
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Vehicle type</label>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {VEHICLE_TYPES.map((t) => (
+                                            <button
+                                                key={t.code}
+                                                onClick={() => { setVehicleType(t.code); setMakeCode(''); setModelCode(''); }}
+                                                className={chip(vehicleType === t.code)}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {vehicleType && vehicleType !== 'other' && (
+                                    <div>
+                                        <label className="text-sm font-semibold text-slate-600">Make</label>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {makes.map((m) => (
+                                                <button key={m.code} onClick={() => { setMakeCode(m.code); setModelCode(''); }} className={chip(makeCode === m.code)}>
+                                                    {m.display_name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {makeCode && (
+                                    <div>
+                                        <label className="text-sm font-semibold text-slate-600">Model</label>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {models.map((m) => (
+                                                <button key={m.code} onClick={() => setModelCode(m.code)} className={chip(modelCode === m.code)}>
+                                                    {m.display_name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-sm font-semibold text-slate-600">Vehicle no.</label>
+                                        <input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} placeholder="MH12AB1234" className="w-full h-12 bg-slate-50 rounded-xl px-3 mt-2 font-medium" />
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-semibold text-slate-600">Year</label>
+                                        <input value={modelYear} onChange={(e) => setModelYear(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="2021" className="w-full h-12 bg-slate-50 rounded-xl px-3 mt-2 font-medium" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Odometer (km)</label>
+                                    <input value={odometer} onChange={(e) => setOdometer(e.target.value.replace(/\D/g, ''))} placeholder="Optional" className="w-full h-12 bg-slate-50 rounded-xl px-3 mt-2 font-medium" />
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Services performed</label>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {(taxonomy?.services ?? []).map((s) => (
+                                            <button key={s.code} onClick={() => toggle(serviceCodes, s.code, setServiceCodes)} className={chip(serviceCodes.includes(s.code))}>
+                                                {s.display_name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Failures / symptoms</label>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {(taxonomy?.failures ?? []).map((f) => (
+                                            <button key={f.code} onClick={() => toggle(failureCodes, f.code, setFailureCodes)} className={chip(failureCodes.includes(f.code))}>
+                                                {f.display_name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Notes (optional)</label>
+                                    <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full bg-slate-50 rounded-2xl px-4 py-3 mt-2 font-medium" />
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-semibold text-slate-600">Total amount</label>
+                                    <div className="relative mt-2">
+                                        <IndianRupee className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                                        <input value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="0" className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-4 text-lg font-semibold" />
+                                    </div>
+                                </div>
+
+                                {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
+
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={!canSubmit || loading}
+                                    className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40"
+                                >
+                                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (<><Send className="w-5 h-5" /> Create record &amp; send OTP</>)}
+                                </button>
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-2">Service Recorded!</h3>
-                            <p className="text-slate-500">Added to your portfolio</p>
-                        </div>
-                    )}
+                        )}
+                    </motion.div>
                 </motion.div>
-            </motion.div>
+            )}
         </AnimatePresence>
     );
 }
