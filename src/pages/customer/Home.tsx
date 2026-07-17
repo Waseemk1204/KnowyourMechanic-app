@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useLocation } from '../../hooks/useLocation';
 import { useAuth } from '../../contexts/AuthContext';
 import { discoverGarages, type GarageProfile } from '../../lib/api';
+import { getUnratedGarage, submitReview } from '../../lib/data';
+import { supabase } from '../../lib/supabase';
 import GarageMap from '../../components/GarageMap';
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -139,49 +141,24 @@ export default function CustomerHome() {
         }
     }, [showProfilePanel]);
 
-    // Fetch unrated services and pending approvals
+    // Fetch unrated services and pending approvals (once the profile is loaded)
     useEffect(() => {
+        if (!userData?._id) return;
         fetchUnratedService();
         fetchPendingApprovals();
-    }, []);
-
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-    const getToken = async () => {
-        const { auth } = await import('../../lib/firebase');
-        return auth.currentUser?.getIdToken();
-    };
+    }, [userData?._id]);
 
     const fetchPendingApprovals = async () => {
-        try {
-            const token = await getToken();
-            if (!token) return;
-            const res = await fetch(`${getApiUrl()}/service-records/pending-approvals`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setPendingApprovals(data);
-            }
-        } catch (err) {
-            console.error('Fetch pending approvals error:', err);
-        }
+        // The OTP verification step now serves as the customer's approval, so there is no
+        // separate "pending approval" queue in the new flow. Kept as a no-op for the UI.
+        setPendingApprovals([]);
     };
 
     const handleApproveService = async (serviceId: string) => {
         setApprovingId(serviceId);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/service-records/approve`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ serviceId }),
-            });
-            if (res.ok) {
-                setPendingApprovals(prev => prev.filter(p => p._id !== serviceId));
-            }
+            await supabase.from('service_records').update({ approved_by_customer: true }).eq('id', serviceId);
+            setPendingApprovals(prev => prev.filter(p => p._id !== serviceId));
         } catch (err) {
             console.error('Approve service error:', err);
         } finally {
@@ -192,15 +169,8 @@ export default function CustomerHome() {
     const handleRejectService = async (serviceId: string) => {
         setApprovingId(serviceId);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/service-records/reject`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ serviceId }),
-            });
-            if (res.ok) {
-                setPendingApprovals(prev => prev.filter(p => p._id !== serviceId));
-            }
+            await supabase.from('service_records').update({ approved_by_customer: false }).eq('id', serviceId);
+            setPendingApprovals(prev => prev.filter(p => p._id !== serviceId));
         } catch (err) {
             console.error('Reject service error:', err);
         } finally {
@@ -210,41 +180,15 @@ export default function CustomerHome() {
 
     const fetchUnratedService = async () => {
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            if (!token) return;
-
-            // Get customer's service history
-            const servicesRes = await fetch(`${getApiUrl()}/service-records/my-history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!servicesRes.ok) return;
-            const services = await servicesRes.json();
-
-            // Check each service for existing review
-            for (const service of services) {
-                const garageId = service.garageId?._id;
-                if (!garageId) continue;
-
-                const reviewRes = await fetch(`${getApiUrl()}/reviews/my-review/${garageId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+            if (!userData?._id || !userData?.phoneNumber) return;
+            const unrated = await getUnratedGarage(userData._id, userData.phoneNumber);
+            if (unrated) {
+                setUnratedService({
+                    garageId: unrated.garageId,
+                    garageName: unrated.garageName,
+                    serviceDescription: unrated.serviceDescription,
+                    serviceDate: unrated.serviceDate,
                 });
-
-                if (reviewRes.ok) {
-                    const reviewData = await reviewRes.json();
-                    if (!reviewData.review) {
-                        // Found an unrated service
-                        setUnratedService({
-                            garageId,
-                            garageName: service.garageId?.name || 'Unknown Garage',
-                            garagePhoto: service.garageId?.photoUrl,
-                            serviceDescription: service.description,
-                            serviceDate: service.createdAt
-                        });
-                        return;
-                    }
-                }
             }
         } catch (error) {
             console.error('Error fetching unrated services:', error);
@@ -252,36 +196,17 @@ export default function CustomerHome() {
     };
 
     const handleSubmitReview = async () => {
-        if (reviewRating === 0 || !unratedService) return;
+        if (reviewRating === 0 || !unratedService || !userData?._id) return;
 
         setSubmittingReview(true);
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    garageId: unratedService.garageId,
-                    rating: reviewRating,
-                    comment: reviewComment
-                })
-            });
-
-            if (res.ok) {
-                setUnratedService(null);
-                setReviewRating(0);
-                setReviewComment('');
-            } else {
-                const errData = await res.json();
-                alert(errData.message || 'Failed to submit review');
-            }
+            await submitReview(userData._id, unratedService.garageId, reviewRating, reviewComment);
+            setUnratedService(null);
+            setReviewRating(0);
+            setReviewComment('');
         } catch (error) {
             console.error('Error submitting review:', error);
+            alert('Failed to submit review');
         } finally {
             setSubmittingReview(false);
         }
@@ -289,7 +214,7 @@ export default function CustomerHome() {
 
     const navigate = useNavigate();
     const { location, loading, permissionDenied } = useLocation();
-    const { logout } = useAuth();
+    const { logout, userData } = useAuth();
 
     console.log('CustomerHome render:', { loading, location, garagesCount: garages.length, isLoadingGarages });
 

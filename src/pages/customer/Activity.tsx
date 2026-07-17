@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Wrench, Loader2, Calendar, AlertCircle, ArrowLeft, Star, X, Check, Edit2, Flag, Download, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getCustomerServiceHistory } from '../../lib/data';
+import { getCustomerServiceHistory, getMyReview, submitReview, submitReport } from '../../lib/data';
 
 interface ServiceRecord {
     _id: string;
@@ -57,10 +57,6 @@ export default function CustomerActivity() {
         if (userData?.phoneNumber) fetchServiceHistory();
     }, [userData?.phoneNumber]);
 
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
     const fetchServiceHistory = async () => {
         try {
             const phone = userData?.phoneNumber;
@@ -77,25 +73,20 @@ export default function CustomerActivity() {
                 createdAt: r.created_at,
             }));
             setServices(mapped);
+
+            // Load the customer's own reviews for the garages in their history.
+            const uniqueGarageIds = [...new Set(mapped.map((s) => s.garageId?._id).filter(Boolean))] as string[];
+            if (userData?._id) {
+                const entries = await Promise.all(
+                    uniqueGarageIds.map(async (gid) => [gid, await getMyReview(userData._id, gid)] as const),
+                );
+                setGarageReviews(Object.fromEntries(entries));
+            }
         } catch (err) {
             console.error('Error fetching service history:', err);
             setError('Failed to load service history');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchMyReview = async (garageId: string, token: string) => {
-        try {
-            const res = await fetch(`${getApiUrl()}/reviews/my-review/${garageId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setGarageReviews(prev => ({ ...prev, [garageId]: data.review }));
-            }
-        } catch (err) {
-            console.error('Error fetching review:', err);
         }
     };
 
@@ -112,34 +103,13 @@ export default function CustomerActivity() {
     };
 
     const handleSubmitReview = async () => {
-        if (reviewRating === 0 || !reviewingGarageId) return;
+        if (reviewRating === 0 || !reviewingGarageId || !userData?._id) return;
 
         setSubmittingReview(true);
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    garageId: reviewingGarageId,
-                    rating: reviewRating,
-                    comment: reviewComment
-                })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setGarageReviews(prev => ({ ...prev, [reviewingGarageId]: data.review }));
-                setReviewingGarageId(null);
-            } else {
-                const errData = await res.json();
-                alert(errData.message || 'Failed to submit review');
-            }
+            const review = await submitReview(userData._id, reviewingGarageId, reviewRating, reviewComment);
+            setGarageReviews(prev => ({ ...prev, [reviewingGarageId]: review }));
+            setReviewingGarageId(null);
         } catch (error) {
             console.error('Error submitting review:', error);
             alert('Failed to submit review');
@@ -162,35 +132,48 @@ export default function CustomerActivity() {
     }
 
     const handleSubmitReport = async () => {
-        if (!reportReason || !reportDescription.trim() || !reportGarageId) return;
+        if (!reportReason || !reportDescription.trim() || !reportGarageId || !userData?._id) return;
         setSubmittingReport(true);
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            const res = await fetch(`${getApiUrl()}/reports`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    garageId: reportGarageId,
-                    reason: reportReason,
-                    description: reportDescription,
-                }),
+            await submitReport({
+                reporterProfileId: userData._id,
+                garageId: reportGarageId,
+                reason: reportReason,
+                description: reportDescription,
             });
-            if (res.ok) {
-                setReportSuccess(true);
-                setTimeout(() => setReportGarageId(null), 2000);
-            } else {
-                const data = await res.json();
-                alert(data.message || 'Failed to submit report');
-            }
-        } catch {
-            alert('Network error. Please try again.');
+            setReportSuccess(true);
+            setTimeout(() => setReportGarageId(null), 2000);
+        } catch (err) {
+            console.error('Error submitting report:', err);
+            alert('Failed to submit report. Please try again.');
         } finally {
             setSubmittingReport(false);
         }
+    };
+
+    // Client-side invoice: builds a printable HTML file from the record we already have.
+    // (A richer PDF invoice can replace this later.)
+    const downloadInvoice = (service: ServiceRecord) => {
+        const html = `<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${service._id}</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;color:#0f172a;max-width:600px;margin:40px auto;padding:0 24px}
+h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e2e8f0}
+.total{font-weight:700;font-size:18px;border-bottom:none;padding-top:16px}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#16a34a}</style></head>
+<body><h1>KnowYourMechanic</h1><p class="muted">Service Invoice</p><div style="margin:24px 0">
+<div class="row"><span class="muted">Garage</span><span>${service.garageId?.name || 'Garage'}</span></div>
+<div class="row"><span class="muted">Service</span><span>${service.description || '-'}</span></div>
+<div class="row"><span class="muted">Date</span><span>${formatDate(service.createdAt)}</span></div>
+<div class="row"><span class="muted">Payment</span><span>${(service.paymentMethod || 'cash').toUpperCase()} ${service.isReliable ? '<span class="badge">Verified</span>' : ''}</span></div>
+<div class="row"><span class="muted">Invoice ID</span><span>${service._id}</span></div>
+<div class="row total"><span>Total</span><span>&#8377;${service.amount}</span></div>
+</div><p class="muted">Thank you for using KnowYourMechanic.</p></body></html>`;
+        const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice-${service._id}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     const mainContent = (
@@ -365,27 +348,9 @@ export default function CustomerActivity() {
                                     {garageId && (
                                         <div className="flex flex-col ml-3 mt-1 gap-1">
                                             <button
-                                                onClick={async (e) => {
+                                                onClick={(e) => {
                                                     e.stopPropagation();
-                                                    try {
-                                                        const { auth } = await import('../../lib/firebase');
-                                                        const token = await auth.currentUser?.getIdToken();
-                                                        const apiUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-                                                        const res = await fetch(`${apiUrl}/service-records/invoice/${service._id}`, {
-                                                            headers: { 'Authorization': `Bearer ${token}` },
-                                                        });
-                                                        if (res.ok) {
-                                                            const blob = await res.blob();
-                                                            const url = URL.createObjectURL(blob);
-                                                            const a = document.createElement('a');
-                                                            a.href = url;
-                                                            a.download = `Invoice-${service._id}.pdf`;
-                                                            a.click();
-                                                            URL.revokeObjectURL(url);
-                                                        }
-                                                    } catch (err) {
-                                                        console.error('Invoice download error:', err);
-                                                    }
+                                                    downloadInvoice(service);
                                                 }}
                                                 className="p-2 text-slate-300 hover:text-blue-500 transition-colors"
                                                 title="Download Invoice"

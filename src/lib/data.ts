@@ -655,3 +655,94 @@ export async function getCustomerServiceHistory(phone: string): Promise<ServiceR
     }
     return (data ?? []) as ServiceRecordRow[];
 }
+
+// ---- Reviews (customer) ----
+export interface MyReview {
+    rating: number;
+    comment: string | null;
+}
+
+// The current customer's review for a garage, or null if they haven't reviewed it.
+export async function getMyReview(customerProfileId: string, garageId: string): Promise<MyReview | null> {
+    const { data, error } = await supabase
+        .from('reviews')
+        .select('rating,comment')
+        .eq('customer_profile_id', customerProfileId)
+        .eq('garage_id', garageId)
+        .maybeSingle();
+    if (error) {
+        console.error('getMyReview error', error);
+        return null;
+    }
+    return data ? { rating: data.rating, comment: data.comment } : null;
+}
+
+// Create or update the customer's review for a garage (one per customer+garage).
+export async function submitReview(
+    customerProfileId: string,
+    garageId: string,
+    rating: number,
+    comment: string,
+): Promise<MyReview> {
+    const { data, error } = await supabase
+        .from('reviews')
+        .upsert(
+            {
+                customer_profile_id: customerProfileId,
+                garage_id: garageId,
+                rating,
+                comment: comment.trim() || null,
+                updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'customer_profile_id,garage_id' },
+        )
+        .select('rating,comment')
+        .single();
+    if (error) throw new Error(error.message);
+    return { rating: data.rating, comment: data.comment };
+}
+
+// ---- Reports (customer) ----
+export async function submitReport(p: {
+    reporterProfileId: string;
+    garageId: string;
+    reason: string;
+    description: string;
+    serviceRecordId?: string;
+}): Promise<void> {
+    const { error } = await supabase.from('reports').insert({
+        reporter_profile_id: p.reporterProfileId,
+        garage_id: p.garageId,
+        reason: p.reason,
+        description: p.description.trim() || null,
+        service_record_id: p.serviceRecordId ?? null,
+    });
+    if (error) throw new Error(error.message);
+}
+
+// First completed-service garage the customer hasn't reviewed yet (for the "rate this" nudge).
+// Returns null if everything is reviewed or there's no history.
+export interface UnratedGarage {
+    garageId: string;
+    garageName: string;
+    serviceDescription: string;
+    serviceDate: string;
+}
+export async function getUnratedGarage(customerProfileId: string, phone: string): Promise<UnratedGarage | null> {
+    const history = await getCustomerServiceHistory(phone);
+    const seen = new Set<string>();
+    for (const svc of history) {
+        if (!svc.garage_id || seen.has(svc.garage_id)) continue;
+        seen.add(svc.garage_id);
+        const review = await getMyReview(customerProfileId, svc.garage_id);
+        if (!review) {
+            return {
+                garageId: svc.garage_id,
+                garageName: svc.garage_name,
+                serviceDescription: svc.description,
+                serviceDate: svc.created_at,
+            };
+        }
+    }
+    return null;
+}
