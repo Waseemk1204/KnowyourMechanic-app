@@ -5,12 +5,7 @@ import {
     ArrowLeft, Loader2, Flag, AlertTriangle, Shield, CheckCircle,
     XCircle, Clock, ChevronDown, Building2, User
 } from 'lucide-react';
-
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getAdminReports, updateReportStatus } from '../../lib/data';
 
 const REASON_LABELS: Record<string, string> = {
     fraud: 'Fraud / Scam',
@@ -50,14 +45,8 @@ export default function AdminReports() {
 
     const fetchReports = async () => {
         try {
-            const token = await getToken();
-            const url = filter === 'all'
-                ? `${getApiUrl()}/admin/reports`
-                : `${getApiUrl()}/admin/reports?status=${filter}`;
-            const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) setReports(await res.json());
+            const all = await getAdminReports();
+            setReports(filter === 'all' ? all : all.filter((r) => r.status === filter));
         } catch (err) {
             console.error('Fetch reports error:', err);
         } finally {
@@ -68,13 +57,8 @@ export default function AdminReports() {
     const updateStatus = async (id: string, status: string) => {
         setUpdating(id);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/reports/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status }),
-            });
-            if (res.ok) fetchReports();
+            await updateReportStatus(id, status);
+            fetchReports();
         } catch (err) {
             console.error('Update status error:', err);
         } finally {

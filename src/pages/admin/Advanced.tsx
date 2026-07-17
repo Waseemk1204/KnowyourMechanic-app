@@ -4,12 +4,7 @@ import {
     Users, Car, Building2, TrendingUp, IndianRupee, Loader2,
     CalendarDays, Banknote, ShieldAlert, Activity
 } from 'lucide-react';
-
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getAdvancedStats } from '../../lib/data';
 
 interface AdvancedStats {
     totalUsers: number;
@@ -30,11 +25,7 @@ export default function AdminAdvanced() {
 
     const fetchStats = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/advanced-stats`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) setStats(await res.json());
+            setStats(await getAdvancedStats());
         } catch (err) {
             console.error('Fetch advanced stats error:', err);
         } finally {

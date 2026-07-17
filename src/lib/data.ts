@@ -196,6 +196,113 @@ export async function createAdminEmployee(p: { name: string; email: string; phon
     if (error) throw new Error(error.message);
 }
 
+export interface EmployeePerformanceRow {
+    _id: string;
+    name: string;
+    referralCode: string;
+    totalGarages: number;
+    totalServices: number;
+    totalRevenue: number;
+    avgGaragesPerDay: string;
+    avgTransactionsPerDay: string;
+}
+
+export async function getAdminPerformance(): Promise<EmployeePerformanceRow[]> {
+    const emps = await getAdminEmployees();
+    const { data: gar } = await supabase.from('garages').select('id,assigned_employee_id');
+    const garToEmp = new Map<string, string>();
+    for (const g of gar ?? []) {
+        const id = (g as any).assigned_employee_id;
+        if (id) garToEmp.set((g as any).id, id);
+    }
+    const { data: recs } = await supabase.from('service_records').select('garage_id,platform_fee').eq('status', 'completed');
+    const byEmp = new Map<string, { services: number; revenue: number }>();
+    for (const r of recs ?? []) {
+        const emp = garToEmp.get((r as any).garage_id);
+        if (!emp) continue;
+        const a = byEmp.get(emp) ?? { services: 0, revenue: 0 };
+        a.services += 1;
+        a.revenue += Number((r as any).platform_fee || 0);
+        byEmp.set(emp, a);
+    }
+    return emps
+        .map((e) => ({
+            _id: e._id,
+            name: e.name,
+            referralCode: e.referralCode,
+            totalGarages: e.garageCount,
+            totalServices: byEmp.get(e._id)?.services ?? 0,
+            totalRevenue: byEmp.get(e._id)?.revenue ?? 0,
+            avgGaragesPerDay: '0',
+            avgTransactionsPerDay: ((byEmp.get(e._id)?.services ?? 0) / 30).toFixed(1),
+        }))
+        .sort((a, b) => b.totalRevenue - a.totalRevenue);
+}
+
+export interface AdvancedStatsRow {
+    totalUsers: number;
+    totalVehicles: number;
+    totalGarages: number;
+    mrr: number;
+    arr: number;
+    allTimeGMV: number;
+}
+
+export async function getAdvancedStats(): Promise<AdvancedStatsRow> {
+    const [users, garages, recsRes] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('garages').select('id', { count: 'exact', head: true }),
+        supabase.from('service_records').select('amount,platform_fee,vehicle_number').eq('status', 'completed'),
+    ]);
+    const recs = (recsRes.data ?? []) as { amount: number; platform_fee: number; vehicle_number: string | null }[];
+    const allTimeGMV = recs.reduce((s, r) => s + Number(r.amount || 0), 0);
+    const mrr = recs.reduce((s, r) => s + Number(r.platform_fee || 0), 0);
+    const vehicles = new Set(recs.map((r) => r.vehicle_number).filter(Boolean)).size;
+    return {
+        totalUsers: users.count ?? 0,
+        totalVehicles: vehicles,
+        totalGarages: garages.count ?? 0,
+        mrr,
+        arr: mrr * 12,
+        allTimeGMV,
+    };
+}
+
+export interface AdminReportRow {
+    _id: string;
+    reporterId: { name?: string; phoneNumber: string };
+    garageId: { _id: string; name: string };
+    reason: string;
+    description: string;
+    status: string;
+    createdAt: string;
+}
+
+export async function getAdminReports(): Promise<AdminReportRow[]> {
+    const { data, error } = await supabase
+        .from('reports')
+        .select('id,reason,description,status,created_at,garage_id, reporter:reporter_profile_id(name,phone_number), garage:garage_id(name)')
+        .order('created_at', { ascending: false });
+    if (error) {
+        console.error('getAdminReports error', error);
+        return [];
+    }
+    return (data ?? []).map((r: any) => ({
+        _id: r.id,
+        reporterId: { name: r.reporter?.name, phoneNumber: r.reporter?.phone_number || '' },
+        garageId: { _id: r.garage_id, name: r.garage?.name || '' },
+        reason: r.reason,
+        description: r.description || '',
+        status: r.status,
+        createdAt: r.created_at,
+    }));
+}
+
+export async function updateReportStatus(id: string, status: string): Promise<void> {
+    const { error } = await supabase.from('reports').update({ status }).eq('id', id);
+    if (error) throw new Error(error.message);
+}
+
 export interface EmployeeDashboard {
     profile: { name: string; referralCode: string } | null;
     stats: { totalGarages: number; totalServices: number; totalEarnings: number; avgServicesPerDay: string } | null;

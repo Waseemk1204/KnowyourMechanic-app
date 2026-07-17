@@ -2,12 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Building2, IndianRupee, Wrench, Loader2, Trophy, ArrowUpRight } from 'lucide-react';
-
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getAdminPerformance } from '../../lib/data';
 
 interface EmployeePerformance {
     _id: string;
@@ -31,11 +26,7 @@ export default function AdminPerformance() {
 
     const fetchPerformance = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/employees/performance/all`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) setPerformance(await res.json());
+            setPerformance(await getAdminPerformance());
         } catch (err) {
             console.error('Fetch performance error:', err);
         } finally {
