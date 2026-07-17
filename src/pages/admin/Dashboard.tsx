@@ -5,12 +5,7 @@ import {
     ChevronRight, Star, Search, ChevronDown, ChevronsRight
 } from 'lucide-react';
 import GarageMap from '../../components/GarageMap';
-
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getAdminStats, getAdminGarages } from '../../lib/data';
 
 interface Stats {
     totalGarages: number;
@@ -57,11 +52,7 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/stats?range=${chartRange}`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) setStats(await res.json());
+            setStats(await getAdminStats());
         } catch (err) {
             console.error('Stats fetch error:', err);
         }
@@ -69,16 +60,9 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
         try {
-            const token = await getToken();
-            const headers = { 'Authorization': `Bearer ${token}` };
-
-            const [statsRes, garagesRes] = await Promise.all([
-                fetch(`${getApiUrl()}/admin/stats?range=${chartRange}`, { headers }),
-                fetch(`${getApiUrl()}/admin/garages`, { headers }),
-            ]);
-
-            if (statsRes.ok) setStats(await statsRes.json());
-            if (garagesRes.ok) setGarages(await garagesRes.json());
+            const [statsData, garagesData] = await Promise.all([getAdminStats(), getAdminGarages()]);
+            setStats(statsData);
+            setGarages(garagesData as any);
         } catch (err) {
             console.error('Admin fetch error:', err);
         } finally {

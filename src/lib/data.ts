@@ -58,6 +58,96 @@ export async function getMyGarage(ownerProfileId: string): Promise<GarageRow | n
     return data as GarageRow | null;
 }
 
+export interface AdminStats {
+    totalGarages: number;
+    totalCustomers: number;
+    totalEmployees: number;
+    totalServices: number;
+    totalRevenue: number;
+    totalGMV: number;
+    avgServicesPerDay: string;
+    referredGarages: number;
+    dailyBreakdown: { date: string; count: number; revenue: number }[];
+}
+
+export interface AdminGarageItem {
+    _id: string;
+    name: string;
+    location: { address: string; coordinates: [number, number] };
+    phone: string;
+    rating: number;
+    totalReviews: number;
+    serviceCount: number;
+    totalEarnings: number;
+    onboardingStatus: string;
+    isVerified: boolean;
+}
+
+// Platform-wide stats for the admin dashboard, computed from Supabase.
+export async function getAdminStats(): Promise<AdminStats> {
+    const [garagesC, customersC, employeesC, records, referredC] = await Promise.all([
+        supabase.from('garages').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
+        supabase.from('employees').select('id', { count: 'exact', head: true }),
+        supabase.from('service_records').select('amount,platform_fee,created_at').eq('status', 'completed'),
+        supabase.from('garages').select('id', { count: 'exact', head: true }).not('assigned_employee_id', 'is', null),
+    ]);
+    const recs = (records.data ?? []) as { amount: number; platform_fee: number; created_at: string }[];
+    const totalRevenue = recs.reduce((s, r) => s + Number(r.platform_fee || 0), 0);
+    const totalGMV = recs.reduce((s, r) => s + Number(r.amount || 0), 0);
+
+    // Group completed records by day for the volume chart (last 30 days).
+    const byDay = new Map<string, { count: number; revenue: number }>();
+    for (const r of recs) {
+        const day = (r.created_at || '').slice(0, 10);
+        const cur = byDay.get(day) ?? { count: 0, revenue: 0 };
+        cur.count += 1;
+        cur.revenue += Number(r.platform_fee || 0);
+        byDay.set(day, cur);
+    }
+    const dailyBreakdown = Array.from(byDay.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-30)
+        .map(([date, v]) => ({ date, count: v.count, revenue: v.revenue }));
+
+    const days = Math.max(dailyBreakdown.length, 1);
+    return {
+        totalGarages: garagesC.count ?? 0,
+        totalCustomers: customersC.count ?? 0,
+        totalEmployees: employeesC.count ?? 0,
+        totalServices: recs.length,
+        totalRevenue,
+        totalGMV,
+        avgServicesPerDay: (recs.length / days).toFixed(1),
+        referredGarages: referredC.count ?? 0,
+        dailyBreakdown,
+    };
+}
+
+export async function getAdminGarages(): Promise<AdminGarageItem[]> {
+    const { data, error } = await supabase
+        .from('garages')
+        .select('id,name,address,latitude,longitude,phone,rating,total_reviews,onboarding_status,is_verified')
+        .order('created_at', { ascending: false })
+        .limit(300);
+    if (error) {
+        console.error('getAdminGarages error', error);
+        return [];
+    }
+    return (data ?? []).map((g: any) => ({
+        _id: g.id,
+        name: g.name,
+        location: { address: g.address || '', coordinates: [g.longitude || 0, g.latitude || 0] },
+        phone: g.phone || '',
+        rating: Number(g.rating) || 0,
+        totalReviews: g.total_reviews || 0,
+        serviceCount: 0,
+        totalEarnings: 0,
+        onboardingStatus: g.onboarding_status || 'pending',
+        isVerified: g.is_verified,
+    }));
+}
+
 export interface TaxonomyMake { code: string; display_name: string; vehicle_types: string[]; }
 export interface TaxonomyModel { code: string; make_code: string; vehicle_type: string; display_name: string; }
 export interface TaxonomyCategory { code: string; display_name: string; }
