@@ -106,7 +106,6 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
             });
             setRecordId(res.serviceRecordId);
             setDevOtp(res.devOtp || '');
-            onSuccess();
             setStep('otp');
         } catch (err: any) {
             setError(err.message || 'Could not create the service record.');
@@ -144,7 +143,6 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
         try {
             const s = await completeServicePayment(recordId, method);
             setSummary(s);
-            onSuccess();
             setStep('success');
         } catch (err: any) {
             setError(err.message || 'Payment failed.');
@@ -322,7 +320,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                     <div className="flex justify-between"><span className="text-slate-500">Garage receives</span><span className="font-bold">₹{summary.garage_receives.toFixed(2)}</span></div>
                                     {summary.verified && <div className="flex items-center gap-1 text-green-600 font-semibold pt-1"><ShieldCheck className="w-4 h-4" /> Verified transaction</div>}
                                 </div>
-                                <button onClick={onClose} className="mt-6 w-full h-14 btn-premium rounded-2xl font-bold text-white">Done</button>
+                                <button onClick={onSuccess} className="mt-6 w-full h-14 btn-premium rounded-2xl font-bold text-white">Done</button>
                             </div>
                         )}
                     </motion.div>
