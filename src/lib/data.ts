@@ -148,6 +148,54 @@ export async function getAdminGarages(): Promise<AdminGarageItem[]> {
     }));
 }
 
+export interface AdminEmployee {
+    _id: string;
+    name: string;
+    email: string;
+    phone: string;
+    referralCode: string;
+    role: string;
+    isActive: boolean;
+    garageCount: number;
+    createdAt: string;
+}
+
+export async function getAdminEmployees(): Promise<AdminEmployee[]> {
+    const [{ data: emps }, { data: gar }] = await Promise.all([
+        supabase.from('employees').select('id,name,email,phone,referral_code,role,is_active,created_at').order('created_at'),
+        supabase.from('garages').select('assigned_employee_id'),
+    ]);
+    const counts = new Map<string, number>();
+    for (const g of gar ?? []) {
+        const id = (g as any).assigned_employee_id;
+        if (id) counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    return (emps ?? []).map((e: any) => ({
+        _id: e.id,
+        name: e.name,
+        email: e.email || '',
+        phone: e.phone,
+        referralCode: e.referral_code,
+        role: e.role,
+        isActive: e.is_active,
+        garageCount: counts.get(e.id) ?? 0,
+        createdAt: e.created_at,
+    }));
+}
+
+export async function createAdminEmployee(p: { name: string; email: string; phone: string }): Promise<void> {
+    const referral = 'KYM-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    const { error } = await supabase.from('employees').insert({
+        name: p.name,
+        email: p.email || null,
+        phone: p.phone.replace(/\D/g, '').slice(-10),
+        referral_code: referral,
+        role: 'employee',
+        is_active: true,
+    });
+    if (error) throw new Error(error.message);
+}
+
 export interface EmployeeDashboard {
     profile: { name: string; referralCode: string } | null;
     stats: { totalGarages: number; totalServices: number; totalEarnings: number; avgServicesPerDay: string } | null;

@@ -5,12 +5,7 @@ import {
     Users, UserPlus, Copy, Check, Loader2,
     X, Shield
 } from 'lucide-react';
-
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getAdminEmployees, createAdminEmployee } from '../../lib/data';
 
 interface Employee {
     _id: string;
@@ -43,11 +38,7 @@ export default function AdminEmployees() {
 
     const fetchEmployees = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/employees`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) setEmployees(await res.json());
+            setEmployees(await getAdminEmployees());
         } catch (err) {
             console.error('Fetch employees error:', err);
         } finally {
@@ -59,19 +50,12 @@ export default function AdminEmployees() {
         if (!newName || !newEmail || !newPhone) return;
         setSaving(true);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/employees`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ name: newName, email: newEmail, phone: newPhone }),
-            });
-            if (res.ok) {
-                setShowAddModal(false);
-                setNewName('');
-                setNewEmail('');
-                setNewPhone('');
-                fetchEmployees();
-            }
+            await createAdminEmployee({ name: newName, email: newEmail, phone: newPhone });
+            setShowAddModal(false);
+            setNewName('');
+            setNewEmail('');
+            setNewPhone('');
+            fetchEmployees();
         } catch (err) {
             console.error('Add employee error:', err);
         } finally {
