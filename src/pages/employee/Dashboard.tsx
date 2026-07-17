@@ -7,12 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import GarageMap from '../../components/GarageMap';
-
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getEmployeeDashboard } from '../../lib/data';
 
 interface GarageItem {
     _id: string;
@@ -39,7 +34,7 @@ interface MapGarage {
 
 export default function EmployeeDashboard() {
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { logout, userData } = useAuth();
     const [profile, setProfile] = useState<any>(null);
     const [stats, setStats] = useState<any>(null);
     const [garages, setGarages] = useState<GarageItem[]>([]);
@@ -48,25 +43,16 @@ export default function EmployeeDashboard() {
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (userData?._id) fetchData();
+    }, [userData?._id]);
 
     const fetchData = async () => {
         try {
-            const token = await getToken();
-            const headers = { 'Authorization': `Bearer ${token}` };
-
-            const [meRes, statsRes, garagesRes, mapRes] = await Promise.all([
-                fetch(`${getApiUrl()}/employee/me`, { headers }),
-                fetch(`${getApiUrl()}/employee/my-stats`, { headers }),
-                fetch(`${getApiUrl()}/employee/my-garages`, { headers }),
-                fetch(`${getApiUrl()}/employee/map-data`, { headers }),
-            ]);
-
-            if (meRes.ok) setProfile(await meRes.json());
-            if (statsRes.ok) setStats(await statsRes.json());
-            if (garagesRes.ok) setGarages(await garagesRes.json());
-            if (mapRes.ok) setMapGarages(await mapRes.json());
+            const d = await getEmployeeDashboard(userData!._id);
+            setProfile(d.profile);
+            setStats(d.stats);
+            setGarages(d.garages as any);
+            setMapGarages(d.mapGarages as any);
         } catch (err) {
             console.error('Employee fetch error:', err);
         } finally {

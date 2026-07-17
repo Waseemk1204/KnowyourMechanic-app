@@ -148,6 +148,88 @@ export async function getAdminGarages(): Promise<AdminGarageItem[]> {
     }));
 }
 
+export interface EmployeeDashboard {
+    profile: { name: string; referralCode: string } | null;
+    stats: { totalGarages: number; totalServices: number; totalEarnings: number; avgServicesPerDay: string } | null;
+    garages: Array<{
+        _id: string;
+        name: string;
+        location: { address: string; coordinates: [number, number] };
+        rating: number;
+        totalReviews: number;
+        totalServices: number;
+        totalEarnings: number;
+        avgServicesPerDay: string;
+    }>;
+    mapGarages: Array<{ id: string; name: string; lat: number; lng: number; rating?: number; reviews?: number; address?: string; isMine: boolean }>;
+}
+
+// The employee's own record + their assigned garages + rolled-up stats.
+export async function getEmployeeDashboard(profileId: string): Promise<EmployeeDashboard> {
+    const { data: emp } = await supabase
+        .from('employees')
+        .select('id,name,referral_code')
+        .eq('profile_id', profileId)
+        .maybeSingle();
+    if (!emp) return { profile: null, stats: null, garages: [], mapGarages: [] };
+
+    const { data: gRows } = await supabase
+        .from('garages')
+        .select('id,name,address,latitude,longitude,rating,total_reviews')
+        .eq('assigned_employee_id', emp.id);
+    const garageRows = gRows ?? [];
+    const gids = garageRows.map((g: any) => g.id);
+
+    let recs: { garage_id: string; amount: number }[] = [];
+    if (gids.length) {
+        const { data } = await supabase
+            .from('service_records')
+            .select('garage_id,amount')
+            .in('garage_id', gids)
+            .eq('status', 'completed');
+        recs = (data ?? []) as any;
+    }
+    const perGarage = new Map<string, { count: number; earnings: number }>();
+    for (const r of recs) {
+        const cur = perGarage.get(r.garage_id) ?? { count: 0, earnings: 0 };
+        cur.count += 1;
+        cur.earnings += Number(r.amount || 0);
+        perGarage.set(r.garage_id, cur);
+    }
+
+    const garages = garageRows.map((g: any) => ({
+        _id: g.id,
+        name: g.name,
+        location: { address: g.address || '', coordinates: [g.longitude || 0, g.latitude || 0] as [number, number] },
+        rating: Number(g.rating) || 0,
+        totalReviews: g.total_reviews || 0,
+        totalServices: perGarage.get(g.id)?.count || 0,
+        totalEarnings: perGarage.get(g.id)?.earnings || 0,
+        avgServicesPerDay: ((perGarage.get(g.id)?.count || 0) / 30).toFixed(1),
+    }));
+
+    return {
+        profile: { name: emp.name, referralCode: emp.referral_code },
+        stats: {
+            totalGarages: garages.length,
+            totalServices: recs.length,
+            totalEarnings: recs.reduce((s, r) => s + Number(r.amount || 0), 0),
+            avgServicesPerDay: (recs.length / 30).toFixed(1),
+        },
+        garages,
+        mapGarages: garages.map((g) => ({
+            id: g._id,
+            name: g.name,
+            lat: g.location.coordinates[1],
+            lng: g.location.coordinates[0],
+            rating: g.rating,
+            reviews: g.totalReviews,
+            address: g.location.address,
+            isMine: true,
+        })),
+    };
+}
+
 export interface TaxonomyMake { code: string; display_name: string; vehicle_types: string[]; }
 export interface TaxonomyModel { code: string; make_code: string; vehicle_type: string; display_name: string; }
 export interface TaxonomyCategory { code: string; display_name: string; }
