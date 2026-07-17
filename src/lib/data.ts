@@ -144,6 +144,43 @@ export async function getGarageServiceRecords(garageId: string): Promise<Service
     return (data ?? []) as ServiceRecordRow[];
 }
 
+export interface CustomerProfileFields {
+    name: string;
+    vehicleMake: string;
+    vehicleModel: string;
+    vehicleYear: string;
+    vehicleNumber: string;
+}
+
+export async function getCustomerProfile(profileId: string): Promise<CustomerProfileFields> {
+    const { data } = await supabase
+        .from('profiles')
+        .select('name,vehicle_make,vehicle_model,vehicle_year,vehicle_number')
+        .eq('id', profileId)
+        .maybeSingle();
+    return {
+        name: data?.name ?? '',
+        vehicleMake: data?.vehicle_make ?? '',
+        vehicleModel: data?.vehicle_model ?? '',
+        vehicleYear: data?.vehicle_year ?? '',
+        vehicleNumber: data?.vehicle_number ?? '',
+    };
+}
+
+export async function saveCustomerProfile(profileId: string, p: CustomerProfileFields): Promise<void> {
+    const { error } = await supabase
+        .from('profiles')
+        .update({
+            name: p.name,
+            vehicle_make: p.vehicleMake,
+            vehicle_model: p.vehicleModel,
+            vehicle_year: p.vehicleYear,
+            vehicle_number: p.vehicleNumber,
+        })
+        .eq('id', profileId);
+    if (error) throw new Error(error.message);
+}
+
 // A customer's completed service history (matched by phone), newest first.
 export async function getCustomerServiceHistory(phone: string): Promise<ServiceRecordRow[]> {
     const digits = phone.replace(/\D/g, '').slice(-10);
