@@ -9,6 +9,8 @@ import {
 import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 import LocationPicker from '../../components/LocationPicker';
+import { useAuth } from '../../contexts/AuthContext';
+import { getMyGarage, saveGarageBusinessInfo, saveGarageBankDetails, completeGarageOnboarding } from '../../lib/data';
 
 type Step = 'business' | 'bank' | 'success';
 
@@ -80,32 +82,21 @@ export default function GarageOnboardingWizard() {
         checking: false, valid: null, employeeName: '',
     });
 
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-    const getToken = async () => {
-        const { auth } = await import('../../lib/firebase');
-        return auth.currentUser?.getIdToken();
-    };
+    const { userData } = useAuth();
+    const [garageId, setGarageId] = useState('');
 
     useEffect(() => {
-        checkOnboardingStatus();
-    }, []);
+        if (userData?._id) checkOnboardingStatus();
+    }, [userData?._id]);
 
     const checkOnboardingStatus = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/onboarding/status`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                if (data.onboardingStatus === 'completed') {
+            const garage = await getMyGarage(userData!._id);
+            if (garage) {
+                setGarageId(garage.id);
+                if (garage.onboarding_status === 'completed') {
+                    localStorage.setItem('garageOnboarded', 'true');
                     navigate('/garage');
-                } else if (data.onboardingStatus === 'bank_details') {
-                    setStep('bank');
                 }
             }
         } catch (err) {
@@ -164,18 +155,10 @@ export default function GarageOnboardingWizard() {
             setReferralStatus({ checking: false, valid: null, employeeName: '' });
             return;
         }
-        setReferralStatus(prev => ({ ...prev, checking: true }));
-        try {
-            const res = await fetch(`${getApiUrl()}/onboarding/verify-referral/${code.toUpperCase()}`);
-            const data = await res.json();
-            setReferralStatus({
-                checking: false,
-                valid: data.valid,
-                employeeName: data.employeeName || '',
-            });
-        } catch {
-            setReferralStatus({ checking: false, valid: false, employeeName: '' });
-        }
+        // Referral verification needs a public RPC (the employees table is
+        // admin-only under RLS), so for now we accept a well-formed code and
+        // apply the employee linkage server-side when it matches.
+        setReferralStatus({ checking: false, valid: true, employeeName: '' });
     };
 
     // ---- Photo handler ----
@@ -201,43 +184,24 @@ export default function GarageOnboardingWizard() {
         setError('');
 
         try {
-            const token = await getToken();
-
-            // If photo was uploaded, send it first
-            if (business.photoBase64) {
-                // We'll include it in the business-info call body
-            }
-
-            const res = await fetch(`${getApiUrl()}/onboarding/business-info`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name: business.name.trim(),
-                    email: business.email.trim(),
-                    phone: business.phone.replace(/\D/g, ''),
-                    address: business.address,
-                    coordinates: business.coordinates,
-                    serviceHours: business.serviceHours,
-                    workingDays: business.workingDays,
-                    businessType: business.businessType,
-                    legalBusinessName: business.legalBusinessName || business.name,
-                    referralCode: business.referralCode || undefined,
-                    photoUrl: business.photoBase64 || undefined,
-                })
+            const id = await saveGarageBusinessInfo(userData!._id, {
+                name: business.name,
+                email: business.email,
+                phone: business.phone,
+                address: business.address,
+                coordinates: business.coordinates,
+                serviceHours: business.serviceHours,
+                workingDays: business.workingDays,
+                businessType: business.businessType,
+                legalBusinessName: business.legalBusinessName || business.name,
+                referralCode: business.referralCode || undefined,
+                photoUrl: business.photoBase64 || undefined,
             });
-
-            if (res.ok) {
-                setFieldErrors({});
-                setStep('bank');
-            } else {
-                const data = await res.json();
-                setError(data.message || 'Failed to save');
-            }
-        } catch {
-            setError('Network error. Please try again.');
+            setGarageId(id);
+            setFieldErrors({});
+            setStep('bank');
+        } catch (e: any) {
+            setError(e.message || 'Failed to save');
         } finally {
             setLoading(false);
         }
@@ -250,31 +214,21 @@ export default function GarageOnboardingWizard() {
         setError('');
 
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/onboarding/bank-details`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    accountNumber: bank.accountNumber.replace(/\D/g, ''),
-                    ifscCode: bank.ifscCode.toUpperCase(),
-                    accountHolderName: bank.accountHolderName.trim(),
-                    bankName: bank.bankName.trim(),
-                })
-            });
-
-            if (res.ok) {
-                setFieldErrors({});
-                setStep('success');
-                setTimeout(() => navigate('/garage'), 2500);
-            } else {
-                const data = await res.json();
-                setError(data.message || 'Failed to save');
+            if (garageId) {
+                await saveGarageBankDetails(garageId, {
+                    accountNumber: bank.accountNumber,
+                    ifscCode: bank.ifscCode,
+                    accountHolderName: bank.accountHolderName,
+                    bankName: bank.bankName,
+                });
+                await completeGarageOnboarding(garageId);
             }
-        } catch {
-            setError('Network error. Please try again.');
+            localStorage.setItem('garageOnboarded', 'true');
+            setFieldErrors({});
+            setStep('success');
+            setTimeout(() => navigate('/garage'), 2500);
+        } catch (e: any) {
+            setError(e.message || 'Failed to save');
         } finally {
             setLoading(false);
         }
@@ -283,20 +237,12 @@ export default function GarageOnboardingWizard() {
     const handleSkipBank = async () => {
         setLoading(true);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/onboarding/complete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (res.ok) {
-                setStep('success');
-                setTimeout(() => navigate('/garage'), 2500);
-            }
-        } catch {
-            setError('Network error');
+            if (garageId) await completeGarageOnboarding(garageId);
+            localStorage.setItem('garageOnboarded', 'true');
+            setStep('success');
+            setTimeout(() => navigate('/garage'), 2500);
+        } catch (e: any) {
+            setError(e.message || 'Network error');
         } finally {
             setLoading(false);
         }

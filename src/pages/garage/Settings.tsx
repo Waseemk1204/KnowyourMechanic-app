@@ -9,6 +9,8 @@ import { CustomLoader } from '../../components/Loaders';
 import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 import LocationPicker from '../../components/LocationPicker';
+import { useAuth } from '../../contexts/AuthContext';
+import { getMyGarage, saveGarageBusinessInfo, saveGarageBankDetails } from '../../lib/data';
 
 
 interface BusinessInfo {
@@ -71,50 +73,30 @@ export default function GarageSettings() {
         bankName: '',
     });
 
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-    const getToken = async () => {
-        const { auth } = await import('../../lib/firebase');
-        return auth.currentUser?.getIdToken();
-    };
+    const { userData } = useAuth();
+    const [garageId, setGarageId] = useState('');
 
     useEffect(() => {
-        fetchGarageDetails();
-    }, []);
+        if (userData?._id) fetchGarageDetails();
+    }, [userData?._id]);
 
     const fetchGarageDetails = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/garages/profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
+            const g = await getMyGarage(userData!._id);
+            if (g) {
+                setGarageId(g.id);
                 setBusiness({
-                    name: data.name || '',
-                    email: data.email || '',
-                    phone: data.phone || '',
-                    address: data.location?.address || '',
-                    coordinates: data.location?.coordinates || [73.8567, 18.5204],
-                    serviceHours: data.serviceHours || '9:00 AM - 8:00 PM',
-                    workingDays: Array.isArray(data.workingDays) ? data.workingDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                    businessType: data.businessType || 'individual',
-                    legalBusinessName: data.legalBusinessName || '',
+                    name: g.name || '',
+                    email: g.email || '',
+                    phone: g.phone || '',
+                    address: g.address || '',
+                    coordinates: [g.longitude ?? 73.8567, g.latitude ?? 18.5204],
+                    serviceHours: g.service_hours || '9:00 AM - 8:00 PM',
+                    workingDays: Array.isArray(g.working_days) && g.working_days.length ? g.working_days : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    businessType: (g as any).business_type || 'individual',
+                    legalBusinessName: (g as any).legal_business_name || '',
                 });
-                if (data.bankDetails) {
-                    setBank({
-                        accountNumber: data.bankDetails.accountNumber || '',
-                        ifscCode: data.bankDetails.ifscCode || '',
-                        accountHolderName: data.bankDetails.accountHolderName || '',
-                        bankName: data.bankDetails.bankName || '',
-                    });
-                }
-                if (data.photoUrl) {
-                    setPhotoUrl(data.photoUrl);
-                }
+                if (g.photo_url) setPhotoUrl(g.photo_url);
             }
         } catch (err) {
             console.error('Error fetching garage details:', err);
@@ -135,35 +117,22 @@ export default function GarageSettings() {
         setSuccess('');
 
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/garages/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name: business.name,
-                    email: business.email,
-                    phone: business.phone,
-                    address: business.address,
-                    coordinates: business.coordinates,
-                    serviceHours: business.serviceHours,
-                    workingDays: business.workingDays,
-                    businessType: business.businessType,
-                    legalBusinessName: business.legalBusinessName || business.name,
-                })
+            const id = await saveGarageBusinessInfo(userData!._id, {
+                name: business.name,
+                email: business.email,
+                phone: business.phone,
+                address: business.address,
+                coordinates: business.coordinates,
+                serviceHours: business.serviceHours,
+                workingDays: business.workingDays,
+                businessType: business.businessType,
+                legalBusinessName: business.legalBusinessName || business.name,
             });
-
-            if (res.ok) {
-                setSuccess('Business details saved successfully!');
-                setTimeout(() => setSuccess(''), 3000);
-            } else {
-                const data = await res.json();
-                setError(data.message || 'Failed to save');
-            }
-        } catch (err) {
-            setError('Network error');
+            setGarageId(id);
+            setSuccess('Business details saved successfully!');
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (err: any) {
+            setError(err.message || 'Failed to save');
         } finally {
             setSaving(false);
         }
@@ -185,22 +154,13 @@ export default function GarageSettings() {
         setSuccess('');
 
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/garages/bank-details`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    accountNumber: newBank.accountNumber,
-                    ifscCode: newBank.ifscCode,
-                    accountHolderName: newBank.accountHolderName,
-                    bankName: newBank.bankName,
-                })
+            await saveGarageBankDetails(garageId, {
+                accountNumber: newBank.accountNumber,
+                ifscCode: newBank.ifscCode,
+                accountHolderName: newBank.accountHolderName,
+                bankName: newBank.bankName,
             });
-
-            if (res.ok) {
+            {
                 setBank({
                     accountNumber: newBank.accountNumber,
                     ifscCode: newBank.ifscCode,
@@ -217,12 +177,9 @@ export default function GarageSettings() {
                 });
                 setSuccess('Bank details updated successfully!');
                 setTimeout(() => setSuccess(''), 3000);
-            } else {
-                const data = await res.json();
-                setBankError(data.message || 'Failed to save bank details');
             }
-        } catch (err) {
-            setBankError('Network error');
+        } catch (err: any) {
+            setBankError(err.message || 'Failed to save bank details');
         } finally {
             setSaving(false);
         }
@@ -279,24 +236,17 @@ export default function GarageSettings() {
                 try {
                     const base64String = reader.result as string;
 
-                    // Save Base64 to backend
-                    const token = await getToken();
-                    const res = await fetch(`${getApiUrl()}/garages/profile`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ photoUrl: base64String })
-                    });
+                    // Store the image (Base64 data URL) on the garage row.
+                    const { supabase } = await import('../../lib/supabase');
+                    const { error: upErr } = await supabase
+                        .from('garages')
+                        .update({ photo_url: base64String })
+                        .eq('id', garageId);
+                    if (upErr) throw new Error(upErr.message);
 
-                    if (res.ok) {
-                        setPhotoUrl(base64String);
-                        setSuccess('Photo updated successfully!');
-                        setTimeout(() => setSuccess(''), 3000);
-                    } else {
-                        throw new Error('Failed to save photo');
-                    }
+                    setPhotoUrl(base64String);
+                    setSuccess('Photo updated successfully!');
+                    setTimeout(() => setSuccess(''), 3000);
                 } catch (err: any) {
                     console.error('Photo save error:', err);
                     setError(err.message || 'Failed to save photo');

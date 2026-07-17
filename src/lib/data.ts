@@ -49,6 +49,9 @@ export async function getMyGarage(ownerProfileId: string): Promise<GarageRow | n
         .from('garages')
         .select('*')
         .eq('owner_profile_id', ownerProfileId)
+        // Deterministic pick (the demo seed has one owner across many garages;
+        // real owners have a single garage). The demo garage id sorts first.
+        .order('id', { ascending: true })
         .limit(1)
         .maybeSingle();
     if (error) {
@@ -383,6 +386,75 @@ export async function getEmployeeDashboard(profileId: string): Promise<EmployeeD
             isMine: true,
         })),
     };
+}
+
+export interface GarageBusinessInfo {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    coordinates: [number, number]; // [lng, lat]
+    serviceHours: string;
+    workingDays: string[];
+    businessType: string;
+    legalBusinessName: string;
+    referralCode?: string;
+    photoUrl?: string;
+}
+
+// Creates or updates the garage owned by ownerProfileId. Returns the garage id.
+export async function saveGarageBusinessInfo(ownerProfileId: string, info: GarageBusinessInfo): Promise<string> {
+    let assignedEmployeeId: string | null = null;
+    if (info.referralCode) {
+        const { data: emp } = await supabase.from('employees').select('id').eq('referral_code', info.referralCode).maybeSingle();
+        assignedEmployeeId = emp?.id ?? null;
+    }
+    const payload: Record<string, any> = {
+        owner_profile_id: ownerProfileId,
+        name: info.name.trim(),
+        email: info.email.trim() || null,
+        phone: info.phone.replace(/\D/g, '').slice(-10),
+        address: info.address,
+        latitude: info.coordinates?.[1] ?? null,
+        longitude: info.coordinates?.[0] ?? null,
+        service_hours: info.serviceHours,
+        working_days: info.workingDays,
+        business_type: info.businessType,
+        legal_business_name: info.legalBusinessName || info.name,
+    };
+    if (info.photoUrl) payload.photo_url = info.photoUrl;
+    if (assignedEmployeeId) payload.assigned_employee_id = assignedEmployeeId;
+
+    const existing = await getMyGarage(ownerProfileId);
+    if (existing) {
+        const { error } = await supabase.from('garages').update(payload).eq('id', existing.id);
+        if (error) throw new Error(error.message);
+        return existing.id;
+    }
+    const { data, error } = await supabase.from('garages').insert(payload).select('id').single();
+    if (error) throw new Error(error.message);
+    return (data as { id: string }).id;
+}
+
+export async function saveGarageBankDetails(
+    garageId: string,
+    bank: { accountNumber: string; ifscCode: string; accountHolderName: string; bankName: string }
+): Promise<void> {
+    const { error } = await supabase
+        .from('garages')
+        .update({
+            bank_account_number: bank.accountNumber.replace(/\D/g, ''),
+            bank_ifsc_code: bank.ifscCode.toUpperCase(),
+            bank_account_holder_name: bank.accountHolderName.trim(),
+            bank_name: bank.bankName.trim(),
+        })
+        .eq('id', garageId);
+    if (error) throw new Error(error.message);
+}
+
+export async function completeGarageOnboarding(garageId: string): Promise<void> {
+    const { error } = await supabase.from('garages').update({ onboarding_status: 'completed', is_verified: true }).eq('id', garageId);
+    if (error) throw new Error(error.message);
 }
 
 export interface TaxonomyMake { code: string; display_name: string; vehicle_types: string[]; }
