@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, IndianRupee, Send, Loader2, Check } from 'lucide-react';
+import { X, Phone, IndianRupee, Send, Loader2, Check, QrCode, Banknote, ShieldCheck } from 'lucide-react';
 import {
     getTaxonomy,
-    createServiceRecord,
+    createServiceRecordWithOtp,
+    verifyServiceOtp,
+    completeServicePayment,
     type Taxonomy,
+    type PaymentSummary,
 } from '../lib/data';
 
 interface AddServiceModalProps {
@@ -13,6 +16,8 @@ interface AddServiceModalProps {
     onClose: () => void;
     onSuccess: () => void;
 }
+
+type Step = 'form' | 'otp' | 'payment' | 'success';
 
 const VEHICLE_TYPES: Array<{ code: string; label: string }> = [
     { code: '2w', label: '2W' },
@@ -23,9 +28,9 @@ const VEHICLE_TYPES: Array<{ code: string; label: string }> = [
 
 export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }: AddServiceModalProps) {
     const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null);
+    const [step, setStep] = useState<Step>('form');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [done, setDone] = useState(false);
 
     const [customerPhone, setCustomerPhone] = useState('');
     const [vehicleType, setVehicleType] = useState('');
@@ -39,14 +44,20 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
     const [notes, setNotes] = useState('');
     const [amount, setAmount] = useState('');
 
+    const [recordId, setRecordId] = useState('');
+    const [devOtp, setDevOtp] = useState('');
+    const [otp, setOtp] = useState('');
+    const [summary, setSummary] = useState<PaymentSummary | null>(null);
+
     useEffect(() => {
         if (isOpen && !taxonomy) {
             getTaxonomy().then(setTaxonomy).catch(() => setError('Could not load service options.'));
         }
         if (!isOpen) {
-            setDone(false); setError(''); setCustomerPhone(''); setVehicleType('');
+            setStep('form'); setError(''); setCustomerPhone(''); setVehicleType('');
             setMakeCode(''); setModelCode(''); setVehicleNumber(''); setModelYear('');
             setOdometer(''); setServiceCodes([]); setFailureCodes([]); setNotes(''); setAmount('');
+            setRecordId(''); setDevOtp(''); setOtp(''); setSummary(null);
         }
     }, [isOpen, taxonomy]);
 
@@ -71,12 +82,12 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
         failureCodes.length > 0 &&
         Number(amount) > 0;
 
-    const handleSubmit = async () => {
+    const handleCreate = async () => {
         setError('');
         if (!garageId) { setError('Garage not loaded yet.'); return; }
         setLoading(true);
         try {
-            await createServiceRecord({
+            const res = await createServiceRecordWithOtp({
                 garageId,
                 customerPhone,
                 vehicleType,
@@ -93,10 +104,50 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                 amount: Number(amount),
                 customerHasApp: true,
             });
-            setDone(true);
+            setRecordId(res.serviceRecordId);
+            setDevOtp(res.devOtp || '');
             onSuccess();
+            setStep('otp');
         } catch (err: any) {
             setError(err.message || 'Could not create the service record.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerify = async () => {
+        setError('');
+        setLoading(true);
+        try {
+            const res = await verifyServiceOtp(recordId, otp.trim());
+            if (res.ok) {
+                setStep('payment');
+            } else {
+                setError(
+                    res.reason === 'invalid'
+                        ? `Incorrect OTP${res.remainingAttempts != null ? ` (${res.remainingAttempts} left)` : ''}.`
+                        : res.reason === 'expired'
+                            ? 'OTP expired.'
+                            : 'Too many attempts.'
+                );
+            }
+        } catch (err: any) {
+            setError(err.message || 'OTP verification failed.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePayment = async (method: 'qr' | 'cash') => {
+        setError('');
+        setLoading(true);
+        try {
+            const s = await completeServicePayment(recordId, method);
+            setSummary(s);
+            onSuccess();
+            setStep('success');
+        } catch (err: any) {
+            setError(err.message || 'Payment failed.');
         } finally {
             setLoading(false);
         }
@@ -109,53 +160,36 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center"
                     onClick={onClose}
                 >
                     <motion.div
-                        initial={{ y: 60, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 60, opacity: 0 }}
+                        initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
                         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
                         className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="sticky top-0 bg-white flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-                            <h2 className="text-2xl font-black text-slate-900">Add Service</h2>
+                            <h2 className="text-2xl font-black text-slate-900">
+                                {step === 'form' ? 'Add Service' : step === 'otp' ? 'Verify OTP' : step === 'payment' ? 'Complete Payment' : 'Done'}
+                            </h2>
                             <button onClick={onClose} className="text-slate-400 active:scale-90 transition-transform">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
-                        {done ? (
-                            <div className="p-8 flex flex-col items-center text-center">
-                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                                    <Check className="w-8 h-8 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-1">Service record created</h3>
-                                <p className="text-slate-500">
-                                    The customer OTP will be sent once SMS delivery is live. It now appears on your dashboard.
-                                </p>
-                                <button onClick={onClose} className="mt-6 w-full h-14 btn-premium rounded-2xl font-bold text-white">
-                                    Done
-                                </button>
-                            </div>
-                        ) : (
+                        {/* ---- FORM ---- */}
+                        {step === 'form' && (
                             <div className="p-6 space-y-5">
                                 <div>
                                     <label className="text-sm font-semibold text-slate-600">Customer phone</label>
                                     <div className="relative mt-2">
                                         <Phone className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                                        <input
-                                            type="tel"
-                                            value={customerPhone}
+                                        <input type="tel" value={customerPhone}
                                             onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                             placeholder="10-digit number"
-                                            className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-4 text-lg font-medium"
-                                        />
+                                            className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-4 text-lg font-medium" />
                                     </div>
                                 </div>
 
@@ -163,13 +197,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                     <label className="text-sm font-semibold text-slate-600">Vehicle type</label>
                                     <div className="flex flex-wrap gap-2 mt-2">
                                         {VEHICLE_TYPES.map((t) => (
-                                            <button
-                                                key={t.code}
-                                                onClick={() => { setVehicleType(t.code); setMakeCode(''); setModelCode(''); }}
-                                                className={chip(vehicleType === t.code)}
-                                            >
-                                                {t.label}
-                                            </button>
+                                            <button key={t.code} onClick={() => { setVehicleType(t.code); setMakeCode(''); setModelCode(''); }} className={chip(vehicleType === t.code)}>{t.label}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -178,11 +206,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                     <div>
                                         <label className="text-sm font-semibold text-slate-600">Make</label>
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                            {makes.map((m) => (
-                                                <button key={m.code} onClick={() => { setMakeCode(m.code); setModelCode(''); }} className={chip(makeCode === m.code)}>
-                                                    {m.display_name}
-                                                </button>
-                                            ))}
+                                            {makes.map((m) => (<button key={m.code} onClick={() => { setMakeCode(m.code); setModelCode(''); }} className={chip(makeCode === m.code)}>{m.display_name}</button>))}
                                         </div>
                                     </div>
                                 )}
@@ -191,11 +215,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                     <div>
                                         <label className="text-sm font-semibold text-slate-600">Model</label>
                                         <div className="flex flex-wrap gap-2 mt-2">
-                                            {models.map((m) => (
-                                                <button key={m.code} onClick={() => setModelCode(m.code)} className={chip(modelCode === m.code)}>
-                                                    {m.display_name}
-                                                </button>
-                                            ))}
+                                            {models.map((m) => (<button key={m.code} onClick={() => setModelCode(m.code)} className={chip(modelCode === m.code)}>{m.display_name}</button>))}
                                         </div>
                                     </div>
                                 )}
@@ -219,22 +239,14 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                 <div>
                                     <label className="text-sm font-semibold text-slate-600">Services performed</label>
                                     <div className="flex flex-wrap gap-2 mt-2">
-                                        {(taxonomy?.services ?? []).map((s) => (
-                                            <button key={s.code} onClick={() => toggle(serviceCodes, s.code, setServiceCodes)} className={chip(serviceCodes.includes(s.code))}>
-                                                {s.display_name}
-                                            </button>
-                                        ))}
+                                        {(taxonomy?.services ?? []).map((s) => (<button key={s.code} onClick={() => toggle(serviceCodes, s.code, setServiceCodes)} className={chip(serviceCodes.includes(s.code))}>{s.display_name}</button>))}
                                     </div>
                                 </div>
 
                                 <div>
                                     <label className="text-sm font-semibold text-slate-600">Failures / symptoms</label>
                                     <div className="flex flex-wrap gap-2 mt-2">
-                                        {(taxonomy?.failures ?? []).map((f) => (
-                                            <button key={f.code} onClick={() => toggle(failureCodes, f.code, setFailureCodes)} className={chip(failureCodes.includes(f.code))}>
-                                                {f.display_name}
-                                            </button>
-                                        ))}
+                                        {(taxonomy?.failures ?? []).map((f) => (<button key={f.code} onClick={() => toggle(failureCodes, f.code, setFailureCodes)} className={chip(failureCodes.includes(f.code))}>{f.display_name}</button>))}
                                     </div>
                                 </div>
 
@@ -253,13 +265,64 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
 
                                 {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
 
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={!canSubmit || loading}
-                                    className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40"
-                                >
+                                <button onClick={handleCreate} disabled={!canSubmit || loading}
+                                    className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
                                     {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (<><Send className="w-5 h-5" /> Create record &amp; send OTP</>)}
                                 </button>
+                            </div>
+                        )}
+
+                        {/* ---- OTP ---- */}
+                        {step === 'otp' && (
+                            <div className="p-6 space-y-5">
+                                <p className="text-slate-500">The customer shares the 6-digit OTP with you. The garage cannot skip this step.</p>
+                                {devOtp && (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-amber-800 font-bold text-center">
+                                        Dev OTP: {devOtp}
+                                    </div>
+                                )}
+                                <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="000000" maxLength={6}
+                                    className="w-full h-20 bg-slate-50 rounded-3xl text-center text-4xl font-bold tracking-[1rem]" />
+                                {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
+                                <button onClick={handleVerify} disabled={otp.length < 6 || loading}
+                                    className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Verify OTP'}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* ---- PAYMENT ---- */}
+                        {step === 'payment' && (
+                            <div className="p-6 space-y-4">
+                                <p className="text-slate-500">QR is a verified transaction (platform fee ₹1.90). Cash is unverified (no fee).</p>
+                                {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
+                                <button onClick={() => handlePayment('qr')} disabled={loading}
+                                    className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                                    <QrCode className="w-5 h-5" /> Complete with QR (verified)
+                                </button>
+                                <button onClick={() => handlePayment('cash')} disabled={loading}
+                                    className="w-full h-16 bg-slate-900 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                                    <Banknote className="w-5 h-5" /> Complete with Cash
+                                </button>
+                            </div>
+                        )}
+
+                        {/* ---- SUCCESS ---- */}
+                        {step === 'success' && summary && (
+                            <div className="p-8 flex flex-col items-center text-center">
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                                    <Check className="w-8 h-8 text-green-600" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 mb-1">Payment complete</h3>
+                                <p className="text-slate-500 mb-4">Invoice <span className="font-mono font-semibold text-slate-700">{summary.invoice_number}</span></p>
+                                <div className="w-full bg-slate-50 rounded-2xl p-4 space-y-2 text-left">
+                                    <div className="flex justify-between"><span className="text-slate-500">Customer pays</span><span className="font-bold">₹{summary.customer_pays.toFixed(2)}</span></div>
+                                    <div className="flex justify-between"><span className="text-slate-500">Platform fee</span><span className="font-bold">₹{summary.platform_fee.toFixed(2)}</span></div>
+                                    <div className="flex justify-between"><span className="text-slate-500">Garage receives</span><span className="font-bold">₹{summary.garage_receives.toFixed(2)}</span></div>
+                                    {summary.verified && <div className="flex items-center gap-1 text-green-600 font-semibold pt-1"><ShieldCheck className="w-4 h-4" /> Verified transaction</div>}
+                                </div>
+                                <button onClick={onClose} className="mt-6 w-full h-14 btn-premium rounded-2xl font-bold text-white">Done</button>
                             </div>
                         )}
                     </motion.div>

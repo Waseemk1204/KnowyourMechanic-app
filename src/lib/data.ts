@@ -502,6 +502,66 @@ export interface CreateServiceRecordParams {
     customerHasApp: boolean;
 }
 
+// Full-flow create via the deployed Edge Function: creates the record + join
+// rows AND generates/stores the OTP (returns devOtp when ALLOW_DEV_OTP is set).
+export async function createServiceRecordWithOtp(p: CreateServiceRecordParams): Promise<{
+    serviceRecordId: string;
+    devOtp?: string;
+    otpDelivery: string;
+}> {
+    const { data, error } = await supabase.functions.invoke('service-record-create', {
+        body: {
+            garageId: p.garageId,
+            customerPhone: p.customerPhone,
+            vehicleType: p.vehicleType,
+            vehicleMakeCode: p.vehicleMakeCode,
+            vehicleModelCode: p.vehicleModelCode,
+            vehicleMakeOther: p.vehicleMakeOther,
+            vehicleModelOther: p.vehicleModelOther,
+            vehicleNumber: p.vehicleNumber,
+            modelYear: p.modelYear,
+            odometerKm: p.odometerKm,
+            serviceCategoryCodes: p.serviceCodes,
+            failureCategoryCodes: p.failureCodes,
+            serviceNotes: p.serviceNotes,
+            amount: p.amount,
+            customerHasApp: p.customerHasApp,
+        },
+    });
+    if (error) throw new Error(error.message || 'Failed to create service record.');
+    return data as { serviceRecordId: string; devOtp?: string; otpDelivery: string };
+}
+
+// Verifies the customer OTP via the deployed Edge Function.
+export async function verifyServiceOtp(serviceRecordId: string, otp: string): Promise<{ ok: boolean; reason?: string; remainingAttempts?: number }> {
+    const { data, error } = await supabase.functions.invoke('service-otp-verify', {
+        body: { serviceRecordId, otp },
+    });
+    if (error) {
+        const ctx = (error as any).context;
+        if (ctx?.body && typeof ctx.body.ok === 'boolean') return ctx.body;
+        throw new Error(error.message || 'OTP verification failed.');
+    }
+    return data as { ok: boolean };
+}
+
+export interface PaymentSummary {
+    invoice_number: string;
+    status: string;
+    customer_pays: number;
+    platform_fee: number;
+    garage_receives: number;
+    verified: boolean;
+}
+
+export async function completeServicePayment(serviceRecordId: string, method: 'qr' | 'cash'): Promise<PaymentSummary> {
+    const { data, error } = await supabase
+        .rpc('complete_service_payment', { p_service_record_id: serviceRecordId, p_payment_method: method })
+        .single();
+    if (error) throw new Error(error.message || 'Payment failed.');
+    return data as PaymentSummary;
+}
+
 // Creates a service record + taxonomy join rows via the SECURITY DEFINER RPC.
 // (OTP generation/delivery happens later via the service-record-create Edge
 // Function once it is deployed.)
