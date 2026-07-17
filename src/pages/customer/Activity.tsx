@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Wrench, Loader2, Calendar, AlertCircle, ArrowLeft, Star, X, Check, Edit2, Flag, Download, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCustomerServiceHistory } from '../../lib/data';
 
 interface ServiceRecord {
     _id: string;
@@ -49,10 +51,11 @@ export default function CustomerActivity() {
     const [reportSuccess, setReportSuccess] = useState(false);
 
     const navigate = useNavigate();
+    const { userData } = useAuth();
 
     useEffect(() => {
-        fetchServiceHistory();
-    }, []);
+        if (userData?.phoneNumber) fetchServiceHistory();
+    }, [userData?.phoneNumber]);
 
     const getApiUrl = () => {
         return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
@@ -60,29 +63,20 @@ export default function CustomerActivity() {
 
     const fetchServiceHistory = async () => {
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
+            const phone = userData?.phoneNumber;
+            if (!phone) { setLoading(false); return; }
 
-            if (!token) {
-                setError('Please login to view your service history');
-                setLoading(false);
-                return;
-            }
-
-            const res = await fetch(`${getApiUrl()}/service-records/my-history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setServices(data);
-
-                // Fetch reviews for each unique garage
-                const uniqueGarageIds = [...new Set(data.map((s: ServiceRecord) => s.garageId?._id).filter(Boolean))];
-                for (const garageId of uniqueGarageIds) {
-                    await fetchMyReview(garageId as string, token);
-                }
-            }
+            const rows = await getCustomerServiceHistory(phone);
+            const mapped: ServiceRecord[] = rows.map((r) => ({
+                _id: r.id,
+                garageId: { _id: r.garage_id, name: r.garage_name },
+                description: r.description,
+                amount: Number(r.amount),
+                paymentMethod: r.payment_method || 'cash',
+                isReliable: r.is_reliable,
+                createdAt: r.created_at,
+            }));
+            setServices(mapped);
         } catch (err) {
             console.error('Error fetching service history:', err);
             setError('Failed to load service history');

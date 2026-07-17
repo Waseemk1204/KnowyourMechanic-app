@@ -23,6 +23,7 @@ export interface GarageRow {
 export interface ServiceRecordRow {
     id: string;
     garage_id: string;
+    garage_name: string;
     customer_phone: string;
     description: string;
     amount: number;
@@ -138,6 +139,22 @@ export async function getGarageServiceRecords(garageId: string): Promise<Service
         .order('created_at', { ascending: false });
     if (error) {
         console.error('getGarageServiceRecords error', error);
+        return [];
+    }
+    return (data ?? []) as ServiceRecordRow[];
+}
+
+// A customer's completed service history (matched by phone), newest first.
+export async function getCustomerServiceHistory(phone: string): Promise<ServiceRecordRow[]> {
+    const digits = phone.replace(/\D/g, '').slice(-10);
+    const { data, error } = await supabase
+        .from('service_records')
+        .select('*')
+        .eq('customer_phone', digits)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false });
+    if (error) {
+        console.error('getCustomerServiceHistory error', error);
         return [];
     }
     return (data ?? []) as ServiceRecordRow[];
