@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { getMyGarage, getGarageServiceRecords } from '../../lib/data';
 
 import AddServiceModal from '../../components/AddServiceModal';
 import { DashboardSkeleton } from '../../components/Loaders';
@@ -60,97 +61,65 @@ export default function GarageDashboard() {
     const [serviceHours, setServiceHours] = useState('9:00 AM - 8:00 PM');
     const [workingDays, setWorkingDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [garageId, setGarageId] = useState('');
 
     const navigate = useNavigate();
     const { userData, logout } = useAuth();
 
     useEffect(() => {
-        fetchBookings();
-        fetchServices();
-        fetchGarageProfile();
-    }, []);
+        if (userData?._id) {
+            loadDashboard();
+        }
+    }, [userData?._id]);
 
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-    const fetchBookings = async () => {
+    // Loads the garage profile + its service records from Supabase.
+    const loadDashboard = async () => {
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/bookings/garage-bookings`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setBookings(data);
-
-                // Calculate stats
-                const pending = data.filter((b: Booking) => b.status === 'pending').length;
-                const completed = data.filter((b: Booking) => b.status === 'completed').length;
-                setStats(prev => ({ ...prev, pending, completed }));
+            if (!userData?._id) { setLoading(false); return; }
+            const garage = await getMyGarage(userData._id);
+            if (garage) {
+                setGarageId(garage.id);
+                setGarageName(garage.name);
+                if (garage.photo_url) setGaragePhotoUrl(garage.photo_url);
+                if (garage.service_hours) setServiceHours(garage.service_hours);
+                if (garage.working_days && garage.working_days.length) setWorkingDays(garage.working_days);
+                setBookings([]);
+                await loadServices(garage.id, Number(garage.rating || 0), garage.total_reviews || 0);
             }
         } catch (error) {
-            console.error('Error fetching bookings:', error);
+            console.error('Error loading dashboard:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchServices = async () => {
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/service-records/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                const servicesList = data.services || [];
-                setServices(servicesList);
-                // Update stats from API or use array length as fallback
-                const totalCount = data.stats?.totalServices ?? servicesList.length;
-                setStats(prev => ({ ...prev, completed: totalCount }));
-            }
-        } catch (error) {
-            console.error('Error fetching services:', error);
-        }
+    const loadServices = async (gid: string, rating = stats.rating, totalReviews = stats.totalReviews) => {
+        const records = await getGarageServiceRecords(gid);
+        const mapped: ServiceRecord[] = records.map((r) => ({
+            _id: r.id,
+            customerPhone: r.customer_phone,
+            description: r.description,
+            amount: Number(r.amount),
+            platformFee: Number(r.platform_fee),
+            garageEarnings: Number(r.garage_earnings),
+            paymentMethod: (r.payment_method as any) || 'cash',
+            status: r.status,
+            isReliable: r.is_reliable,
+            createdAt: r.created_at,
+        }));
+        setServices(mapped);
+        const pending = mapped.filter((m) => m.status === 'pending_otp').length;
+        setStats({ pending, completed: mapped.length, rating, totalReviews });
     };
 
+    // Called by the add-service modal after creating a record.
+    const fetchServices = async () => {
+        if (garageId) await loadServices(garageId);
+    };
 
     const handleLogout = async () => {
         await logout();
         navigate('/auth');
-    };
-
-    const fetchGarageProfile = async () => {
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/garages/profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.photoUrl) setGaragePhotoUrl(data.photoUrl);
-                if (data.name) setGarageName(data.name);
-                if (data.serviceHours) setServiceHours(data.serviceHours);
-                if (data.workingDays) setWorkingDays(Array.isArray(data.workingDays) ? data.workingDays : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
-                // Update rating and reviews from garage profile
-                setStats(prev => ({
-                    ...prev,
-                    rating: data.rating || 0,
-                    totalReviews: data.totalReviews || 0
-                }));
-            }
-        } catch (err) {
-            console.error('Error fetching garage profile:', err);
-        }
     };
 
     // Check if garage is currently open
@@ -180,19 +149,10 @@ export default function GarageDashboard() {
         }
     };
 
-    const handleBookingStatus = async (bookingId: string, status: 'accepted' | 'rejected') => {
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            await fetch(`${getApiUrl()}/bookings/${bookingId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ status }),
-            });
-            fetchBookings();
-        } catch (err) {
-            console.error('Booking status error:', err);
-        }
+    // Booking flow is retired in the Supabase model; kept as a no-op so the
+    // legacy booking UI (which no longer receives data) still compiles.
+    const handleBookingStatus = async (_bookingId: string, _status: 'accepted' | 'rejected') => {
+        /* no-op */
     };
 
     if (loading) {

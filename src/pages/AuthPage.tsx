@@ -4,6 +4,7 @@ import { ChevronRight, Loader2, Wrench, Car, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../lib/auth';
 import { supabase } from '../lib/supabase';
+import { getMyGarage } from '../lib/data';
 import { useAuth } from '../contexts/AuthContext';
 
 type Step = 'phone' | 'otp' | 'role';
@@ -72,7 +73,14 @@ export default function AuthPage() {
                 } else if (userData.role === 'employee') {
                     navigate('/employee');
                 } else if (userData.role === 'garage') {
-                    navigate('/garage');
+                    const garage = await getMyGarage(userData._id);
+                    if (garage) {
+                        localStorage.setItem('garageOnboarded', 'true');
+                        navigate('/garage');
+                    } else {
+                        localStorage.removeItem('garageOnboarded');
+                        navigate('/garage/onboarding');
+                    }
                 } else {
                     navigate('/customer');
                 }
