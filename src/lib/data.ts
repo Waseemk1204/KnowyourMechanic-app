@@ -388,6 +388,96 @@ export async function getEmployeeDashboard(profileId: string): Promise<EmployeeD
     };
 }
 
+// ---- Admin: single employee detail (perf + edit + delete) ----
+export interface EmployeeDetailData {
+    employee: { name: string; email: string; phone: string; isActive: boolean; createdAt: string; referralCode: string };
+    garages: Array<{
+        _id: string; name: string; location: { address: string };
+        rating: number; totalReviews: number; totalServices: number; totalEarnings: number; avgServicesPerDay: string;
+    }>;
+    aggregates: { totalGarages: number; totalServices: number; totalEarnings: number; avgServicesPerGarage: string };
+}
+
+export async function getEmployeeDetail(employeeId: string): Promise<EmployeeDetailData | null> {
+    const { data: emp, error } = await supabase
+        .from('employees')
+        .select('id,name,email,phone,is_active,created_at,referral_code')
+        .eq('id', employeeId)
+        .maybeSingle();
+    if (error || !emp) {
+        if (error) console.error('getEmployeeDetail error', error);
+        return null;
+    }
+
+    const { data: gRows } = await supabase
+        .from('garages')
+        .select('id,name,address,rating,total_reviews')
+        .eq('assigned_employee_id', emp.id);
+    const garageRows = gRows ?? [];
+    const gids = garageRows.map((g: any) => g.id);
+
+    let recs: { garage_id: string; amount: number }[] = [];
+    if (gids.length) {
+        const { data } = await supabase
+            .from('service_records')
+            .select('garage_id,amount')
+            .in('garage_id', gids)
+            .eq('status', 'completed');
+        recs = (data ?? []) as any;
+    }
+    const perGarage = new Map<string, { count: number; earnings: number }>();
+    for (const r of recs) {
+        const cur = perGarage.get(r.garage_id) ?? { count: 0, earnings: 0 };
+        cur.count += 1;
+        cur.earnings += Number(r.amount || 0);
+        perGarage.set(r.garage_id, cur);
+    }
+
+    const garages = garageRows.map((g: any) => ({
+        _id: g.id,
+        name: g.name,
+        location: { address: g.address || '' },
+        rating: Number(g.rating) || 0,
+        totalReviews: g.total_reviews || 0,
+        totalServices: perGarage.get(g.id)?.count || 0,
+        totalEarnings: perGarage.get(g.id)?.earnings || 0,
+        avgServicesPerDay: ((perGarage.get(g.id)?.count || 0) / 30).toFixed(1),
+    }));
+    const totalServices = recs.length;
+    const totalEarnings = recs.reduce((s, r) => s + Number(r.amount || 0), 0);
+
+    return {
+        employee: {
+            name: emp.name,
+            email: emp.email || '',
+            phone: emp.phone,
+            isActive: emp.is_active,
+            createdAt: emp.created_at,
+            referralCode: emp.referral_code,
+        },
+        garages,
+        aggregates: {
+            totalGarages: garages.length,
+            totalServices,
+            totalEarnings,
+            avgServicesPerGarage: garages.length ? (totalServices / garages.length).toFixed(1) : '0',
+        },
+    };
+}
+
+export async function updateEmployee(employeeId: string, p: { name: string; email: string; phone: string }): Promise<void> {
+    const { error } = await supabase
+        .from('employees')
+        .update({ name: p.name, email: p.email || null, phone: p.phone, updated_at: new Date().toISOString() })
+        .eq('id', employeeId);
+    if (error) throw new Error(error.message);
+}
+
+export async function deleteEmployee(employeeId: string): Promise<void> {
+    const { error } = await supabase.from('employees').delete().eq('id', employeeId);
+    if (error) throw new Error(error.message);
+}
+
 export interface GarageBusinessInfo {
     name: string;
     email: string;
@@ -717,6 +807,168 @@ export async function submitReport(p: {
         description: p.description.trim() || null,
         service_record_id: p.serviceRecordId ?? null,
     });
+    if (error) throw new Error(error.message);
+}
+
+// Delete the current customer's review for a garage.
+export async function deleteMyReview(customerProfileId: string, garageId: string): Promise<void> {
+    const { error } = await supabase
+        .from('reviews')
+        .delete()
+        .eq('customer_profile_id', customerProfileId)
+        .eq('garage_id', garageId);
+    if (error) throw new Error(error.message);
+}
+
+// All public reviews for a garage (newest first). Reviewer identity is not exposed.
+export interface GarageReview {
+    _id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+}
+export async function getGarageReviews(garageId: string): Promise<GarageReview[]> {
+    const { data, error } = await supabase
+        .from('reviews')
+        .select('id,rating,comment,created_at')
+        .eq('garage_id', garageId)
+        .order('created_at', { ascending: false });
+    if (error) {
+        console.error('getGarageReviews error', error);
+        return [];
+    }
+    return (data ?? []).map((r: any) => ({ _id: r.id, rating: r.rating, comment: r.comment, createdAt: r.created_at }));
+}
+
+// True if the customer has at least one completed service with this garage (gates reviewing).
+export async function canCustomerReviewGarage(phone: string, garageId: string): Promise<boolean> {
+    const digits = phone.replace(/\D/g, '').slice(-10);
+    const { count, error } = await supabase
+        .from('service_records')
+        .select('id', { count: 'exact', head: true })
+        .eq('customer_phone', digits)
+        .eq('garage_id', garageId)
+        .eq('status', 'completed');
+    if (error) {
+        console.error('canCustomerReviewGarage error', error);
+        return false;
+    }
+    return (count ?? 0) > 0;
+}
+
+// Public garage detail (single). Mirrors the discoverGarages shape.
+export interface GarageDetailPublic {
+    _id: string;
+    name: string;
+    location: { address: string; coordinates: [number, number] };
+    serviceHours: string;
+    workingDays: string;
+    photoUrl?: string;
+    rating: number;
+    totalReviews: number;
+}
+export async function getGaragePublic(garageId: string): Promise<GarageDetailPublic | null> {
+    const { data: g, error } = await supabase
+        .from('garages')
+        .select('id,name,address,latitude,longitude,service_hours,working_days,photo_url,rating,total_reviews')
+        .eq('id', garageId)
+        .maybeSingle();
+    if (error || !g) {
+        if (error) console.error('getGaragePublic error', error);
+        return null;
+    }
+    return {
+        _id: g.id,
+        name: g.name,
+        location: { address: g.address || '', coordinates: [g.longitude || 0, g.latitude || 0] },
+        serviceHours: g.service_hours || '',
+        workingDays: Array.isArray(g.working_days) ? g.working_days.join(',') : '',
+        photoUrl: g.photo_url || undefined,
+        rating: Number(g.rating) || 0,
+        totalReviews: g.total_reviews || 0,
+    };
+}
+
+// ---- Garage service catalog (garage_services) ----
+export interface OfferedServiceRow {
+    _id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    duration: number;
+    isActive: boolean;
+}
+function mapOfferedService(s: any): OfferedServiceRow {
+    return {
+        _id: s.id,
+        name: s.name,
+        description: s.description,
+        price: Number(s.price),
+        duration: s.duration_minutes || 0,
+        isActive: s.is_active,
+    };
+}
+
+// Active services a garage offers (public catalog on the garage detail page).
+export async function getGarageOfferedServices(garageId: string): Promise<OfferedServiceRow[]> {
+    const { data, error } = await supabase
+        .from('garage_services')
+        .select('id,name,description,price,duration_minutes,is_active')
+        .eq('garage_id', garageId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: true });
+    if (error) {
+        console.error('getGarageOfferedServices error', error);
+        return [];
+    }
+    return (data ?? []).map(mapOfferedService);
+}
+
+// All services for the owner's own garage (includes inactive) — for the manage-catalog page.
+export async function getMyGarageServices(garageId: string): Promise<OfferedServiceRow[]> {
+    const { data, error } = await supabase
+        .from('garage_services')
+        .select('id,name,description,price,duration_minutes,is_active')
+        .eq('garage_id', garageId)
+        .order('created_at', { ascending: true });
+    if (error) {
+        console.error('getMyGarageServices error', error);
+        return [];
+    }
+    return (data ?? []).map(mapOfferedService);
+}
+
+export interface GarageServiceInput {
+    name: string;
+    description: string;
+    price: number;
+    durationMinutes: number;
+}
+export async function createGarageService(garageId: string, p: GarageServiceInput): Promise<void> {
+    const { error } = await supabase.from('garage_services').insert({
+        garage_id: garageId,
+        name: p.name,
+        description: p.description.trim() || null,
+        price: p.price,
+        duration_minutes: p.durationMinutes || null,
+    });
+    if (error) throw new Error(error.message);
+}
+export async function updateGarageService(id: string, p: GarageServiceInput): Promise<void> {
+    const { error } = await supabase
+        .from('garage_services')
+        .update({
+            name: p.name,
+            description: p.description.trim() || null,
+            price: p.price,
+            duration_minutes: p.durationMinutes || null,
+            updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+    if (error) throw new Error(error.message);
+}
+export async function deleteGarageService(id: string): Promise<void> {
+    const { error } = await supabase.from('garage_services').delete().eq('id', id);
     if (error) throw new Error(error.message);
 }
 

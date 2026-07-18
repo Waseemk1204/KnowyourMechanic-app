@@ -3,17 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Star, MapPin, Clock, Phone, Navigation,
-    Wrench, Calendar, X, Check, Loader2, Info, AlertTriangle, Flag, DollarSign, Timer
+    X, Check, Loader2, AlertTriangle, Flag, Timer
 } from 'lucide-react';
-
-interface ServiceRecord {
-    _id: string;
-    description: string;
-    amount: number;
-    createdAt: string;
-    customerPhone: string;
-    isReliable: boolean;
-}
+import { useAuth } from '../../contexts/AuthContext';
+import {
+    getGaragePublic, getGarageReviews, getGarageOfferedServices,
+    getMyReview, submitReview, deleteMyReview, submitReport, canCustomerReviewGarage,
+} from '../../lib/data';
 
 interface Review {
     _id: string;
@@ -48,10 +44,9 @@ interface OfferedService {
 export default function GarageDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { userData } = useAuth();
 
     const [garage, setGarage] = useState<GarageDetail | null>(null);
-    const [services, setServices] = useState<ServiceRecord[]>([]);
-    const [visibleServices, setVisibleServices] = useState(5);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [visibleReviews, setVisibleReviews] = useState(20);
     const [myReview, setMyReview] = useState<Review | null>(null);
@@ -61,14 +56,6 @@ export default function GarageDetailPage() {
     const [reviewComment, setReviewComment] = useState('');
     const [submittingReview, setSubmittingReview] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [selectedService, setSelectedService] = useState<ServiceRecord | null>(null);
-    const [showCashInfoId, setShowCashInfoId] = useState<string | null>(null);
-    const [showBookingModal, setShowBookingModal] = useState(false);
-    const [bookingDate, setBookingDate] = useState('');
-    const [bookingTime, setBookingTime] = useState('');
-    const [bookingNotes, setBookingNotes] = useState('');
-    const [booking, setBooking] = useState(false);
-    const [bookingSuccess, setBookingSuccess] = useState(false);
 
     // Service portfolio
     const [offeredServices, setOfferedServices] = useState<OfferedService[]>([]);
@@ -81,27 +68,37 @@ export default function GarageDetailPage() {
     const [reportSuccess, setReportSuccess] = useState(false);
 
     useEffect(() => {
+        if (!id) return;
         fetchGarageDetails();
         fetchReviews();
-        fetchMyReview();
         fetchOfferedServices();
     }, [id]);
 
+    // Load the customer's own review + whether they may review (must have used the garage).
+    useEffect(() => {
+        if (!id || !userData?._id || !userData?.phoneNumber) return;
+        (async () => {
+            try {
+                const [mine, allowed] = await Promise.all([
+                    getMyReview(userData._id, id),
+                    canCustomerReviewGarage(userData.phoneNumber, id),
+                ]);
+                setCanReview(allowed || !!mine);
+                if (mine) {
+                    setMyReview({ _id: `${userData._id}:${id}`, rating: mine.rating, comment: mine.comment || undefined, customerPhone: userData.phoneNumber, createdAt: '' });
+                    setReviewRating(mine.rating);
+                    setReviewComment(mine.comment || '');
+                }
+            } catch (err) {
+                console.error('Error loading my review:', err);
+            }
+        })();
+    }, [id, userData?._id, userData?.phoneNumber]);
+
     const fetchGarageDetails = async () => {
         try {
-            // Fetch garage details
-            const garageRes = await fetch(`${getApiUrl()}/garages/${id}`);
-            if (garageRes.ok) {
-                const garageData = await garageRes.json();
-                setGarage(garageData);
-            }
-
-            // Fetch service records (completed services)
-            const servicesRes = await fetch(`${getApiUrl()}/service-records/garage/${id}`);
-            if (servicesRes.ok) {
-                const servicesData = await servicesRes.json();
-                setServices(servicesData);
-            }
+            if (!id) return;
+            setGarage(await getGaragePublic(id));
         } catch (error) {
             console.error('Error fetching garage details:', error);
         } finally {
@@ -111,38 +108,11 @@ export default function GarageDetailPage() {
 
     const fetchReviews = async () => {
         try {
-            const res = await fetch(`${getApiUrl()}/reviews/garage/${id}`);
-            if (res.ok) {
-                const data = await res.json();
-                setReviews(data.reviews);
-            }
+            if (!id) return;
+            const rows = await getGarageReviews(id);
+            setReviews(rows.map((r) => ({ _id: r._id, rating: r.rating, comment: r.comment || undefined, customerPhone: '', createdAt: r.createdAt })));
         } catch (error) {
             console.error('Error fetching reviews:', error);
-        }
-    };
-
-    const fetchMyReview = async () => {
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            if (!token) return;
-
-            const res = await fetch(`${getApiUrl()}/reviews/my-review/${id}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setMyReview(data.review);
-                setCanReview(data.canReview);
-
-                if (data.review) {
-                    setReviewRating(data.review.rating);
-                    setReviewComment(data.review.comment || '');
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching my review:', error);
         }
     };
 
@@ -151,38 +121,15 @@ export default function GarageDetailPage() {
             alert('Please select a rating');
             return;
         }
+        if (!id || !userData?._id) return;
 
         setSubmittingReview(true);
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    garageId: id,
-                    rating: reviewRating,
-                    comment: reviewComment
-                })
-            });
-
-            if (res.ok) {
-                setShowReviewModal(false);
-                fetchReviews();
-                fetchMyReview();
-
-                // Update garage rating in state
-                if (garage) {
-                    fetchGarageDetails();
-                }
-            } else {
-                const data = await res.json();
-                alert(data.message || 'Failed to submit review');
-            }
+            await submitReview(userData._id, id, reviewRating, reviewComment);
+            setShowReviewModal(false);
+            setMyReview({ _id: `${userData._id}:${id}`, rating: reviewRating, comment: reviewComment || undefined, customerPhone: userData.phoneNumber, createdAt: '' });
+            fetchReviews();
+            fetchGarageDetails();
         } catch (error) {
             console.error('Error submitting review:', error);
             alert('Failed to submit review');
@@ -192,81 +139,18 @@ export default function GarageDetailPage() {
     };
 
     const handleDeleteReview = async () => {
-        if (!myReview || !confirm('Are you sure you want to delete your review?')) return;
+        if (!myReview || !id || !userData?._id) return;
+        if (!confirm('Are you sure you want to delete your review?')) return;
 
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/reviews/${myReview._id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                setMyReview(null);
-                setReviewRating(0);
-                setReviewComment('');
-                fetchReviews();
-                fetchGarageDetails();
-            }
+            await deleteMyReview(userData._id, id);
+            setMyReview(null);
+            setReviewRating(0);
+            setReviewComment('');
+            fetchReviews();
+            fetchGarageDetails();
         } catch (error) {
             console.error('Error deleting review:', error);
-        }
-    };
-
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-
-
-    const loadMoreServices = () => {
-        // First click: show 5 more (5→10), subsequent clicks: show 10 more
-        const increment = visibleServices === 5 ? 5 : 10;
-        setVisibleServices(prev => prev + increment);
-    };
-
-    const handleConfirmBooking = async () => {
-        if (!selectedService || !bookingDate || !bookingTime) return;
-
-        setBooking(true);
-        try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-
-            const res = await fetch(`${getApiUrl()}/bookings`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    garageId: id,
-                    serviceId: selectedService._id,
-                    scheduledDate: bookingDate,
-                    scheduledTime: bookingTime,
-                    notes: bookingNotes,
-                })
-            });
-
-            if (res.ok) {
-                setBookingSuccess(true);
-                setTimeout(() => {
-                    setShowBookingModal(false);
-                    setBookingSuccess(false);
-                    setSelectedService(null);
-                    navigate('/customer/activity');
-                }, 2000);
-            } else {
-                const error = await res.json();
-                alert(error.message || 'Failed to book service');
-            }
-        } catch (error) {
-            console.error('Booking error:', error);
-            alert('Failed to book service');
-        } finally {
-            setBooking(false);
         }
     };
 
@@ -284,48 +168,29 @@ export default function GarageDetailPage() {
 
     const fetchOfferedServices = async () => {
         try {
-            const res = await fetch(`${getApiUrl()}/services/garage/${id}`);
-            if (res.ok) {
-                const data = await res.json();
-                setOfferedServices(data);
-            }
+            if (!id) return;
+            const rows = await getGarageOfferedServices(id);
+            setOfferedServices(rows.map((s) => ({ _id: s._id, name: s.name, description: s.description || undefined, price: s.price, duration: s.duration })));
         } catch (err) {
             console.error('Failed to fetch offered services', err);
         }
     };
 
     const handleSubmitReport = async () => {
-        if (!reportReason || !reportDescription.trim()) return;
+        if (!reportReason || !reportDescription.trim() || !id || !userData?._id) return;
         setSubmittingReport(true);
         try {
-            const { auth } = await import('../../lib/firebase');
-            const token = await auth.currentUser?.getIdToken();
-            const res = await fetch(`${getApiUrl()}/reports`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    garageId: id,
-                    reason: reportReason,
-                    description: reportDescription,
-                }),
-            });
-            if (res.ok) {
-                setReportSuccess(true);
-                setTimeout(() => {
-                    setShowReportModal(false);
-                    setReportReason('');
-                    setReportDescription('');
-                    setReportSuccess(false);
-                }, 2000);
-            } else {
-                const data = await res.json();
-                alert(data.message || 'Failed to submit report');
-            }
+            await submitReport({ reporterProfileId: userData._id, garageId: id, reason: reportReason, description: reportDescription });
+            setReportSuccess(true);
+            setTimeout(() => {
+                setShowReportModal(false);
+                setReportReason('');
+                setReportDescription('');
+                setReportSuccess(false);
+            }, 2000);
         } catch (err) {
-            alert('Network error. Please try again.');
+            console.error('Error submitting report:', err);
+            alert('Failed to submit report. Please try again.');
         } finally {
             setSubmittingReport(false);
         }
@@ -481,97 +346,6 @@ export default function GarageDetailPage() {
                         </div>
                     </div>
                 )}
-
-                {/* Recent Services */}
-                <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Services</h2>
-
-                    {services.length === 0 ? (
-                        <div className="bg-white rounded-2xl p-6 text-center">
-                            <Wrench className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                            <p className="text-slate-400">No services completed yet</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="space-y-3">
-                                {services.slice(0, visibleServices).map((service, i) => (
-                                    <motion.div
-                                        key={service._id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100"
-                                    >
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <p className="font-semibold text-slate-900 mb-1">{service.description}</p>
-                                                <p className="text-xs text-slate-400">
-                                                    {new Date(service.createdAt).toLocaleDateString('en-IN', {
-                                                        day: 'numeric',
-                                                        month: 'short',
-                                                        year: 'numeric'
-                                                    })}
-                                                </p>
-                                            </div>
-                                            <div className="text-right ml-3">
-                                                <p className="font-bold text-slate-900">₹{service.amount}</p>
-                                                {service.isReliable ? (
-                                                    <div className="mt-1 text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full inline-block">
-                                                        Verified
-                                                    </div>
-                                                ) : (
-                                                    <div className="relative">
-                                                        <div className="mt-1 flex items-center gap-1">
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setShowCashInfoId(showCashInfoId === service._id ? null : service._id);
-                                                                }}
-                                                                className="w-4 h-4 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors"
-                                                            >
-                                                                <Info className="w-3 h-3 text-amber-600" />
-                                                            </button>
-                                                            <div className="text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full inline-block">
-                                                                Cash Payment
-                                                            </div>
-                                                        </div>
-                                                        {showCashInfoId === service._id && (
-                                                            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-10">
-                                                                <div className="flex items-start gap-2">
-                                                                    <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                                                                    <div>
-                                                                        <p className="text-xs text-slate-700 leading-relaxed">
-                                                                            Cash payments can't be verified through our payment system, making them less traceable and reliable.
-                                                                        </p>
-                                                                        <button
-                                                                            onClick={() => setShowCashInfoId(null)}
-                                                                            className="text-xs text-blue-600 font-semibold mt-2"
-                                                                        >
-                                                                            Got it
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-
-                            {visibleServices < services.length && (
-                                <button
-                                    onClick={loadMoreServices}
-                                    className="w-full mt-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
-                                >
-                                    See More
-                                </button>
-                            )}
-                        </>
-                    )}
-                </div>
 
                 {/* Reviews Section */}
                 <div className="mb-6">
@@ -766,95 +540,6 @@ export default function GarageDetailPage() {
                                     )}
                                 </button>
                             </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Booking Modal */}
-            <AnimatePresence>
-                {showBookingModal && selectedService && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center"
-                        onClick={() => setShowBookingModal(false)}
-                    >
-                        <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
-                        >
-                            {bookingSuccess ? (
-                                <div className="text-center py-8">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Check className="w-8 h-8 text-green-600" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2">Booking Confirmed!</h3>
-                                    <p className="text-slate-500">Redirecting to your bookings...</p>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="flex items-center justify-between mb-6">
-                                        <h3 className="text-xl font-bold text-slate-900">Book Service</h3>
-                                        <button onClick={() => setShowBookingModal(false)}>
-                                            <X className="w-6 h-6 text-slate-400" />
-                                        </button>
-                                    </div>
-
-                                    <div className="bg-slate-50 rounded-2xl p-4 mb-6">
-                                        <p className="font-bold text-slate-900">{selectedService.description}</p>
-                                        <p className="text-slate-500 text-sm">₹{selectedService.amount}</p>
-                                    </div>
-
-                                    <div className="space-y-4 mb-6">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Date</label>
-                                            <input
-                                                type="date"
-                                                value={bookingDate}
-                                                onChange={(e) => setBookingDate(e.target.value)}
-                                                min={new Date().toISOString().split('T')[0]}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Time</label>
-                                            <input
-                                                type="time"
-                                                value={bookingTime}
-                                                onChange={(e) => setBookingTime(e.target.value)}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Notes (optional)</label>
-                                            <textarea
-                                                value={bookingNotes}
-                                                onChange={(e) => setBookingNotes(e.target.value)}
-                                                placeholder="Any special instructions..."
-                                                rows={3}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={handleConfirmBooking}
-                                        disabled={!bookingDate || !bookingTime || booking}
-                                        className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {booking ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <>Confirm Booking • ₹{selectedService.amount}</>
-                                        )}
-                                    </button>
-                                </>
-                            )}
                         </motion.div>
                     </motion.div>
                 )}

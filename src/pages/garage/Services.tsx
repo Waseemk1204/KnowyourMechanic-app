@@ -4,6 +4,10 @@ import {
     Plus, Edit, Trash2, X, IndianRupee, Clock, Loader2, Check, ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+    getMyGarage, getMyGarageServices, createGarageService, updateGarageService, deleteGarageService,
+} from '../../lib/data';
 
 interface Service {
     _id: string;
@@ -27,33 +31,31 @@ export default function GarageServices() {
     });
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [garageId, setGarageId] = useState<string | null>(null);
 
     const navigate = useNavigate();
-
-    const getApiUrl = () => {
-        return (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) || 'http://localhost:4001/api';
-    };
-
-    const getToken = async () => {
-        const { auth } = await import('../../lib/firebase');
-        return auth.currentUser?.getIdToken();
-    };
+    const { userData } = useAuth();
 
     useEffect(() => {
-        fetchServices();
-    }, []);
-
-    const fetchServices = async () => {
-        try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/services/my-services`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setServices(data);
+        if (!userData?._id) return;
+        (async () => {
+            const garage = await getMyGarage(userData._id);
+            setGarageId(garage?.id ?? null);
+            if (garage?.id) {
+                await loadServices(garage.id);
+            } else {
+                setLoading(false);
             }
+        })();
+    }, [userData?._id]);
+
+    const loadServices = async (gid: string) => {
+        try {
+            const rows = await getMyGarageServices(gid);
+            setServices(rows.map((s) => ({
+                _id: s._id, name: s.name, description: s.description || undefined,
+                price: s.price, duration: s.duration, isActive: s.isActive,
+            })));
         } catch (error) {
             console.error('Error fetching services:', error);
         } finally {
@@ -69,38 +71,27 @@ export default function GarageServices() {
             return;
         }
 
+        if (!garageId) { setError('No garage found for your account'); return; }
+
         setSaving(true);
         setError('');
 
         try {
-            const token = await getToken();
-            const url = editingService
-                ? `${getApiUrl()}/services/${editingService._id}`
-                : `${getApiUrl()}/services`;
-
-            const res = await fetch(url, {
-                method: editingService ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name: formData.name,
-                    description: formData.description,
-                    price: parseFloat(formData.price),
-                    duration: parseInt(formData.duration)
-                })
-            });
-
-            if (res.ok) {
-                fetchServices();
-                handleCloseModal();
+            const input = {
+                name: formData.name,
+                description: formData.description,
+                price: parseFloat(formData.price),
+                durationMinutes: parseInt(formData.duration) || 0,
+            };
+            if (editingService) {
+                await updateGarageService(editingService._id, input);
             } else {
-                const data = await res.json();
-                setError(data.message || 'Failed to save service');
+                await createGarageService(garageId, input);
             }
-        } catch (error) {
-            setError('Network error. Please try again.');
+            await loadServices(garageId);
+            handleCloseModal();
+        } catch (err: any) {
+            setError(err?.message || 'Failed to save service');
         } finally {
             setSaving(false);
         }
@@ -108,17 +99,9 @@ export default function GarageServices() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this service?')) return;
-
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/services/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                fetchServices();
-            }
+            await deleteGarageService(id);
+            if (garageId) await loadServices(garageId);
         } catch (error) {
             console.error('Error deleting service:', error);
         }

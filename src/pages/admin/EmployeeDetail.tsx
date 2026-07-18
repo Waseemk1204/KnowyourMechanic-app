@@ -6,11 +6,7 @@ import {
     Edit2, Trash2, X
 } from 'lucide-react';
 
-const getApiUrl = () => (import.meta as any).env?.VITE_API_URL || 'http://localhost:4001/api';
-const getToken = async () => {
-    const { auth } = await import('../../lib/firebase');
-    return auth.currentUser?.getIdToken();
-};
+import { getEmployeeDetail, updateEmployee, deleteEmployee } from '../../lib/data';
 
 interface GaragePerf {
     _id: string;
@@ -46,12 +42,9 @@ export default function EmployeeDetail() {
 
     const fetchData = async () => {
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/employees/${id}/performance`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) {
-                const fetchedData = await res.json();
+            if (!id) return;
+            const fetchedData = await getEmployeeDetail(id);
+            if (fetchedData) {
                 setData(fetchedData);
                 setEditName(fetchedData.employee.name);
                 setEditEmail(fetchedData.employee.email);
@@ -65,45 +58,29 @@ export default function EmployeeDetail() {
     };
 
     const handleEdit = async () => {
+        if (!id) return;
         setSaving(true);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/employees/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name: editName, email: editEmail, phone: editPhone })
-            });
-            if (res.ok) {
-                setShowEditModal(false);
-                fetchData();
-            } else {
-                alert('Failed to update employee');
-            }
+            await updateEmployee(id, { name: editName, email: editEmail, phone: editPhone });
+            setShowEditModal(false);
+            fetchData();
         } catch (error) {
             console.error(error);
+            alert('Failed to update employee');
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async () => {
+        if (!id) return;
         setDeleting(true);
         try {
-            const token = await getToken();
-            const res = await fetch(`${getApiUrl()}/admin/employees/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.ok) {
-                navigate('/admin/employees');
-            } else {
-                alert('Failed to delete employee');
-            }
+            await deleteEmployee(id);
+            navigate('/admin/employees');
         } catch (error) {
             console.error(error);
+            alert('Failed to delete employee');
         } finally {
             setDeleting(false);
         }
