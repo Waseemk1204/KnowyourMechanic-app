@@ -35,16 +35,9 @@ export default class ErrorBoundary extends Component<Props, State> {
             }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>😕</div>
                 <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>Something went wrong</h1>
-                <p style={{ color: '#64748b', fontSize: 14, maxWidth: 320, margin: '0 0 16px' }}>
+                <p style={{ color: '#64748b', fontSize: 14, maxWidth: 320, margin: '0 0 20px' }}>
                     This page hit an unexpected error. Please try again.
                 </p>
-                {this.state.message ? (
-                    <pre style={{
-                        color: '#b91c1c', background: '#fef2f2', border: '1px solid #fecaca',
-                        borderRadius: 8, padding: '8px 12px', fontSize: 12, maxWidth: 340,
-                        whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '0 0 20px',
-                    }}>{this.state.message}</pre>
-                ) : null}
                 <button
                     onClick={() => { window.location.href = '/'; }}
                     style={{
