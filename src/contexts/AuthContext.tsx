@@ -7,7 +7,7 @@ interface UserData {
     _id: string;
     firebaseUid: string;
     phoneNumber: string;
-    role: 'customer' | 'garage' | 'admin' | 'employee';
+    role: 'customer' | 'garage' | 'admin' | 'employee' | 'support';
 }
 
 interface AuthContextType {

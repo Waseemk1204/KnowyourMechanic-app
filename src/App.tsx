@@ -18,6 +18,9 @@ import AdminLayout from './pages/admin/AdminLayout';
 import AdminPerformance from './pages/admin/Performance';
 import AdminAdvanced from './pages/admin/Advanced';
 import EmployeeDashboard from './pages/employee/Dashboard';
+import SupportLayout from './pages/support/SupportLayout';
+import SupportChats from './pages/support/SupportChats';
+import SupportChatView from './pages/support/SupportChatView';
 import './index.css';
 
 function LoadingScreen() {
@@ -28,7 +31,7 @@ function LoadingScreen() {
   );
 }
 
-function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'customer' | 'garage' | 'admin' | 'employee' }) {
+function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'customer' | 'garage' | 'admin' | 'employee' | 'support' }) {
   const { user, userData, loading } = useAuth();
 
 
@@ -47,7 +50,7 @@ function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode;
       // If role is missing, redirect to auth page for role selection
       return <Navigate to="/auth" replace />;
     }
-    return <Navigate to={role === 'garage' ? '/garage' : role === 'admin' ? '/admin' : role === 'employee' ? '/employee' : '/customer'} replace />;
+    return <Navigate to={role === 'garage' ? '/garage' : role === 'admin' ? '/admin' : role === 'employee' ? '/employee' : role === 'support' ? '/support' : '/customer'} replace />;
   }
 
   return <>{children}</>;
@@ -73,6 +76,7 @@ function AuthRoute({ children }: { children: React.ReactNode }) {
     }
     if (role === 'admin') return <Navigate to="/admin" replace />;
     if (role === 'employee') return <Navigate to="/employee" replace />;
+    if (role === 'support') return <Navigate to="/support" replace />;
     return <Navigate to="/customer" replace />;
   }
 
@@ -113,6 +117,13 @@ export default function App() {
 
           {/* Employee Routes */}
           <Route path="/employee" element={<ProtectedRoute requiredRole="employee"><EmployeeDashboard /></ProtectedRoute>} />
+
+          {/* Customer Support Routes (Nested in Layout) */}
+          <Route path="/support" element={<ProtectedRoute requiredRole="support"><SupportLayout /></ProtectedRoute>}>
+            <Route index element={<SupportChats />} />
+            <Route path="chat/:ticketId" element={<SupportChatView />} />
+            <Route path="reports" element={<AdminReports />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>

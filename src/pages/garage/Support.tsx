@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, Mail, ArrowRight, ShieldCheck, Briefcase, ArrowLeft, ChevronDown, HelpCircle } from 'lucide-react';
+import { MessageCircle, Mail, ArrowRight, ShieldCheck, Briefcase, ArrowLeft, ChevronDown, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LiveChatPanel from '../../components/LiveChatPanel';
 
 const faqs = [
     {
@@ -33,15 +34,16 @@ const faqs = [
 export default function GarageSupport() {
     const navigate = useNavigate();
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [showChat, setShowChat] = useState(false);
 
     const options = [
         {
-            icon: Phone,
-            label: 'Call Support',
-            description: '+91 8070604004',
-            color: 'text-green-600',
-            bg: 'bg-green-50',
-            action: () => window.open('tel:+918070604004')
+            icon: MessageCircle,
+            label: 'Live Chat',
+            description: 'Chat with our support team',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            action: () => setShowChat(true)
         },
         {
             icon: Mail,
@@ -54,6 +56,10 @@ export default function GarageSupport() {
     ];
 
     return (
+        <>
+        <AnimatePresence>
+            {showChat && <LiveChatPanel openerRole="garage" onClose={() => setShowChat(false)} />}
+        </AnimatePresence>
         <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
             {/* Header */}
             <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem]">
@@ -148,5 +154,6 @@ export default function GarageSupport() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

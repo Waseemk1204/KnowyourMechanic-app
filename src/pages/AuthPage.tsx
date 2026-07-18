@@ -70,6 +70,8 @@ export default function AuthPage() {
 
                 if (userData.role === 'admin') {
                     navigate('/admin');
+                } else if (userData.role === 'support') {
+                    navigate('/support');
                 } else if (userData.role === 'employee') {
                     navigate('/employee');
                 } else if (userData.role === 'garage') {
