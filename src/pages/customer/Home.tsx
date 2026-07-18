@@ -129,6 +129,8 @@ export default function CustomerHome() {
     const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
     const [approvingId, setApprovingId] = useState<string | null>(null);
 
+    const { logout, userData } = useAuth();
+
     // Register FCM notifications
     useNotifications(() => fetchPendingApprovals());
 
@@ -214,9 +216,6 @@ export default function CustomerHome() {
 
     const navigate = useNavigate();
     const { location, loading, permissionDenied } = useLocation();
-    const { logout, userData } = useAuth();
-
-    console.log('CustomerHome render:', { loading, location, garagesCount: garages.length, isLoadingGarages });
 
     const handleLogout = async () => {
         await logout();
