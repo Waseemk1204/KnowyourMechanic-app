@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, IndianRupee, Send, Loader2, Check, QrCode, Banknote, ShieldCheck } from 'lucide-react';
 import {
-    getTaxonomy,
     createServiceRecordWithOtp,
     verifyServiceOtp,
     completeServicePayment,
-    type Taxonomy,
     type PaymentSummary,
 } from '../lib/data';
 
@@ -19,28 +17,13 @@ interface AddServiceModalProps {
 
 type Step = 'form' | 'otp' | 'payment' | 'success';
 
-const VEHICLE_TYPES: Array<{ code: string; label: string }> = [
-    { code: '2w', label: '2W' },
-    { code: '3w', label: '3W' },
-    { code: '4w', label: '4W' },
-    { code: 'other', label: 'Other' },
-];
-
 export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }: AddServiceModalProps) {
-    const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null);
     const [step, setStep] = useState<Step>('form');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const [customerPhone, setCustomerPhone] = useState('');
-    const [vehicleType, setVehicleType] = useState('');
-    const [makeCode, setMakeCode] = useState('');
-    const [modelCode, setModelCode] = useState('');
     const [vehicleNumber, setVehicleNumber] = useState('');
-    const [modelYear, setModelYear] = useState('');
-    const [odometer, setOdometer] = useState('');
-    const [serviceCodes, setServiceCodes] = useState<string[]>([]);
-    const [failureCodes, setFailureCodes] = useState<string[]>([]);
     const [notes, setNotes] = useState('');
     const [amount, setAmount] = useState('');
 
@@ -50,36 +33,17 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
     const [summary, setSummary] = useState<PaymentSummary | null>(null);
 
     useEffect(() => {
-        if (isOpen && !taxonomy) {
-            getTaxonomy().then(setTaxonomy).catch(() => setError('Could not load service options.'));
-        }
         if (!isOpen) {
-            setStep('form'); setError(''); setCustomerPhone(''); setVehicleType('');
-            setMakeCode(''); setModelCode(''); setVehicleNumber(''); setModelYear('');
-            setOdometer(''); setServiceCodes([]); setFailureCodes([]); setNotes(''); setAmount('');
+            setStep('form'); setError(''); setCustomerPhone(''); setVehicleNumber('');
+            setNotes(''); setAmount('');
             setRecordId(''); setDevOtp(''); setOtp(''); setSummary(null);
         }
-    }, [isOpen, taxonomy]);
-
-    const makes = useMemo(
-        () => (taxonomy?.makes ?? []).filter((m) => !vehicleType || m.vehicle_types.includes(vehicleType)),
-        [taxonomy, vehicleType]
-    );
-    const models = useMemo(
-        () => (taxonomy?.models ?? []).filter((m) => m.make_code === makeCode && m.vehicle_type === vehicleType),
-        [taxonomy, makeCode, vehicleType]
-    );
-
-    const toggle = (list: string[], code: string, set: (v: string[]) => void) =>
-        set(list.includes(code) ? list.filter((c) => c !== code) : [...list, code]);
+    }, [isOpen]);
 
     const canSubmit =
         customerPhone.replace(/\D/g, '').length === 10 &&
-        !!vehicleType &&
-        (!!makeCode || vehicleType === 'other') &&
-        (!!modelCode || vehicleType === 'other') &&
-        serviceCodes.length > 0 &&
-        failureCodes.length > 0 &&
+        vehicleNumber.trim().length > 0 &&
+        notes.trim().length > 0 &&
         Number(amount) > 0;
 
     const handleCreate = async () => {
@@ -87,20 +51,25 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
         if (!garageId) { setError('Garage not loaded yet.'); return; }
         setLoading(true);
         try {
+            // Minimal capture: raw vehicle number + free-text description now;
+            // structured make/model/service data is enriched later (VAHAN lookup +
+            // AI cleaning of the description). vehicleType 'other' = unspecified.
             const res = await createServiceRecordWithOtp({
                 garageId,
                 customerPhone,
-                vehicleType,
-                vehicleMakeCode: makeCode || null,
-                vehicleModelCode: modelCode || null,
-                vehicleMakeOther: vehicleType === 'other' ? 'Other' : null,
-                vehicleModelOther: vehicleType === 'other' ? 'Other' : null,
+                vehicleType: 'other',
+                vehicleMakeCode: null,
+                vehicleModelCode: null,
+                // Placeholder to satisfy the make/model-required constraints; the
+                // real make/model gets filled in later from the vehicle-number lookup.
+                vehicleMakeOther: 'Unspecified',
+                vehicleModelOther: 'Unspecified',
                 vehicleNumber: vehicleNumber.trim().toUpperCase() || null,
-                modelYear: modelYear ? Number(modelYear) : null,
-                odometerKm: odometer ? Number(odometer) : null,
-                serviceCodes,
-                failureCodes,
-                serviceNotes: notes.trim() || null,
+                modelYear: null,
+                odometerKm: null,
+                serviceCodes: [],
+                failureCodes: [],
+                serviceNotes: notes.trim(),
                 amount: Number(amount),
                 customerHasApp: true,
             });
@@ -151,8 +120,6 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
         }
     };
 
-    const chip = (active: boolean) =>
-        `px-4 py-2 rounded-full text-sm font-semibold transition-all ${active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'}`;
 
     return (
         <AnimatePresence>
@@ -192,65 +159,16 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                 </div>
 
                                 <div>
-                                    <label className="text-sm font-semibold text-slate-600">Vehicle type</label>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {VEHICLE_TYPES.map((t) => (
-                                            <button key={t.code} onClick={() => { setVehicleType(t.code); setMakeCode(''); setModelCode(''); }} className={chip(vehicleType === t.code)}>{t.label}</button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {vehicleType && vehicleType !== 'other' && (
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-600">Make</label>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {makes.map((m) => (<button key={m.code} onClick={() => { setMakeCode(m.code); setModelCode(''); }} className={chip(makeCode === m.code)}>{m.display_name}</button>))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {makeCode && (
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-600">Model</label>
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {models.map((m) => (<button key={m.code} onClick={() => setModelCode(m.code)} className={chip(modelCode === m.code)}>{m.display_name}</button>))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-600">Vehicle no.</label>
-                                        <input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} placeholder="MH12AB1234" className="w-full h-12 bg-slate-50 rounded-xl px-3 mt-2 font-medium" />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-semibold text-slate-600">Year</label>
-                                        <input value={modelYear} onChange={(e) => setModelYear(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="2021" className="w-full h-12 bg-slate-50 rounded-xl px-3 mt-2 font-medium" />
-                                    </div>
+                                    <label className="text-sm font-semibold text-slate-600">Vehicle number</label>
+                                    <input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())} placeholder="MH12AB1234"
+                                        className="w-full h-14 bg-slate-50 rounded-2xl px-4 mt-2 text-lg font-medium tracking-wide uppercase" />
                                 </div>
 
                                 <div>
-                                    <label className="text-sm font-semibold text-slate-600">Odometer (km)</label>
-                                    <input value={odometer} onChange={(e) => setOdometer(e.target.value.replace(/\D/g, ''))} placeholder="Optional" className="w-full h-12 bg-slate-50 rounded-xl px-3 mt-2 font-medium" />
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-semibold text-slate-600">Services performed</label>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {(taxonomy?.services ?? []).map((s) => (<button key={s.code} onClick={() => toggle(serviceCodes, s.code, setServiceCodes)} className={chip(serviceCodes.includes(s.code))}>{s.display_name}</button>))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-semibold text-slate-600">Failures / symptoms</label>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {(taxonomy?.failures ?? []).map((f) => (<button key={f.code} onClick={() => toggle(failureCodes, f.code, setFailureCodes)} className={chip(failureCodes.includes(f.code))}>{f.display_name}</button>))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-semibold text-slate-600">Notes (optional)</label>
-                                    <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="w-full bg-slate-50 rounded-2xl px-4 py-3 mt-2 font-medium" />
+                                    <label className="text-sm font-semibold text-slate-600">What was done?</label>
+                                    <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
+                                        placeholder="e.g. oil change + front brake pads. Type it however you like."
+                                        className="w-full bg-slate-50 rounded-2xl px-4 py-3 mt-2 font-medium" />
                                 </div>
 
                                 <div>
