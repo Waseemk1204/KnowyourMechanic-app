@@ -7,6 +7,7 @@
 // `admin` is a service-role Supabase client (bypasses RLS).
 
 import { sendFcm } from "./fcm.ts";
+import { sendWhatsappTemplate } from "./whatsapp.ts";
 
 const ACK_WINDOW_SECONDS = 45;
 
@@ -83,7 +84,41 @@ export async function routeDelivery(admin: any, p: DeliverParams): Promise<Deliv
     }
   }
 
-  // No reachable device -> queue WhatsApp (Phase 4 sender/worker delivers it).
+  // No reachable device -> send WhatsApp now (the OTP plaintext is only available
+  // at this point, so it can't be deferred to a queue). "lapsed" = the recipient
+  // had a device before that's now inactive -> use the re-engagement copy for
+  // invoices ("come back to the app").
+  let lapsed = false;
+  if (p.recipientProfileId) {
+    const { count } = await admin
+      .from("user_devices")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", p.recipientProfileId);
+    lapsed = (count ?? 0) > 0;
+  }
+
   const waId = await recordDelivery(admin, p, "whatsapp");
-  return { channel: "whatsapp", deliveryId: waId };
+  try {
+    const templateName = p.kind === "otp"
+      ? Deno.env.get("MSG91_WA_OTP_TEMPLATE")
+      : (lapsed ? Deno.env.get("MSG91_WA_REENGAGE_TEMPLATE") : Deno.env.get("MSG91_WA_INVOICE_TEMPLATE"));
+    if (!templateName) {
+      throw new Error(`No WhatsApp template configured for ${p.kind}${p.kind === "invoice" && lapsed ? " (re-engagement)" : ""}.`);
+    }
+    const bodyVars = p.kind === "otp"
+      ? [p.data?.otp ?? ""]
+      : [p.data?.invoice ?? "", p.data?.amount ?? ""].filter((v) => v !== "");
+    const wa = await sendWhatsappTemplate({ nationalPhone: p.recipientPhone, templateName, bodyVars });
+    if (waId) {
+      await admin.from("notification_deliveries").update({ provider_message_id: wa.messageId, updated_at: new Date().toISOString() }).eq("id", waId);
+    }
+    return { channel: "whatsapp", deliveryId: waId };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (waId) {
+      await admin.from("notification_deliveries").update({ state: "failed", error: msg, updated_at: new Date().toISOString() }).eq("id", waId);
+    }
+    return { channel: "whatsapp", deliveryId: waId, error: msg };
+  }
 }
+
