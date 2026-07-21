@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-import { normalizeIndianPhone, sendServiceOtpSms } from "../_shared/smsProvider.ts";
+import { normalizeIndianPhone } from "../_shared/smsProvider.ts";
+import { routeDelivery } from "../_shared/deliver.ts";
 import { generateOtp, hashServiceOtp, randomOtpSalt } from "../_shared/otpHash.ts";
 
 const OTP_TTL_MINUTES = 10;
@@ -123,12 +124,29 @@ Deno.serve(async (req) => {
   const otpHash = await hashServiceOtp(otp, salt, pepper);
   const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000).toISOString();
 
-  let sendResult: { provider: string; messageId: string | null } = { provider: "none", messageId: null };
+  // Route the OTP: push if the customer has the app, else WhatsApp (queued for
+  // the Phase-4 sender). Delivery failures never block record creation.
+  let deliveryChannel = "none";
+  let deliveryId: string | null = null;
   let otpNotice: string | null = null;
   try {
-    sendResult = await sendServiceOtpSms(nationalPhone, otp);
+    const { data: rec } = await admin
+      .from("service_records")
+      .select("customer_profile_id")
+      .eq("id", serviceRecordId)
+      .single();
+    const routed = await routeDelivery(admin, {
+      serviceRecordId,
+      recipientProfileId: (rec as { customer_profile_id: string | null } | null)?.customer_profile_id ?? null,
+      recipientPhone: nationalPhone,
+      kind: "otp",
+      title: "KnowYourMechanic OTP",
+      body: `Your KnowYourMechanic OTP is ${otp}. Valid for 10 minutes. Do not share it.`,
+      data: { otp }
+    });
+    deliveryChannel = routed.channel;
+    deliveryId = routed.deliveryId;
   } catch (error) {
-    // Record still created; surface delivery failure without leaking the OTP.
     otpNotice = error instanceof Error ? error.message : "OTP delivery failed.";
   }
 
@@ -138,8 +156,8 @@ Deno.serve(async (req) => {
     otp_hash: otpHash,
     otp_salt: salt,
     expires_at: expiresAt,
-    sent_provider: sendResult.provider,
-    provider_message_id: sendResult.messageId
+    sent_provider: deliveryChannel,
+    provider_message_id: deliveryId
   });
 
   if (otpError) {
@@ -151,7 +169,7 @@ Deno.serve(async (req) => {
     serviceRecordId,
     status: "pending_otp",
     otpExpiresAt: expiresAt,
-    otpDelivery: sendResult.provider,
+    otpDelivery: deliveryChannel,
     otpDeliveryError: otpNotice,
     ...(allowDevOtp ? { devOtp: otp } : {})
   });
