@@ -1155,3 +1155,32 @@ export async function ackNotificationDelivery(deliveryId: string): Promise<void>
     const { error } = await supabase.rpc('ack_notification_delivery', { p_delivery_id: deliveryId });
     if (error) throw new Error(error.message);
 }
+
+// Store/refresh this device's push token for the profile (idempotent per token).
+// Presence of an active row is what the delivery router reads as "has the app".
+export async function saveDeviceToken(profileId: string, token: string, platform: string): Promise<void> {
+    const { error } = await supabase.from('user_devices').upsert(
+        {
+            profile_id: profileId,
+            push_token: token,
+            platform,
+            is_active: true,
+            last_seen_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'profile_id,push_token' },
+    );
+    if (error) throw new Error(error.message);
+}
+
+// True if the profile has at least one active device — used by the router to
+// choose push vs WhatsApp.
+export async function hasActiveDevice(profileId: string): Promise<boolean> {
+    const { count, error } = await supabase
+        .from('user_devices')
+        .select('id', { count: 'exact', head: true })
+        .eq('profile_id', profileId)
+        .eq('is_active', true);
+    if (error) { console.error('hasActiveDevice error', error); return false; }
+    return (count ?? 0) > 0;
+}

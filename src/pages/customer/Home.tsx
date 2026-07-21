@@ -131,8 +131,8 @@ export default function CustomerHome() {
 
     const { logout, userData } = useAuth();
 
-    // Register FCM notifications
-    useNotifications(() => fetchPendingApprovals());
+    // Register native push (FCM) for this customer + ack incoming OTP/invoice pushes
+    useNotifications(userData?._id, () => fetchPendingApprovals());
 
     // Load customer name from profile
     useEffect(() => {
