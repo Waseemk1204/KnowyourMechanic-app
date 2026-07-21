@@ -132,17 +132,23 @@ Deno.serve(async (req) => {
   try {
     const { data: rec } = await admin
       .from("service_records")
-      .select("customer_profile_id")
+      .select("customer_profile_id, garage_name")
       .eq("id", serviceRecordId)
       .single();
+    const recRow = rec as { customer_profile_id: string | null; garage_name: string | null } | null;
+    // Customer verifies the service details, THEN shares the code with the garage.
+    const vehicle = body.vehicleNumber ? body.vehicleNumber.toUpperCase() : "your vehicle";
+    const service = (body.serviceNotes && body.serviceNotes.trim()) || "service";
+    const amountStr = String(body.amount);
+    const garageName = recRow?.garage_name ?? "The garage";
     const routed = await routeDelivery(admin, {
       serviceRecordId,
-      recipientProfileId: (rec as { customer_profile_id: string | null } | null)?.customer_profile_id ?? null,
+      recipientProfileId: recRow?.customer_profile_id ?? null,
       recipientPhone: nationalPhone,
       kind: "otp",
-      title: "KnowYourMechanic OTP",
-      body: `Your KnowYourMechanic OTP is ${otp}. Valid for 10 minutes. Do not share it.`,
-      data: { otp }
+      title: "Confirm your service",
+      body: `${garageName}: ${service} on ${vehicle} for Rs ${amountStr}. If correct, share OTP ${otp} with the garage. Don't share if you didn't get this service.`,
+      data: { otp, vehicle, service, amount: amountStr }
     });
     deliveryChannel = routed.channel;
     deliveryId = routed.deliveryId;

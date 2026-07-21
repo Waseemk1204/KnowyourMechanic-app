@@ -105,8 +105,10 @@ export async function routeDelivery(admin: any, p: DeliverParams): Promise<Deliv
     if (!templateName) {
       throw new Error(`No WhatsApp template configured for ${p.kind}${p.kind === "invoice" && lapsed ? " (re-engagement)" : ""}.`);
     }
+    // OTP template variables (order matters): {{1}} vehicle, {{2}} service,
+    // {{3}} amount, {{4}} code.
     const bodyVars = p.kind === "otp"
-      ? [p.data?.otp ?? ""]
+      ? [p.data?.vehicle ?? "", p.data?.service ?? "", p.data?.amount ?? "", p.data?.otp ?? ""]
       : [p.data?.invoice ?? "", p.data?.amount ?? ""].filter((v) => v !== "");
     const wa = await sendWhatsappTemplate({ nationalPhone: p.recipientPhone, templateName, bodyVars });
     if (waId) {
