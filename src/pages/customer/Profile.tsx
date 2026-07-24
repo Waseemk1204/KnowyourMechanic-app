@@ -4,6 +4,7 @@ import { ArrowLeft, User, Car, Save, Loader2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCustomerProfile, saveCustomerProfile } from '../../lib/data';
+import RoleSwitcher from '../../components/RoleSwitcher';
 
 export default function CustomerProfile() {
     const navigate = useNavigate();
@@ -170,6 +171,8 @@ export default function CustomerProfile() {
                         </>
                     )}
                 </motion.button>
+
+                <RoleSwitcher />
             </div>
         </div>
     );

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { MessagesSquare, Flag, LogOut, Menu, X, AlertOctagon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import RoleSwitcher from '../../components/RoleSwitcher';
 
 export default function SupportLayout() {
     const { logout } = useAuth();
@@ -73,7 +74,8 @@ export default function SupportLayout() {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-zinc-900 max-w-full">
+                <div className="p-4 border-t border-zinc-900 max-w-full space-y-1">
+                    <RoleSwitcher variant="nav" />
                     <button
                         onClick={() => setShowSignoutConfirm(true)}
                         className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 transition-colors"

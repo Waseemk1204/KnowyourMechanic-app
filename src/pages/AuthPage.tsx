@@ -1,22 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Loader2, Wrench, Car, ArrowLeft, Shield, UserCog, Headset } from 'lucide-react';
+import { ChevronRight, Loader2, Wrench, Car, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../lib/auth';
 import { supabase } from '../lib/supabase';
-import { getMyGarage, getMyRoles, type AppRole } from '../lib/data';
+import { getMyRoles, type AppRole } from '../lib/data';
+import { ROLE_META, routeForRole } from '../lib/roles';
 import { useAuth } from '../contexts/AuthContext';
 
 type Step = 'phone' | 'otp' | 'role' | 'choose';
-
-// Presentation for each role on the "Continue as…" picker.
-const ROLE_META: Record<AppRole, { label: string; sub: string; Icon: typeof Car }> = {
-    customer: { label: 'Customer', sub: 'Find local experts', Icon: Car },
-    garage: { label: 'Garage Owner', sub: 'Manage your business', Icon: Wrench },
-    admin: { label: 'Admin', sub: 'Platform administration', Icon: Shield },
-    employee: { label: 'Employee', sub: 'Field operations', Icon: UserCog },
-    support: { label: 'Support', sub: 'Help customers & garages', Icon: Headset },
-};
 
 export default function AuthPage() {
     const [step, setStep] = useState<Step>('phone');
@@ -37,25 +29,7 @@ export default function AuthPage() {
         setUserData(userData);
         localStorage.setItem('userRole', role);
         localStorage.setItem('userData', JSON.stringify(userData));
-
-        if (role === 'admin') {
-            navigate('/admin');
-        } else if (role === 'support') {
-            navigate('/support');
-        } else if (role === 'employee') {
-            navigate('/employee');
-        } else if (role === 'garage') {
-            const garage = await getMyGarage(profile.id);
-            if (garage) {
-                localStorage.setItem('garageOnboarded', 'true');
-                navigate('/garage');
-            } else {
-                localStorage.removeItem('garageOnboarded');
-                navigate('/garage/onboarding');
-            }
-        } else {
-            navigate('/customer');
-        }
+        navigate(await routeForRole(role, profile.id));
     };
 
     const handleSendOtp = async (e: React.FormEvent) => {

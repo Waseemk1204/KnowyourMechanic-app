@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import GarageMap from '../../components/GarageMap';
+import RoleSwitcher from '../../components/RoleSwitcher';
 import { getEmployeeDashboard } from '../../lib/data';
 
 interface GarageItem {
@@ -230,6 +231,10 @@ export default function EmployeeDashboard() {
                             </table>
                         </div>
                     )}
+                </div>
+
+                <div className="border border-zinc-800 rounded-lg p-2">
+                    <RoleSwitcher variant="nav" />
                 </div>
             </div>
         </div>

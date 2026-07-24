@@ -11,6 +11,7 @@ import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 import LocationPicker from '../../components/LocationPicker';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyGarage, saveGarageBusinessInfo, saveGarageBankDetails } from '../../lib/data';
+import RoleSwitcher from '../../components/RoleSwitcher';
 
 
 interface BusinessInfo {
@@ -612,6 +613,10 @@ export default function GarageSettings() {
                         </div>
                     )}
                 </motion.div>
+            </div>
+
+            <div className="px-6 mt-4">
+                <RoleSwitcher />
             </div>
         </div>
     );
