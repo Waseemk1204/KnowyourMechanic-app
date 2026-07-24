@@ -1,13 +1,22 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Loader2, Wrench, Car, ArrowLeft } from 'lucide-react';
+import { ChevronRight, Loader2, Wrench, Car, ArrowLeft, Shield, UserCog, Headset } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { sendOtp, verifyOtp } from '../lib/auth';
 import { supabase } from '../lib/supabase';
-import { getMyGarage } from '../lib/data';
+import { getMyGarage, getMyRoles, type AppRole } from '../lib/data';
 import { useAuth } from '../contexts/AuthContext';
 
-type Step = 'phone' | 'otp' | 'role';
+type Step = 'phone' | 'otp' | 'role' | 'choose';
+
+// Presentation for each role on the "Continue as…" picker.
+const ROLE_META: Record<AppRole, { label: string; sub: string; Icon: typeof Car }> = {
+    customer: { label: 'Customer', sub: 'Find local experts', Icon: Car },
+    garage: { label: 'Garage Owner', sub: 'Manage your business', Icon: Wrench },
+    admin: { label: 'Admin', sub: 'Platform administration', Icon: Shield },
+    employee: { label: 'Employee', sub: 'Field operations', Icon: UserCog },
+    support: { label: 'Support', sub: 'Help customers & garages', Icon: Headset },
+};
 
 export default function AuthPage() {
     const [step, setStep] = useState<Step>('phone');
@@ -15,9 +24,39 @@ export default function AuthPage() {
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    // For the "Continue as…" picker when the number holds more than one role.
+    const [roleChoices, setRoleChoices] = useState<AppRole[]>([]);
+    const [linkedProfile, setLinkedProfile] = useState<{ id: string; auth_user_id: string; phone_number: string; role: AppRole } | null>(null);
 
     const navigate = useNavigate();
     const { setUserData, setUser } = useAuth();
+
+    // Sets the active-role userData and routes to the matching home screen.
+    const enterAsRole = async (role: AppRole, profile: { id: string; auth_user_id: string; phone_number: string }) => {
+        const userData = { _id: profile.id, firebaseUid: profile.auth_user_id, phoneNumber: profile.phone_number, role };
+        setUserData(userData);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userData', JSON.stringify(userData));
+
+        if (role === 'admin') {
+            navigate('/admin');
+        } else if (role === 'support') {
+            navigate('/support');
+        } else if (role === 'employee') {
+            navigate('/employee');
+        } else if (role === 'garage') {
+            const garage = await getMyGarage(profile.id);
+            if (garage) {
+                localStorage.setItem('garageOnboarded', 'true');
+                navigate('/garage');
+            } else {
+                localStorage.removeItem('garageOnboarded');
+                navigate('/garage/onboarding');
+            }
+        } else {
+            navigate('/customer');
+        }
+    };
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,39 +92,24 @@ export default function AuthPage() {
             const user = await verifyOtp(otp);
             setUser(user);
 
-            // Link the auth user to its profile (by phone) and route by role.
+            // Link the auth user to its profile (by phone), then load every role
+            // the number holds.
             const { data, error } = await supabase.rpc('link_current_auth_profile');
             const row = Array.isArray(data) ? data[0] : data;
 
             if (!error && row) {
-                const userData = {
-                    _id: row.id,
-                    firebaseUid: row.auth_user_id,
-                    phoneNumber: row.phone_number,
-                    role: row.role,
-                };
-                setUserData(userData);
-                localStorage.setItem('userRole', userData.role);
-                localStorage.setItem('userData', JSON.stringify(userData));
+                const roles = await getMyRoles();
+                const known: AppRole[] = roles.length > 0 ? roles : [row.role as AppRole];
 
-                if (userData.role === 'admin') {
-                    navigate('/admin');
-                } else if (userData.role === 'support') {
-                    navigate('/support');
-                } else if (userData.role === 'employee') {
-                    navigate('/employee');
-                } else if (userData.role === 'garage') {
-                    const garage = await getMyGarage(userData._id);
-                    if (garage) {
-                        localStorage.setItem('garageOnboarded', 'true');
-                        navigate('/garage');
-                    } else {
-                        localStorage.removeItem('garageOnboarded');
-                        navigate('/garage/onboarding');
-                    }
-                } else {
-                    navigate('/customer');
+                if (known.length > 1) {
+                    // Multiple roles on this number — let them pick which to enter.
+                    setLinkedProfile(row);
+                    setRoleChoices(known);
+                    setStep('choose');
+                    return;
                 }
+
+                await enterAsRole(known[0], row);
                 return;
             }
 
@@ -309,6 +333,46 @@ export default function AuthPage() {
                                 </div>
                                 <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
                             </button>
+                        </div>
+
+                        {error && <p className="text-red-500 text-sm font-medium text-center mt-6 bg-red-50 py-2 rounded-lg">{error}</p>}
+                    </motion.div>
+                )}
+
+                {step === 'choose' && (
+                    <motion.div
+                        key="choose"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full"
+                    >
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Continue as</h2>
+                            <p className="text-slate-500">This number has more than one account</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {roleChoices.map((role) => {
+                                const meta = ROLE_META[role];
+                                const Icon = meta.Icon;
+                                return (
+                                    <button
+                                        key={role}
+                                        onClick={() => linkedProfile && enterAsRole(role, linkedProfile)}
+                                        disabled={loading}
+                                        className="w-full premium-card p-6 flex items-center gap-5 group hover:border-blue-300 transition-all text-left"
+                                    >
+                                        <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 text-blue-600 group-hover:text-white transition-colors shadow-inner">
+                                            <Icon className="w-7 h-7" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-bold text-lg text-slate-900">{meta.label}</h3>
+                                            <p className="text-slate-500 text-sm">{meta.sub}</p>
+                                        </div>
+                                        <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {error && <p className="text-red-500 text-sm font-medium text-center mt-6 bg-red-50 py-2 rounded-lg">{error}</p>}

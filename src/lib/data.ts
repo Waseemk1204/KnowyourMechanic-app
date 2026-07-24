@@ -644,6 +644,15 @@ export interface PaymentSummary {
     verified: boolean;
 }
 
+export type AppRole = 'customer' | 'garage' | 'admin' | 'employee' | 'support';
+
+// All roles held by the signed-in user (drives the login "Continue as…" picker).
+export async function getMyRoles(): Promise<AppRole[]> {
+    const { data, error } = await supabase.rpc('my_roles');
+    if (error || !data) return [];
+    return (data as AppRole[]) ?? [];
+}
+
 export async function completeServicePayment(serviceRecordId: string, method: 'qr' | 'cash'): Promise<PaymentSummary> {
     const { data, error } = await supabase
         .rpc('complete_service_payment', { p_service_record_id: serviceRecordId, p_payment_method: method })
