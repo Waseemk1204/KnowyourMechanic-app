@@ -135,30 +135,28 @@ export default function AuthPage() {
             }
             const phoneDigits = (authUser.phone || '').replace(/\D/g, '').slice(-10);
 
-            const { data, error } = await supabase
+            // Insert WITHOUT .select() back: a fresh user can't read the row they
+            // just created in the same statement — current_profile_id() (a STABLE
+            // function in the SELECT policy) is evaluated on the pre-insert
+            // snapshot and returns null, which surfaces as an RLS error. Create
+            // first, then load the profile via the RPC (which also links it).
+            const { error } = await supabase
                 .from('profiles')
-                .insert({ auth_user_id: authUser.id, phone_number: phoneDigits, role })
-                .select()
-                .single();
+                .insert({ auth_user_id: authUser.id, phone_number: phoneDigits, role });
 
-            if (error || !data) {
-                setError(error?.message || 'Error creating profile');
+            if (error) {
+                setError(error.message || 'Error creating profile');
                 return;
             }
 
-            const userData = {
-                _id: data.id,
-                firebaseUid: data.auth_user_id,
-                phoneNumber: data.phone_number,
-                role: data.role,
-            };
-            setUserData(userData);
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userData', JSON.stringify(userData));
+            const { data: linked, error: linkErr } = await supabase.rpc('link_current_auth_profile');
+            const row = Array.isArray(linked) ? linked[0] : linked;
+            if (linkErr || !row) {
+                setError(linkErr?.message || 'Profile created but could not be loaded.');
+                return;
+            }
 
-            setTimeout(() => {
-                navigate(role === 'garage' ? '/garage/onboarding' : '/customer');
-            }, 400);
+            await enterAsRole(role, row);
         } catch (err: any) {
             setError(err.message || 'Error creating profile');
         } finally {
