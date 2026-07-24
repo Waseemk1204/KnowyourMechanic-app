@@ -5,6 +5,7 @@ import {
     createServiceRecordWithOtp,
     verifyServiceOtp,
     completeServicePayment,
+    notifyInvoice,
     type PaymentSummary,
 } from '../lib/data';
 
@@ -113,6 +114,9 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
             const s = await completeServicePayment(recordId, method);
             setSummary(s);
             setStep('success');
+            // Fire the invoice notification (push/WhatsApp). Best-effort: payment
+            // is already done, so never let a send hiccup break the success flow.
+            notifyInvoice(recordId).catch(() => {});
         } catch (err: any) {
             setError(err.message || 'Payment failed.');
         } finally {

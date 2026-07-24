@@ -652,6 +652,16 @@ export async function completeServicePayment(serviceRecordId: string, method: 'q
     return data as PaymentSummary;
 }
 
+// Fires the invoice notification (push if the customer has the app, else
+// WhatsApp) after payment. Best-effort: the payment is already done, so a send
+// hiccup must never surface as a payment error — callers ignore rejections.
+export async function notifyInvoice(serviceRecordId: string): Promise<void> {
+    const { error } = await supabase.functions.invoke('notify-invoice', {
+        body: { serviceRecordId },
+    });
+    if (error) throw new Error(error.message || 'Invoice notification failed.');
+}
+
 // Creates a service record + taxonomy join rows via the SECURITY DEFINER RPC.
 // (OTP generation/delivery happens later via the service-record-create Edge
 // Function once it is deployed.)

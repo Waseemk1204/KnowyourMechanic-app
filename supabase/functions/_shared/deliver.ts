@@ -99,17 +99,26 @@ export async function routeDelivery(admin: any, p: DeliverParams): Promise<Deliv
 
   const waId = await recordDelivery(admin, p, "whatsapp");
   try {
-    const templateName = p.kind === "otp"
-      ? Deno.env.get("MSG91_WA_OTP_TEMPLATE")
-      : (lapsed ? Deno.env.get("MSG91_WA_REENGAGE_TEMPLATE") : Deno.env.get("MSG91_WA_INVOICE_TEMPLATE"));
+    // Template + variables per case (must match the approved templates):
+    //   OTP              -> {{1}} vehicle, {{2}} service, {{3}} amount, {{4}} code
+    //   invoice (simple) -> {{1}} invoice, {{2}} service, {{3}} vehicle, {{4}} amount
+    //   invoice (lapsed) -> no variables (re-engagement; static copy)
+    // (The fee value-prop invoice template is deferred until Route/fees are live.)
+    let templateName: string | undefined;
+    let bodyVars: string[];
+    if (p.kind === "otp") {
+      templateName = Deno.env.get("MSG91_WA_OTP_TEMPLATE");
+      bodyVars = [p.data?.vehicle ?? "", p.data?.service ?? "", p.data?.amount ?? "", p.data?.otp ?? ""];
+    } else if (lapsed) {
+      templateName = Deno.env.get("MSG91_WA_REENGAGE_TEMPLATE");
+      bodyVars = [];
+    } else {
+      templateName = Deno.env.get("MSG91_WA_INVOICE_TEMPLATE");
+      bodyVars = [p.data?.invoice ?? "", p.data?.service ?? "", p.data?.vehicle ?? "", p.data?.amount ?? ""];
+    }
     if (!templateName) {
       throw new Error(`No WhatsApp template configured for ${p.kind}${p.kind === "invoice" && lapsed ? " (re-engagement)" : ""}.`);
     }
-    // OTP template variables (order matters): {{1}} vehicle, {{2}} service,
-    // {{3}} amount, {{4}} code.
-    const bodyVars = p.kind === "otp"
-      ? [p.data?.vehicle ?? "", p.data?.service ?? "", p.data?.amount ?? "", p.data?.otp ?? ""]
-      : [p.data?.invoice ?? "", p.data?.amount ?? ""].filter((v) => v !== "");
     const wa = await sendWhatsappTemplate({ nationalPhone: p.recipientPhone, templateName, bodyVars });
     if (waId) {
       await admin.from("notification_deliveries").update({ provider_message_id: wa.messageId, updated_at: new Date().toISOString() }).eq("id", waId);
