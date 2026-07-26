@@ -170,13 +170,20 @@ Deno.serve(async (req) => {
     return json(500, { error: "Service record created but OTP could not be stored." });
   }
 
-  const allowDevOtp = Deno.env.get("ALLOW_DEV_OTP") === "true";
+  // The dev OTP is ONLY ever returned for explicitly allow-listed test numbers,
+  // and only when ALLOW_DEV_OTP is on. This makes it impossible to leak a real
+  // customer's OTP back to the caller even if the flag is left enabled.
+  const testPhones = (Deno.env.get("TEST_OTP_PHONES") ?? "")
+    .split(",")
+    .map((s) => s.replace(/\D/g, "").slice(-10))
+    .filter((s) => s.length === 10);
+  const devOtpAllowed = Deno.env.get("ALLOW_DEV_OTP") === "true" && testPhones.includes(nationalPhone);
   return json(200, {
     serviceRecordId,
     status: "pending_otp",
     otpExpiresAt: expiresAt,
     otpDelivery: deliveryChannel,
     otpDeliveryError: otpNotice,
-    ...(allowDevOtp ? { devOtp: otp } : {})
+    ...(devOtpAllowed ? { devOtp: otp } : {})
   });
 });

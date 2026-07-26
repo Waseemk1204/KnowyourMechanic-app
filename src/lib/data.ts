@@ -530,15 +530,19 @@ export async function saveGarageBankDetails(
     garageId: string,
     bank: { accountNumber: string; ifscCode: string; accountHolderName: string; bankName: string }
 ): Promise<void> {
+    // Payout/bank details live in a private table (garage_payout_details) that
+    // only the owning garage + admins can read — never on the publicly-readable
+    // garages row.
     const { error } = await supabase
-        .from('garages')
-        .update({
+        .from('garage_payout_details')
+        .upsert({
+            garage_id: garageId,
             bank_account_number: bank.accountNumber.replace(/\D/g, ''),
             bank_ifsc_code: bank.ifscCode.toUpperCase(),
             bank_account_holder_name: bank.accountHolderName.trim(),
             bank_name: bank.bankName.trim(),
-        })
-        .eq('id', garageId);
+            updated_at: new Date().toISOString(),
+        }, { onConflict: 'garage_id' });
     if (error) throw new Error(error.message);
 }
 
