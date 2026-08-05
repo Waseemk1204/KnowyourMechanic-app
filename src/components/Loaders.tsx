@@ -3,14 +3,14 @@ import { Loader2 } from 'lucide-react';
 export const CustomLoader = () => (
     <div className="flex flex-col items-center justify-center gap-3 p-4">
         <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-        <p className="text-slate-500 text-sm font-medium">Loading...</p>
+        <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm font-medium">Loading...</p>
     </div>
 );
 
 export const DashboardSkeleton = () => (
-    <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe pb-6">
         {/* Header Skeleton */}
-        <div className="h-72 w-full bg-slate-200 animate-pulse mb-6 relative">
+        <div className="h-72 w-full bg-slate-200 dark:bg-[var(--app-surface-2)] animate-pulse mb-6 relative">
             <div className="absolute top-4 right-6 w-10 h-10 bg-slate-300 rounded-full" />
             <div className="absolute bottom-6 left-6 right-6 space-y-3">
                 <div className="h-8 w-48 bg-slate-300 rounded" />
@@ -24,18 +24,18 @@ export const DashboardSkeleton = () => (
         <div className="px-6 space-y-6">
             {/* Stats Skeleton */}
             <div className="grid grid-cols-2 gap-4">
-                <div className="h-32 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
-                    <div className="h-10 w-10 bg-slate-100 rounded-xl" />
+                <div className="h-32 bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 border border-slate-100 dark:border-[var(--app-border)] shadow-sm space-y-3">
+                    <div className="h-10 w-10 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-xl" />
                     <div className="space-y-2">
-                        <div className="h-8 w-16 bg-slate-100 rounded" />
-                        <div className="h-4 w-24 bg-slate-100 rounded" />
+                        <div className="h-8 w-16 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
+                        <div className="h-4 w-24 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
                     </div>
                 </div>
-                <div className="h-32 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
-                    <div className="h-10 w-10 bg-slate-100 rounded-xl" />
+                <div className="h-32 bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 border border-slate-100 dark:border-[var(--app-border)] shadow-sm space-y-3">
+                    <div className="h-10 w-10 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-xl" />
                     <div className="space-y-2">
-                        <div className="h-8 w-16 bg-slate-100 rounded" />
-                        <div className="h-4 w-24 bg-slate-100 rounded" />
+                        <div className="h-8 w-16 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
+                        <div className="h-4 w-24 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
                     </div>
                 </div>
             </div>
@@ -43,16 +43,16 @@ export const DashboardSkeleton = () => (
             {/* List Skeleton */}
             <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                    <div className="h-6 w-32 bg-slate-200 rounded" />
-                    <div className="h-4 w-16 bg-slate-200 rounded" />
+                    <div className="h-6 w-32 bg-slate-200 dark:bg-[var(--app-surface-2)] rounded" />
+                    <div className="h-4 w-16 bg-slate-200 dark:bg-[var(--app-surface-2)] rounded" />
                 </div>
                 {[1, 2, 3].map(i => (
-                    <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+                    <div key={i} className="bg-white dark:bg-[var(--app-surface)] p-4 rounded-xl border border-slate-100 dark:border-[var(--app-border)] shadow-sm space-y-3">
                         <div className="flex justify-between">
-                            <div className="h-5 w-40 bg-slate-100 rounded" />
-                            <div className="h-5 w-16 bg-slate-100 rounded" />
+                            <div className="h-5 w-40 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
+                            <div className="h-5 w-16 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
                         </div>
-                        <div className="h-4 w-64 bg-slate-100 rounded" />
+                        <div className="h-4 w-64 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded" />
                     </div>
                 ))}
             </div>

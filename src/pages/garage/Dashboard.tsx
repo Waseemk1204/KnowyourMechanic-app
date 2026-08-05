@@ -160,7 +160,7 @@ export default function GarageDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 text-slate-900">
+        <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe pb-6 text-slate-900 dark:text-[var(--app-text)]">
             {/* Hero Header with Full Width Photo */}
             <div className="relative h-72 w-full bg-slate-900 overflow-hidden mb-6">
                 {garagePhotoUrl ? (
@@ -227,7 +227,7 @@ export default function GarageDashboard() {
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                                className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 flex flex-col"
+                                className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-[var(--app-surface)] shadow-2xl z-50 flex flex-col"
                             >
                                 {/* Panel Header */}
                                 <div className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
@@ -259,14 +259,14 @@ export default function GarageDashboard() {
                                             // Navigate to profile settings
                                             navigate('/garage/settings');
                                         }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                                             <Edit className="w-5 h-5" />
                                         </div>
                                         <div className="flex-1 text-left">
-                                            <p className="font-bold text-slate-900">Profile Settings</p>
-                                            <p className="text-slate-400 text-xs">Edit garage details & photo</p>
+                                            <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Profile Settings</p>
+                                            <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Edit garage details & photo</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
                                     </button>
@@ -276,21 +276,21 @@ export default function GarageDashboard() {
                                             setShowProfilePanel(false);
                                             navigate('/garage/support');
                                         }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
                                             <Headphones className="w-5 h-5" />
                                         </div>
                                         <div className="flex-1 text-left">
-                                            <p className="font-bold text-slate-900">Support</p>
-                                            <p className="text-slate-400 text-xs">Get help & contact us</p>
+                                            <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Support</p>
+                                            <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Get help & contact us</p>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500" />
                                     </button>
                                 </div>
 
                                 {/* Logout Button */}
-                                <div className="p-4 border-t border-slate-100">
+                                <div className="p-4 border-t border-slate-100 dark:border-[var(--app-border)]">
                                     <button
                                         onClick={() => setShowLogoutConfirm(true)}
                                         className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
@@ -306,19 +306,19 @@ export default function GarageDashboard() {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3 mb-8">
-                    <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col items-center">
+                    <div className="bg-white dark:bg-[var(--app-surface)] rounded-2xl border border-slate-100 dark:border-[var(--app-border)] p-4 flex flex-col items-center">
                         <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-2">
                             <Wrench className="w-5 h-5" />
                         </div>
-                        <p className="text-2xl font-black text-slate-900">{stats.completed}</p>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase">Total Services</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)]">{stats.completed}</p>
+                        <p className="text-slate-400 dark:text-[var(--app-muted)] text-[10px] font-bold uppercase">Total Services</p>
                     </div>
-                    <div className="bg-white rounded-2xl border border-slate-100 p-4 flex flex-col items-center">
+                    <div className="bg-white dark:bg-[var(--app-surface)] rounded-2xl border border-slate-100 dark:border-[var(--app-border)] p-4 flex flex-col items-center">
                         <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 mb-2">
                             <Star className="w-5 h-5 fill-amber-500" />
                         </div>
-                        <p className="text-2xl font-black text-slate-900">{stats.rating > 0 ? stats.rating.toFixed(1) : '-'}</p>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase">Rating ({stats.totalReviews})</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)]">{stats.rating > 0 ? stats.rating.toFixed(1) : '-'}</p>
+                        <p className="text-slate-400 dark:text-[var(--app-muted)] text-[10px] font-bold uppercase">Rating ({stats.totalReviews})</p>
                     </div>
                 </div>
 
@@ -337,7 +337,7 @@ export default function GarageDashboard() {
                 {bookings.filter(b => b.status === 'pending').length > 0 && (
                     <div className="mb-6">
                         <div className="mb-3">
-                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Pending Bookings</h4>
+                            <h4 className="text-sm font-black text-slate-400 dark:text-[var(--app-muted)] uppercase tracking-[0.15em]">Pending Bookings</h4>
                         </div>
                         <div className="space-y-3">
                             {bookings.filter(b => b.status === 'pending').map((booking) => (
@@ -355,12 +355,12 @@ export default function GarageDashboard() {
                                                     {booking.serviceId?.name || 'Service'}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-slate-500 dark:text-[var(--app-muted)]">
                                                 {booking.customerId?.phoneNumber || 'Customer'} ·
                                                 {new Date(booking.scheduledDate).toLocaleDateString()} at {booking.scheduledTime}
                                             </p>
                                             {booking.notes && (
-                                                <p className="text-xs text-slate-400 mt-1 italic">"{booking.notes}"</p>
+                                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1 italic">"{booking.notes}"</p>
                                             )}
                                             <p className="text-sm font-bold text-blue-600 mt-1">₹{booking.totalPrice}</p>
                                         </div>
@@ -391,18 +391,18 @@ export default function GarageDashboard() {
                 {services.length > 0 && (
                     <div className="mb-6">
                         <div className="mb-3">
-                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.15em]">Recent Services</h4>
+                            <h4 className="text-sm font-black text-slate-400 dark:text-[var(--app-muted)] uppercase tracking-[0.15em]">Recent Services</h4>
                         </div>
                         <div className="space-y-3">
                             {(showAllServices ? services : services.slice(0, 2)).map((service) => (
-                                <div key={service._id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                                <div key={service._id} className="bg-white dark:bg-[var(--app-surface)] border border-slate-100 dark:border-[var(--app-border)] rounded-2xl p-4 shadow-sm">
                                     <div className="flex items-start justify-between mb-2">
                                         <div className="flex-1">
-                                            <p className="font-bold text-slate-900 text-sm">{service.description}</p>
-                                            <p className="text-slate-400 text-xs">{service.customerPhone}</p>
+                                            <p className="font-bold text-slate-900 dark:text-[var(--app-text)] text-sm">{service.description}</p>
+                                            <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">{service.customerPhone}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-slate-900">₹{service.garageEarnings}</p>
+                                            <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">₹{service.garageEarnings}</p>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${service.paymentMethod === 'razorpay' ? 'bg-blue-50 text-blue-600' : 'bg-amber-50 text-amber-600'}`}>
                                                 {service.paymentMethod === 'razorpay' ? 'Online' : 'Cash'}
                                             </span>
@@ -450,14 +450,14 @@ export default function GarageDashboard() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-3xl p-6 w-full max-w-xs shadow-2xl"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-3xl p-6 w-full max-w-xs shadow-2xl"
                         >
                             <div className="text-center mb-6">
                                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <LogOut className="w-8 h-8 text-red-600" />
                                 </div>
-                                <h3 className="text-xl font-black text-slate-900 mb-2">Logout?</h3>
-                                <p className="text-slate-500 text-sm">Are you sure you want to logout?</p>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">Logout?</h3>
+                                <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Are you sure you want to logout?</p>
                             </div>
                             <div className="space-y-2">
                                 <button
@@ -472,7 +472,7 @@ export default function GarageDashboard() {
                                 </button>
                                 <button
                                     onClick={() => setShowLogoutConfirm(false)}
-                                    className="w-full bg-slate-100 text-slate-600 py-3 rounded-xl font-medium"
+                                    className="w-full bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-600 dark:text-[var(--app-muted)] py-3 rounded-xl font-medium"
                                 >
                                     Cancel
                                 </button>

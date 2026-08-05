@@ -127,23 +127,23 @@ export default function GarageServices() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
     }
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-50 pb-20">
+        <div className="max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] pb-20">
             {/* Header */}
-            <header className="bg-white border-b border-slate-100 px-4 py-4 sticky top-0 z-10">
+            <header className="bg-white dark:bg-[var(--app-surface)] border-b border-slate-100 dark:border-[var(--app-border)] px-4 py-4 sticky top-0 z-10">
                 <div className="flex items-center gap-3">
                     <button onClick={() => navigate('/garage/dashboard')} className="p-2 -ml-2">
-                        <ArrowLeft className="w-5 h-5 text-slate-600" />
+                        <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-[var(--app-muted)]" />
                     </button>
                     <div className="flex-1">
-                        <h1 className="text-xl font-bold text-slate-900">My Services</h1>
-                        <p className="text-xs text-slate-500 mt-0.5">{services.filter(s => s.isActive).length} active services</p>
+                        <h1 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">My Services</h1>
+                        <p className="text-xs text-slate-500 dark:text-[var(--app-muted)] mt-0.5">{services.filter(s => s.isActive).length} active services</p>
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
@@ -158,11 +158,11 @@ export default function GarageServices() {
             <div className="p-4 space-y-3">
                 {services.length === 0 ? (
                     <div className="text-center py-20">
-                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Plus className="w-8 h-8 text-slate-400" />
+                        <div className="w-16 h-16 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Plus className="w-8 h-8 text-slate-400 dark:text-[var(--app-muted)]" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-2">No services yet</h3>
-                        <p className="text-slate-500 text-sm mb-6">Add your first service to get started</p>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-[var(--app-text)] mb-2">No services yet</h3>
+                        <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm mb-6">Add your first service to get started</p>
                         <button
                             onClick={() => setShowModal(true)}
                             className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold"
@@ -176,20 +176,20 @@ export default function GarageServices() {
                             key={service._id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-2xl p-4 border border-slate-100"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 border border-slate-100 dark:border-[var(--app-border)]"
                         >
                             <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
-                                    <h3 className="font-bold text-slate-900 mb-1">{service.name}</h3>
+                                    <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)] mb-1">{service.name}</h3>
                                     {service.description && (
-                                        <p className="text-sm text-slate-500 mb-2">{service.description}</p>
+                                        <p className="text-sm text-slate-500 dark:text-[var(--app-muted)] mb-2">{service.description}</p>
                                     )}
                                     <div className="flex items-center gap-4 text-sm">
-                                        <div className="flex items-center gap-1 text-slate-600">
+                                        <div className="flex items-center gap-1 text-slate-600 dark:text-[var(--app-muted)]">
                                             <IndianRupee className="w-4 h-4" />
                                             <span className="font-semibold">₹{service.price}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 text-slate-500">
+                                        <div className="flex items-center gap-1 text-slate-500 dark:text-[var(--app-muted)]">
                                             <Clock className="w-4 h-4" />
                                             <span>{service.duration} min</span>
                                         </div>
@@ -235,14 +235,14 @@ export default function GarageServices() {
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-t-3xl w-full max-w-md p-6 pb-10"
                         >
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl font-bold text-slate-900">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">
                                     {editingService ? 'Edit Service' : 'Add Service'}
                                 </h3>
                                 <button onClick={handleCloseModal}>
-                                    <X className="w-6 h-6 text-slate-400" />
+                                    <X className="w-6 h-6 text-slate-400 dark:text-[var(--app-muted)]" />
                                 </button>
                             </div>
 
@@ -254,7 +254,7 @@ export default function GarageServices() {
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                         Service Name *
                                     </label>
                                     <input
@@ -262,12 +262,12 @@ export default function GarageServices() {
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="e.g., Oil Change"
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                         Description
                                     </label>
                                     <textarea
@@ -275,13 +275,13 @@ export default function GarageServices() {
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Brief description of the service"
                                         rows={3}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                             Price (₹) *
                                         </label>
                                         <input
@@ -289,11 +289,11 @@ export default function GarageServices() {
                                             value={formData.price}
                                             onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                                             placeholder="500"
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                        <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                             Duration (min)
                                         </label>
                                         <input
@@ -301,7 +301,7 @@ export default function GarageServices() {
                                             value={formData.duration}
                                             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                                             placeholder="60"
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>

@@ -72,7 +72,7 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
     const banner = status === 'claimed'
         ? { icon: Headphones, text: 'Connected with support', cls: 'bg-green-50 text-green-700' }
         : status === 'resolved'
-            ? { icon: CheckCircle, text: 'This chat was resolved', cls: 'bg-slate-100 text-slate-600' }
+            ? { icon: CheckCircle, text: 'This chat was resolved', cls: 'bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-600 dark:text-[var(--app-muted)]' }
             : { icon: Clock, text: 'Waiting for an agent to join…', cls: 'bg-amber-50 text-amber-700' };
     const BannerIcon = banner.icon;
 
@@ -81,7 +81,7 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-50 flex flex-col max-w-md mx-auto"
+            className="fixed inset-0 z-50 bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col max-w-md mx-auto"
         >
             {/* Header */}
             <header className="bg-blue-600 text-white px-4 pt-safe pb-4">
@@ -118,8 +118,8 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
                         <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center mb-4">
                             <Headphones className="w-8 h-8 text-blue-600" />
                         </div>
-                        <h3 className="font-bold text-slate-900">How can we help?</h3>
-                        <p className="text-slate-500 text-sm mt-1">Send us a message and a support agent will assist you.</p>
+                        <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)]">How can we help?</h3>
+                        <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm mt-1">Send us a message and a support agent will assist you.</p>
                     </div>
                 ) : (
                     messages.map((m) => {
@@ -128,7 +128,7 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
                             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-sm ${mine
                                     ? 'bg-blue-600 text-white rounded-br-md'
-                                    : 'bg-white text-slate-800 border border-slate-100 rounded-bl-md'}`}>
+                                    : 'bg-white dark:bg-[var(--app-surface)] text-slate-800 dark:text-[var(--app-text)] border border-slate-100 dark:border-[var(--app-border)] rounded-bl-md'}`}>
                                     {!mine && <p className="text-[10px] font-bold uppercase tracking-wide text-blue-600 mb-0.5">Support</p>}
                                     <p className="whitespace-pre-wrap break-words">{m.body}</p>
                                 </div>
@@ -140,7 +140,7 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
             </div>
 
             {/* Composer */}
-            <div className="border-t border-slate-200 bg-white px-3 py-3 pb-safe">
+            <div className="border-t border-slate-200 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)] px-3 py-3 pb-safe">
                 {status === 'resolved' ? (
                     <button
                         onClick={() => setReopenKey((k) => k + 1)}
@@ -156,7 +156,7 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
                             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             placeholder="Type your message…"
                             rows={1}
-                            className="flex-1 resize-none max-h-32 px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 resize-none max-h-32 px-4 py-3 rounded-2xl border border-slate-200 dark:border-[var(--app-border)] text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
                             onClick={handleSend}

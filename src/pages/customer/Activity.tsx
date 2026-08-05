@@ -125,7 +125,7 @@ export default function CustomerActivity() {
 
     if (loading) {
         return (
-            <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
@@ -177,7 +177,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
     };
 
     const mainContent = (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6">
+        <div className="max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe pb-6">
             {/* Header */}
             <header className="bg-blue-600 text-white px-6 py-8 rounded-b-[2.5rem] mb-4">
                 <button
@@ -211,7 +211,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.03 }}
                                 key={service._id}
-                                className="bg-white rounded-2xl p-5 shadow-sm"
+                                className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-5 shadow-sm"
                             >
                                 {/* Service Info */}
                                 <div
@@ -231,16 +231,16 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-bold text-slate-900">{service.garageId?.name || 'Unknown Garage'}</h3>
+                                            <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)]">{service.garageId?.name || 'Unknown Garage'}</h3>
                                         </div>
-                                        <p className="text-slate-600 text-sm line-clamp-2">{service.description}</p>
+                                        <p className="text-slate-600 dark:text-[var(--app-muted)] text-sm line-clamp-2">{service.description}</p>
                                     </div>
                                 </div>
 
                                 {/* Date, Amount */}
-                                <div className="flex items-center justify-between py-3 border-t border-slate-100">
+                                <div className="flex items-center justify-between py-3 border-t border-slate-100 dark:border-[var(--app-border)]">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-1 text-slate-500 text-sm">
+                                        <div className="flex items-center gap-1 text-slate-500 dark:text-[var(--app-muted)] text-sm">
                                             <Calendar className="w-4 h-4" />
                                             {formatDate(service.createdAt)}
                                         </div>
@@ -251,19 +251,19 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                             {service.isReliable ? 'Verified' : 'Cash'}
                                         </div>
                                     </div>
-                                    <span className="font-bold text-lg text-slate-900">₹{service.amount}</span>
+                                    <span className="font-bold text-lg text-slate-900 dark:text-[var(--app-text)]">₹{service.amount}</span>
                                 </div>
 
                                 {/* Review Section */}
-                                <div className="pt-3 border-t border-slate-100 flex items-start justify-between">
+                                <div className="pt-3 border-t border-slate-100 dark:border-[var(--app-border)] flex items-start justify-between">
                                     <div className="flex-1">
                                         {isReviewing ? (
                                             // Inline Review Form
                                             <div className="space-y-3">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-sm font-semibold text-slate-700">Your Rating</span>
+                                                    <span className="text-sm font-semibold text-slate-700 dark:text-[var(--app-text)]">Your Rating</span>
                                                     <button onClick={() => setReviewingGarageId(null)}>
-                                                        <X className="w-5 h-5 text-slate-400" />
+                                                        <X className="w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                                     </button>
                                                 </div>
                                                 <div className="flex gap-1">
@@ -288,7 +288,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                     placeholder="Add a comment (optional)"
                                                     rows={2}
                                                     maxLength={500}
-                                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[var(--app-border)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 />
                                                 <button
                                                     onClick={handleSubmitReview}
@@ -319,7 +319,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                                     }`}
                                                             />
                                                         ))}
-                                                        <span className="text-sm text-slate-500 ml-2">Your Review</span>
+                                                        <span className="text-sm text-slate-500 dark:text-[var(--app-muted)] ml-2">Your Review</span>
                                                     </div>
                                                     <button
                                                         onClick={() => garageId && startReview(garageId)}
@@ -330,7 +330,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                     </button>
                                                 </div>
                                                 {myReview.comment && (
-                                                    <p className="text-sm text-slate-600">{myReview.comment}</p>
+                                                    <p className="text-sm text-slate-600 dark:text-[var(--app-muted)]">{myReview.comment}</p>
                                                 )}
                                             </div>
                                         ) : (
@@ -382,10 +382,10 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
 
                     {services.length === 0 && !error && (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300 mb-6">
+                            <div className="w-20 h-20 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-3xl flex items-center justify-center text-slate-300 mb-6">
                                 <Clock className="w-10 h-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-400">No services yet</h3>
+                            <h3 className="text-xl font-bold text-slate-400 dark:text-[var(--app-muted)]">No services yet</h3>
                             <p className="text-slate-300 font-medium mt-2">
                                 Your service history will appear here
                             </p>
@@ -414,7 +414,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                             initial={{ y: 100, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 100, opacity: 0 }}
-                            className="bg-white rounded-3xl w-full max-w-md p-6"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-3xl w-full max-w-md p-6"
                             onClick={e => e.stopPropagation()}
                         >
                             {reportSuccess ? (
@@ -422,8 +422,8 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Check className="w-8 h-8 text-green-600" />
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-900">Report Submitted</h3>
-                                    <p className="text-slate-500 text-sm mt-2">We'll review your report and take action.</p>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-[var(--app-text)]">Report Submitted</h3>
+                                    <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm mt-2">We'll review your report and take action.</p>
                                 </div>
                             ) : (
                                 <>
@@ -433,11 +433,11 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                 <AlertTriangle className="w-5 h-5 text-red-600" />
                                             </div>
                                             <div>
-                                                <h3 className="font-black text-lg text-slate-900">Report Issue</h3>
-                                                <p className="text-xs text-slate-400">{reportGarageName}</p>
+                                                <h3 className="font-black text-lg text-slate-900 dark:text-[var(--app-text)]">Report Issue</h3>
+                                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)]">{reportGarageName}</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => setReportGarageId(null)} className="p-2 hover:bg-slate-100 rounded-xl"><X className="w-5 h-5" /></button>
+                                        <button onClick={() => setReportGarageId(null)} className="p-2 hover:bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-xl"><X className="w-5 h-5" /></button>
                                     </div>
 
                                     <div className="space-y-2 mb-4">
@@ -453,7 +453,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                 onClick={() => setReportReason(opt.value)}
                                                 className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${reportReason === opt.value
                                                     ? 'border-red-500 bg-red-50 text-red-700'
-                                                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                                                    : 'border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:border-[var(--app-border)]'
                                                     }`}
                                             >
                                                 {opt.label}
@@ -466,7 +466,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                         onChange={e => setReportDescription(e.target.value)}
                                         placeholder="Describe the issue in detail..."
                                         rows={3}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm resize-none focus:ring-2 focus:ring-red-500 focus:outline-none mb-4"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] text-sm resize-none focus:ring-2 focus:ring-red-500 focus:outline-none mb-4"
                                     />
 
                                     <button

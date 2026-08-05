@@ -160,3 +160,80 @@ textarea:focus {
     background: rgba(59, 130, 246, 0.4);
     animation: pulse-ring 1.5s ease-out infinite;
 }
+
+/* ============================================================
+   Dark mode — follows the OS preference (Tailwind v4 `dark:`
+   variant is also prefers-color-scheme based, so page-level
+   dark: classes stay in sync with this foundation).
+   This block only ADDS dark overrides; the light look above is
+   untouched. Semantic tokens so pages can reference them too.
+   ============================================================ */
+:root {
+    --app-bg: #F8FAFC;
+    --app-surface: #FFFFFF;
+    --app-surface-2: #F1F5F9;
+    --app-text: #0F172A;
+    --app-muted: #64748B;
+    --app-border: #E2E8F0;
+    --app-input-bg: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --app-bg: #0B111B;
+        --app-surface: #121B29;
+        --app-surface-2: #172232;
+        --app-text: #E8EEF7;
+        --app-muted: #93A2B8;
+        --app-border: #223047;
+        --app-input-bg: #131C2A;
+    }
+
+    body {
+        background-color: var(--app-bg);
+        color: var(--app-text);
+    }
+
+    .premium-card {
+        background: var(--app-surface);
+        border-color: rgba(255, 255, 255, 0.07);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-white {
+        background: rgba(18, 27, 41, 0.75);
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .text-navy {
+        color: var(--app-text);
+    }
+
+    input,
+    textarea,
+    select {
+        background: var(--app-input-bg);
+        border-color: var(--app-border);
+        color: var(--app-text);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: #5A6B82;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--app-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #2A3A52;
+    }
+
+    .leaflet-popup-content-wrapper,
+    .leaflet-popup-tip {
+        background: var(--app-surface);
+        color: var(--app-text);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+}

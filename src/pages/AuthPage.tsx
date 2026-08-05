@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 type Step = 'phone' | 'otp' | 'role' | 'choose';
 
 export default function AuthPage() {
+    /* dark-mode themed via dark: variants (Tailwind v4 follows system preference) */
     const [step, setStep] = useState<Step>('phone');
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
@@ -139,7 +140,7 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col pt-safe px-6 pb-12 overflow-hidden text-slate-900">
+        <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe px-6 pb-12 overflow-hidden text-slate-900 dark:text-[var(--app-text)]">
 
             <AnimatePresence mode="wait">
                 {step === 'phone' && (
@@ -151,30 +152,30 @@ export default function AuthPage() {
                         className="flex-1 flex flex-col"
                     >
                         <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
-                            <div className="w-28 h-28 rounded-[2rem] bg-white shadow-2xl shadow-blue-200/50 flex items-center justify-center mb-10 mx-auto overflow-hidden">
+                            <div className="w-28 h-28 rounded-[2rem] bg-white dark:bg-[var(--app-surface)] shadow-2xl shadow-blue-200/50 flex items-center justify-center mb-10 mx-auto overflow-hidden">
                                 <img src="/logo.jpg" alt="KnowYourMechanic" className="w-full h-full object-cover" />
                             </div>
 
                             <div className="text-center mb-10">
-                                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 mb-3">
+                                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-[var(--app-text)] mb-3">
                                     KnowyourMechanic
                                 </h1>
-                                <p className="text-slate-500 text-lg">
+                                <p className="text-slate-500 dark:text-[var(--app-muted)] text-lg">
                                     Trusted mechanics at your fingertips
                                 </p>
                             </div>
 
                             <form onSubmit={handleSendOtp} className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-600 ml-1">Phone Number</label>
+                                    <label className="text-sm font-semibold text-slate-600 dark:text-[var(--app-muted)] ml-1">Phone Number</label>
                                     <div className="relative group">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 border-r border-slate-200 pr-3">
-                                            <span className="text-slate-500 font-medium">+91</span>
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 border-r border-slate-200 dark:border-[var(--app-border)] pr-3">
+                                            <span className="text-slate-500 dark:text-[var(--app-muted)] font-medium">+91</span>
                                         </div>
                                         <input
                                             type="tel"
                                             placeholder="00000 00000"
-                                            className="w-full h-16 bg-white rounded-2xl pl-20 pr-4 text-xl font-semibold tracking-wide placeholder:text-slate-300"
+                                            className="w-full h-16 bg-white dark:bg-[var(--app-surface)] rounded-2xl pl-20 pr-4 text-xl font-semibold tracking-wide placeholder:text-slate-300 dark:placeholder:text-[#5A6B82]"
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                         />
@@ -201,7 +202,7 @@ export default function AuthPage() {
                         </div>
 
                         <div className="mt-auto text-center py-6">
-                            <p className="text-slate-400 text-xs">
+                            <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">
                                 By continuing, you agree to our Terms & Privacy Policy
                             </p>
                         </div>
@@ -218,14 +219,14 @@ export default function AuthPage() {
                     >
                         <button
                             onClick={() => setStep('phone')}
-                            className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 self-start mb-8 transition-colors active:bg-slate-100"
+                            className="w-10 h-10 rounded-full border border-slate-200 dark:border-[var(--app-border)] flex items-center justify-center text-slate-400 dark:text-[var(--app-muted)] self-start mb-8 transition-colors active:bg-slate-100 dark:bg-[var(--app-surface-2)]"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>
 
                         <div className="mb-10">
-                            <h2 className="text-3xl font-bold text-slate-900 mb-3">Check your phone</h2>
-                            <p className="text-slate-500 text-lg">
+                            <h2 className="text-3xl font-bold text-slate-900 dark:text-[var(--app-text)] mb-3">Check your phone</h2>
+                            <p className="text-slate-500 dark:text-[var(--app-muted)] text-lg">
                                 We've sent a 6-digit code to <span className="text-blue-600 font-semibold">+91 {phone}</span>
                             </p>
                         </div>
@@ -235,7 +236,7 @@ export default function AuthPage() {
                                 <input
                                     type="text"
                                     placeholder="000000"
-                                    className="w-full h-20 bg-white rounded-3xl text-center text-4xl font-bold tracking-[1rem] placeholder:text-slate-200"
+                                    className="w-full h-20 bg-white dark:bg-[var(--app-surface)] rounded-3xl text-center text-4xl font-bold tracking-[1rem] placeholder:text-slate-200 dark:placeholder:text-[#5A6B82]"
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                     maxLength={6}
@@ -271,8 +272,8 @@ export default function AuthPage() {
                         className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full"
                     >
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Join us as</h2>
-                            <p className="text-slate-500">Choose your account type to get started</p>
+                            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-[var(--app-text)] mb-3">Join us as</h2>
+                            <p className="text-slate-500 dark:text-[var(--app-muted)]">Choose your account type to get started</p>
                         </div>
 
                         <div className="space-y-6">
@@ -285,8 +286,8 @@ export default function AuthPage() {
                                     <Car className="w-8 h-8" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="font-bold text-xl text-slate-900">Customer</h3>
-                                    <p className="text-slate-500 text-sm">Find local experts</p>
+                                    <h3 className="font-bold text-xl text-slate-900 dark:text-[var(--app-text)]">Customer</h3>
+                                    <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Find local experts</p>
                                 </div>
                                 <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
                             </button>
@@ -296,12 +297,12 @@ export default function AuthPage() {
                                 disabled={loading}
                                 className="w-full premium-card p-8 flex items-center gap-6 group hover:border-blue-300 transition-all text-left"
                             >
-                                <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center group-hover:bg-blue-600 text-slate-600 group-hover:text-white transition-colors shadow-inner">
+                                <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-[var(--app-surface-2)] flex items-center justify-center group-hover:bg-blue-600 text-slate-600 dark:text-[var(--app-muted)] group-hover:text-white transition-colors shadow-inner">
                                     <Wrench className="w-8 h-8" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="font-bold text-xl text-slate-900">Garage Owner</h3>
-                                    <p className="text-slate-500 text-sm">Grow your business</p>
+                                    <h3 className="font-bold text-xl text-slate-900 dark:text-[var(--app-text)]">Garage Owner</h3>
+                                    <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Grow your business</p>
                                 </div>
                                 <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
                             </button>
@@ -319,8 +320,8 @@ export default function AuthPage() {
                         className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full"
                     >
                         <div className="text-center mb-12">
-                            <h2 className="text-3xl font-extrabold text-slate-900 mb-3">Continue as</h2>
-                            <p className="text-slate-500">This number has more than one account</p>
+                            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-[var(--app-text)] mb-3">Continue as</h2>
+                            <p className="text-slate-500 dark:text-[var(--app-muted)]">This number has more than one account</p>
                         </div>
 
                         <div className="space-y-4">
@@ -338,8 +339,8 @@ export default function AuthPage() {
                                             <Icon className="w-7 h-7" />
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-lg text-slate-900">{meta.label}</h3>
-                                            <p className="text-slate-500 text-sm">{meta.sub}</p>
+                                            <h3 className="font-bold text-lg text-slate-900 dark:text-[var(--app-text)]">{meta.label}</h3>
+                                            <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">{meta.sub}</p>
                                         </div>
                                         <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
                                     </button>

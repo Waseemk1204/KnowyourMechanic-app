@@ -271,14 +271,14 @@ export default function GarageSettings() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex items-center justify-center">
                 <CustomLoader />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-10">
+        <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] pb-10">
             {/* Header */}
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white px-6 pt-safe pb-8">
                 <div className="flex items-center gap-4 pt-4 mb-6">
@@ -304,7 +304,7 @@ export default function GarageSettings() {
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploadingPhoto}
-                            className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg"
+                            className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-[var(--app-surface)] rounded-full flex items-center justify-center shadow-lg"
                         >
                             <Camera className="w-4 h-4 text-blue-600" />
                         </button>
@@ -343,41 +343,41 @@ export default function GarageSettings() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl p-6 shadow-sm"
+                    className="bg-white dark:bg-[var(--app-surface)] rounded-3xl p-6 shadow-sm"
                 >
-                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-[var(--app-text)] mb-4 flex items-center gap-2">
                         <Building2 className="w-5 h-5 text-blue-600" />
                         Business Details
                     </h3>
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Garage Name *</label>
+                            <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Garage Name *</label>
                             <input
                                 type="text"
                                 value={business.name}
                                 onChange={(e) => setBusiness({ ...business, name: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Email</label>
                                 <input
                                     type="email"
                                     value={business.email}
                                     onChange={(e) => setBusiness({ ...business, email: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Phone *</label>
                                 <input
                                     type="tel"
                                     value={business.phone}
                                     onChange={(e) => setBusiness({ ...business, phone: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                                 />
                             </div>
                         </div>
@@ -404,11 +404,11 @@ export default function GarageSettings() {
                         />
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>
+                            <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Business Type</label>
                             <select
                                 value={business.businessType}
                                 onChange={(e) => setBusiness({ ...business, businessType: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                             >
                                 <option value="individual">Individual</option>
                                 <option value="proprietorship">Proprietorship</option>
@@ -418,13 +418,13 @@ export default function GarageSettings() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Legal Business Name</label>
+                            <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Legal Business Name</label>
                             <input
                                 type="text"
                                 value={business.legalBusinessName}
                                 onChange={(e) => setBusiness({ ...business, legalBusinessName: e.target.value })}
                                 placeholder="Same as garage name if not registered"
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                             />
                         </div>
 
@@ -444,9 +444,9 @@ export default function GarageSettings() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white rounded-3xl p-6 shadow-sm"
+                    className="bg-white dark:bg-[var(--app-surface)] rounded-3xl p-6 shadow-sm"
                 >
-                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-[var(--app-text)] mb-4 flex items-center gap-2">
                         <Landmark className="w-5 h-5 text-green-600" />
                         Bank Details
                     </h3>
@@ -455,46 +455,46 @@ export default function GarageSettings() {
                         <div className="space-y-4">
                             {bank.accountNumber ? (
                                 <>
-                                    <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+                                    <div className="bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl p-4 space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-slate-500 text-sm">Account Holder</span>
-                                            <span className="font-semibold text-slate-900">{bank.accountHolderName}</span>
+                                            <span className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Account Holder</span>
+                                            <span className="font-semibold text-slate-900 dark:text-[var(--app-text)]">{bank.accountHolderName}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-slate-500 text-sm">Account Number</span>
+                                            <span className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Account Number</span>
                                             <div className="flex items-center gap-2">
-                                                <span className="font-semibold text-slate-900 font-mono">
+                                                <span className="font-semibold text-slate-900 dark:text-[var(--app-text)] font-mono">
                                                     {showBankNumber ? bank.accountNumber : maskAccountNumber(bank.accountNumber)}
                                                 </span>
                                                 <button onClick={() => setShowBankNumber(!showBankNumber)}>
-                                                    {showBankNumber ? <EyeOff className="w-4 h-4 text-slate-400" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                                                    {showBankNumber ? <EyeOff className="w-4 h-4 text-slate-400 dark:text-[var(--app-muted)]" /> : <Eye className="w-4 h-4 text-slate-400 dark:text-[var(--app-muted)]" />}
                                                 </button>
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-slate-500 text-sm">IFSC Code</span>
-                                            <span className="font-semibold text-slate-900 font-mono">{bank.ifscCode}</span>
+                                            <span className="text-slate-500 dark:text-[var(--app-muted)] text-sm">IFSC Code</span>
+                                            <span className="font-semibold text-slate-900 dark:text-[var(--app-text)] font-mono">{bank.ifscCode}</span>
                                         </div>
                                         {bank.bankName && (
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-500 text-sm">Bank</span>
-                                                <span className="font-semibold text-slate-900">{bank.bankName}</span>
+                                                <span className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Bank</span>
+                                                <span className="font-semibold text-slate-900 dark:text-[var(--app-text)]">{bank.bankName}</span>
                                             </div>
                                         )}
                                     </div>
                                     <button
                                         onClick={() => setEditingBank(true)}
-                                        className="w-full bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold"
+                                        className="w-full bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-4 rounded-2xl font-bold"
                                     >
                                         Change Bank Details
                                     </button>
                                 </>
                             ) : (
                                 <div className="text-center py-8">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <CreditCard className="w-8 h-8 text-slate-400" />
+                                    <div className="w-16 h-16 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <CreditCard className="w-8 h-8 text-slate-400 dark:text-[var(--app-muted)]" />
                                     </div>
-                                    <p className="text-slate-500 mb-4">No bank details added yet</p>
+                                    <p className="text-slate-500 dark:text-[var(--app-muted)] mb-4">No bank details added yet</p>
                                     <button
                                         onClick={() => setEditingBank(true)}
                                         className="bg-green-600 text-white px-6 py-3 rounded-xl font-bold"
@@ -513,40 +513,40 @@ export default function GarageSettings() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Account Holder Name *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Account Holder Name *</label>
                                 <input
                                     type="text"
                                     value={newBank.accountHolderName}
                                     onChange={(e) => setNewBank({ ...newBank, accountHolderName: e.target.value })}
                                     placeholder="As per bank records"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Account Number *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Account Number *</label>
                                 <input
                                     type="text"
                                     value={newBank.accountNumber}
                                     onChange={(e) => setNewBank({ ...newBank, accountNumber: e.target.value })}
                                     placeholder="Enter account number"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm Account Number *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Confirm Account Number *</label>
                                 <input
                                     type="text"
                                     value={newBank.confirmAccountNumber}
                                     onChange={(e) => setNewBank({ ...newBank, confirmAccountNumber: e.target.value })}
                                     placeholder="Re-enter account number"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">IFSC Code *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">IFSC Code *</label>
                                 <input
                                     type="text"
                                     value={newBank.ifscCode}
@@ -559,12 +559,12 @@ export default function GarageSettings() {
                                     }}
                                     placeholder="SBIN0001234"
                                     maxLength={11}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 border-2 border-slate-300 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white uppercase"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)] uppercase"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                     Bank Name {fetchingBank && <span className="text-blue-500 text-xs ml-2">Loading...</span>}
                                 </label>
                                 <input
@@ -572,7 +572,7 @@ export default function GarageSettings() {
                                     value={newBank.bankName}
                                     readOnly
                                     placeholder="Auto-filled from IFSC"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-200 border-2 border-slate-300 text-slate-600 cursor-not-allowed"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-200 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] cursor-not-allowed"
                                 />
                             </div>
 
@@ -597,7 +597,7 @@ export default function GarageSettings() {
                                         });
                                         setBankError('');
                                     }}
-                                    className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold"
+                                    className="flex-1 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-4 rounded-2xl font-bold"
                                 >
                                     Cancel
                                 </button>

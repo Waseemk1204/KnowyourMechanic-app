@@ -69,17 +69,17 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
 
     return (
         <div className="space-y-3">
-            <div className="flex items-center gap-2 text-slate-500 text-xs font-medium mb-1">
+            <div className="flex items-center gap-2 text-slate-500 dark:text-[var(--app-muted)] text-xs font-medium mb-1">
                 <Clock className="w-4 h-4" />
                 <span>Service Hours</span>
             </div>
             <div className="flex items-center gap-3">
                 <div className="flex-1">
-                    <label className="block text-xs text-slate-400 mb-1">Opens at</label>
+                    <label className="block text-xs text-slate-400 dark:text-[var(--app-muted)] mb-1">Opens at</label>
                     <select
                         value={openTime}
                         onChange={(e) => handleChange('open', e.target.value)}
-                        className="w-full px-3 py-3 rounded-xl bg-slate-100 border-2 border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white text-sm font-medium"
+                        className="w-full px-3 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)] text-sm font-medium"
                     >
                         {timeOptions.map((time) => (
                             <option key={time} value={time}>{time}</option>
@@ -88,11 +88,11 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
                 </div>
                 <div className="text-slate-300 font-bold pt-5">—</div>
                 <div className="flex-1">
-                    <label className="block text-xs text-slate-400 mb-1">Closes at</label>
+                    <label className="block text-xs text-slate-400 dark:text-[var(--app-muted)] mb-1">Closes at</label>
                     <select
                         value={closeTime}
                         onChange={(e) => handleChange('close', e.target.value)}
-                        className="w-full px-3 py-3 rounded-xl bg-slate-100 border-2 border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white text-sm font-medium"
+                        className="w-full px-3 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)] text-sm font-medium"
                     >
                         {getCloseTimeOptions().map((time) => (
                             <option key={time} value={time}>{time}</option>

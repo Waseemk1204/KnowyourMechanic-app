@@ -65,7 +65,7 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
 
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-700">Location *</label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)]">Location *</label>
 
             {hasValidLocation ? (
                 /* Show detected location */
@@ -78,7 +78,7 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
                             <p className="text-sm font-semibold text-green-800">Location Verified</p>
                             <p className="text-xs text-green-600 mt-1 line-clamp-2">{address}</p>
                             <p className="text-[10px] text-green-500 mt-1 font-mono">
-                                {coordinates[1].toFixed(5)}°N, {coordinates[0].toFixed(5)}°E
+                                {Number(coordinates?.[1] ?? 0).toFixed(5)}°N, {Number(coordinates?.[0] ?? 0).toFixed(5)}°E
                             </p>
                         </div>
                         <button

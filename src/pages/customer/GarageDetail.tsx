@@ -198,7 +198,7 @@ export default function GarageDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
@@ -206,8 +206,8 @@ export default function GarageDetailPage() {
 
     if (!garage) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-2">Garage not found</h2>
+            <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col items-center justify-center px-6">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)] mb-2">Garage not found</h2>
                 <button
                     onClick={() => navigate(-1)}
                     className="text-blue-600 font-semibold"
@@ -219,7 +219,7 @@ export default function GarageDetailPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)]">
             {/* Header Image */}
             <div className="relative h-64 bg-gradient-to-br from-blue-600 to-indigo-700">
                 {garage.photoUrl && (
@@ -255,9 +255,9 @@ export default function GarageDetailPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-3xl shadow-xl p-6 mb-6"
+                    className="bg-white dark:bg-[var(--app-surface)] rounded-3xl shadow-xl p-6 mb-6"
                 >
-                    <h1 className="text-2xl font-black text-slate-900 mb-2">{garage.name}</h1>
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">{garage.name}</h1>
 
                     <div className="flex items-center gap-2 mb-4">
                         <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
@@ -266,21 +266,21 @@ export default function GarageDetailPage() {
                                 {garage.rating.toFixed(1)}
                             </span>
                         </div>
-                        <span className="text-slate-400 text-sm">({garage.totalReviews} reviews)</span>
+                        <span className="text-slate-400 dark:text-[var(--app-muted)] text-sm">({garage.totalReviews} reviews)</span>
                     </div>
 
                     <div className="space-y-3">
                         <div className="flex items-start gap-3">
-                            <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
-                            <span className="text-slate-600 text-sm">{garage.location.address}</span>
+                            <MapPin className="w-5 h-5 text-slate-400 dark:text-[var(--app-muted)] mt-0.5" />
+                            <span className="text-slate-600 dark:text-[var(--app-muted)] text-sm">{garage.location.address}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Clock className="w-5 h-5 text-slate-400" />
-                            <span className="text-slate-600 text-sm">{garage.serviceHours}</span>
+                            <Clock className="w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
+                            <span className="text-slate-600 dark:text-[var(--app-muted)] text-sm">{garage.serviceHours}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Calendar className="w-5 h-5 text-slate-400" />
-                            <span className="text-slate-600 text-sm">
+                            <Calendar className="w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
+                            <span className="text-slate-600 dark:text-[var(--app-muted)] text-sm">
                                 {Array.isArray(garage.workingDays)
                                     ? garage.workingDays.join(', ')
                                     : garage.workingDays.split('').map((day, i, arr) => {
@@ -298,7 +298,7 @@ export default function GarageDetailPage() {
                     <div className="flex gap-3 mt-6">
                         <button
                             onClick={handleCall}
-                            className="flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-700 py-3 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-3 rounded-xl font-semibold hover:bg-slate-200 dark:bg-[var(--app-surface-2)] transition-colors"
                         >
                             <Phone className="w-5 h-5" />
                             Call
@@ -316,7 +316,7 @@ export default function GarageDetailPage() {
                 {/* Services Offered (Portfolio) */}
                 {offeredServices.length > 0 && (
                     <div className="mb-6">
-                        <h2 className="text-lg font-bold text-slate-900 mb-4">Services Offered</h2>
+                        <h2 className="text-lg font-bold text-slate-900 dark:text-[var(--app-text)] mb-4">Services Offered</h2>
                         <div className="space-y-3">
                             {offeredServices.map((svc, i) => (
                                 <motion.div
@@ -324,18 +324,18 @@ export default function GarageDetailPage() {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100"
+                                    className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-[var(--app-border)]"
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1">
-                                            <p className="font-semibold text-slate-900">{svc.name}</p>
+                                            <p className="font-semibold text-slate-900 dark:text-[var(--app-text)]">{svc.name}</p>
                                             {svc.description && (
-                                                <p className="text-xs text-slate-500 mt-1">{svc.description}</p>
+                                                <p className="text-xs text-slate-500 dark:text-[var(--app-muted)] mt-1">{svc.description}</p>
                                             )}
                                         </div>
                                         <div className="text-right ml-3">
                                             <p className="font-bold text-blue-600">Rs.{svc.price}</p>
-                                            <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
+                                            <div className="flex items-center gap-1 mt-1 text-xs text-slate-400 dark:text-[var(--app-muted)]">
                                                 <Timer className="w-3 h-3" />
                                                 {svc.duration} min
                                             </div>
@@ -349,15 +349,15 @@ export default function GarageDetailPage() {
 
                 {/* Reviews Section */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">Reviews ({garage?.totalReviews || 0})</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-[var(--app-text)] mb-4">Reviews ({garage?.totalReviews || 0})</h2>
 
                     {/* Your Review */}
                     {canReview && (
-                        <div className="bg-white rounded-2xl p-4 mb-4 border border-slate-100">
+                        <div className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 mb-4 border border-slate-100 dark:border-[var(--app-border)]">
                             {myReview ? (
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
-                                        <h3 className="font-semibold text-slate-900">Your Review</h3>
+                                        <h3 className="font-semibold text-slate-900 dark:text-[var(--app-text)]">Your Review</h3>
                                         <div className="flex gap-2">
                                             <button
                                                 onClick={() => {
@@ -387,7 +387,7 @@ export default function GarageDetailPage() {
                                         ))}
                                     </div>
                                     {myReview.comment && (
-                                        <p className="text-sm text-slate-600">{myReview.comment}</p>
+                                        <p className="text-sm text-slate-600 dark:text-[var(--app-muted)]">{myReview.comment}</p>
                                     )}
                                 </div>
                             ) : (
@@ -403,9 +403,9 @@ export default function GarageDetailPage() {
 
                     {/* All Reviews */}
                     {reviews.length === 0 ? (
-                        <div className="bg-white rounded-2xl p-6 text-center">
+                        <div className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-6 text-center">
                             <Star className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                            <p className="text-slate-400">No reviews yet</p>
+                            <p className="text-slate-400 dark:text-[var(--app-muted)]">No reviews yet</p>
                         </div>
                     ) : (
                         <>
@@ -416,7 +416,7 @@ export default function GarageDetailPage() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
-                                        className="bg-white rounded-2xl p-4 border border-slate-100"
+                                        className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 border border-slate-100 dark:border-[var(--app-border)]"
                                     >
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export default function GarageDetailPage() {
                                                     />
                                                 ))}
                                             </div>
-                                            <span className="text-xs text-slate-400">
+                                            <span className="text-xs text-slate-400 dark:text-[var(--app-muted)]">
                                                 {new Date(review.createdAt).toLocaleDateString('en-IN', {
                                                     day: 'numeric',
                                                     month: 'short',
@@ -438,9 +438,9 @@ export default function GarageDetailPage() {
                                                 })}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-slate-500 mb-2">{review.customerPhone}</p>
+                                        <p className="text-xs text-slate-500 dark:text-[var(--app-muted)] mb-2">{review.customerPhone}</p>
                                         {review.comment && (
-                                            <p className="text-sm text-slate-700">{review.comment}</p>
+                                            <p className="text-sm text-slate-700 dark:text-[var(--app-text)]">{review.comment}</p>
                                         )}
                                     </motion.div>
                                 ))}
@@ -449,7 +449,7 @@ export default function GarageDetailPage() {
                             {visibleReviews < reviews.length && (
                                 <button
                                     onClick={() => setVisibleReviews(prev => prev + 20)}
-                                    className="w-full mt-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors"
+                                    className="w-full mt-4 py-3 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] rounded-xl font-semibold hover:bg-slate-200 dark:bg-[var(--app-surface-2)] transition-colors"
                                 >
                                     See More Reviews
                                 </button>
@@ -474,20 +474,20 @@ export default function GarageDetailPage() {
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-t-3xl w-full max-w-md p-6 pb-10"
                         >
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl font-bold text-slate-900">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">
                                     {myReview ? 'Edit Review' : 'Leave a Review'}
                                 </h3>
                                 <button onClick={() => setShowReviewModal(false)}>
-                                    <X className="w-6 h-6 text-slate-400" />
+                                    <X className="w-6 h-6 text-slate-400 dark:text-[var(--app-muted)]" />
                                 </button>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                                    <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-3">
                                         Your Rating *
                                     </label>
                                     <div className="flex gap-2">
@@ -509,7 +509,7 @@ export default function GarageDetailPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                    <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                         Comment (Optional)
                                     </label>
                                     <textarea
@@ -518,9 +518,9 @@ export default function GarageDetailPage() {
                                         placeholder="Share your experience..."
                                         rows={4}
                                         maxLength={500}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                                     />
-                                    <p className="text-xs text-slate-400 mt-1">
+                                    <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1">
                                         {reviewComment.length}/500 characters
                                     </p>
                                 </div>
@@ -560,15 +560,15 @@ export default function GarageDetailPage() {
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-t-3xl w-full max-w-md p-6 pb-10"
                         >
                             {reportSuccess ? (
                                 <div className="text-center py-8">
                                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Check className="w-8 h-8 text-green-600" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2">Report Submitted</h3>
-                                    <p className="text-slate-500">We'll review this and take action shortly.</p>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)] mb-2">Report Submitted</h3>
+                                    <p className="text-slate-500 dark:text-[var(--app-muted)]">We'll review this and take action shortly.</p>
                                 </div>
                             ) : (
                                 <>
@@ -577,16 +577,16 @@ export default function GarageDetailPage() {
                                             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                                                 <AlertTriangle className="w-5 h-5 text-red-600" />
                                             </div>
-                                            <h3 className="text-xl font-bold text-slate-900">Report Issue</h3>
+                                            <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">Report Issue</h3>
                                         </div>
                                         <button onClick={() => setShowReportModal(false)}>
-                                            <X className="w-6 h-6 text-slate-400" />
+                                            <X className="w-6 h-6 text-slate-400 dark:text-[var(--app-muted)]" />
                                         </button>
                                     </div>
 
                                     <div className="space-y-4 mb-6">
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">Reason</label>
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Reason</label>
                                             <div className="grid grid-cols-2 gap-2">
                                                 {[
                                                     { value: 'fraud', label: 'Fraud / Scam' },
@@ -600,7 +600,7 @@ export default function GarageDetailPage() {
                                                         onClick={() => setReportReason(opt.value)}
                                                         className={`px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all ${reportReason === opt.value
                                                                 ? 'bg-red-50 border-red-300 text-red-700'
-                                                                : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
+                                                                : 'bg-slate-50 dark:bg-[var(--app-bg)] border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:border-[var(--app-border)]'
                                                             }`}
                                                     >
                                                         {opt.label}
@@ -609,7 +609,7 @@ export default function GarageDetailPage() {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">
                                                 Describe the issue
                                             </label>
                                             <textarea
@@ -618,9 +618,9 @@ export default function GarageDetailPage() {
                                                 placeholder="Tell us what happened..."
                                                 rows={4}
                                                 maxLength={1000}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm"
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:outline-none focus:ring-2 focus:ring-red-500 resize-none text-sm"
                                             />
-                                            <p className="text-xs text-slate-400 mt-1 text-right">
+                                            <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1 text-right">
                                                 {reportDescription.length}/1000
                                             </p>
                                         </div>

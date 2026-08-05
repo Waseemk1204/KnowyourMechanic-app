@@ -261,7 +261,7 @@ export default function GarageOnboardingWizard() {
 
     if (checkingStatus) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
@@ -274,27 +274,27 @@ export default function GarageOnboardingWizard() {
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
                         ${step === s || ['business', 'bank', 'success'].indexOf(step) > i
                             ? 'bg-blue-600 text-white'
-                            : 'bg-slate-200 text-slate-500'}`}
+                            : 'bg-slate-200 dark:bg-[var(--app-surface-2)] text-slate-500 dark:text-[var(--app-muted)]'}`}
                     >
                         {i + 1}
                     </div>
-                    {i < 2 && <div className={`w-8 h-0.5 ${['business', 'bank', 'success'].indexOf(step) > i ? 'bg-blue-600' : 'bg-slate-200'}`} />}
+                    {i < 2 && <div className={`w-8 h-0.5 ${['business', 'bank', 'success'].indexOf(step) > i ? 'bg-blue-600' : 'bg-slate-200 dark:bg-[var(--app-surface-2)]'}`} />}
                 </div>
             ))}
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 pt-safe pb-10 px-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] pt-safe pb-10 px-6">
             <div className="max-w-md mx-auto pt-8">
                 {/* Header */}
                 <div className="text-center mb-6">
-                    <h1 className="text-2xl font-black text-slate-900 mb-2">
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">
                         {step === 'business' && 'Business Details'}
                         {step === 'bank' && 'Bank Account'}
                         {step === 'success' && 'All Set!'}
                     </h1>
-                    <p className="text-slate-500">
+                    <p className="text-slate-500 dark:text-[var(--app-muted)]">
                         {step === 'business' && 'Tell us about your garage'}
                         {step === 'bank' && 'For receiving payments'}
                         {step === 'success' && 'Your garage is ready'}
@@ -325,14 +325,14 @@ export default function GarageOnboardingWizard() {
                                 <label className="cursor-pointer group">
                                     <div className={`w-24 h-24 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${business.photoBase64
                                             ? 'border-green-300 bg-green-50'
-                                            : 'border-slate-300 bg-slate-100 group-hover:border-blue-400 group-hover:bg-blue-50'
+                                            : 'border-slate-300 dark:border-[var(--app-border)] bg-slate-100 dark:bg-[var(--app-surface-2)] group-hover:border-blue-400 group-hover:bg-blue-50'
                                         }`}>
                                         {business.photoBase64 ? (
                                             <img src={business.photoBase64} alt="Preview" className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="text-center">
-                                                <Camera className="w-6 h-6 text-slate-400 mx-auto" />
-                                                <span className="text-[10px] text-slate-400 mt-1 block">Add Photo</span>
+                                                <Camera className="w-6 h-6 text-slate-400 dark:text-[var(--app-muted)] mx-auto" />
+                                                <span className="text-[10px] text-slate-400 dark:text-[var(--app-muted)] mt-1 block">Add Photo</span>
                                             </div>
                                         )}
                                     </div>
@@ -347,9 +347,9 @@ export default function GarageOnboardingWizard() {
 
                             {/* Garage Name */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Garage Name *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Garage Name *</label>
                                 <div className="relative">
-                                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                     <input
                                         type="text"
                                         value={business.name}
@@ -358,7 +358,7 @@ export default function GarageOnboardingWizard() {
                                             if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: '' }));
                                         }}
                                         placeholder="Your Garage Name"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.name ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.name ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('name')}
@@ -366,9 +366,9 @@ export default function GarageOnboardingWizard() {
 
                             {/* Email */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Email *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Email *</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                     <input
                                         type="email"
                                         value={business.email}
@@ -381,7 +381,7 @@ export default function GarageOnboardingWizard() {
                                             if (err) setFieldErrors(prev => ({ ...prev, email: err }));
                                         }}
                                         placeholder="garage@email.com"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.email ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.email ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('email')}
@@ -389,9 +389,9 @@ export default function GarageOnboardingWizard() {
 
                             {/* Phone — digits only */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Phone *</label>
                                 <div className="relative">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                     <input
                                         type="tel"
                                         value={business.phone}
@@ -407,10 +407,10 @@ export default function GarageOnboardingWizard() {
                                         placeholder="9876543210"
                                         maxLength={10}
                                         inputMode="numeric"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.phone ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.phone ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                     {business.phone.length > 0 && (
-                                        <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono ${business.phone.length === 10 ? 'text-green-500' : 'text-slate-400'
+                                        <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono ${business.phone.length === 10 ? 'text-green-500' : 'text-slate-400 dark:text-[var(--app-muted)]'
                                             }`}>
                                             {business.phone.length}/10
                                         </span>
@@ -448,11 +448,11 @@ export default function GarageOnboardingWizard() {
 
                             {/* Business Type */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Business Type</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Business Type</label>
                                 <select
                                     value={business.businessType}
                                     onChange={(e) => setBusiness({ ...business, businessType: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="individual">Individual</option>
                                     <option value="proprietorship">Proprietorship</option>
@@ -463,7 +463,7 @@ export default function GarageOnboardingWizard() {
 
                             {/* Referral Code with live validation */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Referral Code (optional)</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Referral Code (optional)</label>
                                 <div className="relative">
                                     <input
                                         value={business.referralCode}
@@ -478,7 +478,7 @@ export default function GarageOnboardingWizard() {
                                         placeholder="e.g. KYM-A7X3K"
                                         className={`w-full px-4 py-3 rounded-xl border font-mono uppercase focus:ring-2 focus:ring-blue-500 pr-10 ${referralStatus.valid === true ? 'border-green-300 bg-green-50/50' :
                                                 referralStatus.valid === false ? 'border-red-300 bg-red-50/50' :
-                                                    'border-slate-200'
+                                                    'border-slate-200 dark:border-[var(--app-border)]'
                                             }`}
                                     />
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -497,7 +497,7 @@ export default function GarageOnboardingWizard() {
                                     <p className="text-red-500 text-xs mt-1">Invalid referral code</p>
                                 )}
                                 {referralStatus.valid === null && (
-                                    <p className="text-xs text-slate-400 mt-1">If provided by a KnowyourMechanic representative</p>
+                                    <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1">If provided by a KnowyourMechanic representative</p>
                                 )}
                             </div>
 
@@ -530,9 +530,9 @@ export default function GarageOnboardingWizard() {
 
                             {/* Account Holder */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Account Holder Name *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Account Holder Name *</label>
                                 <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                     <input
                                         type="text"
                                         value={bank.accountHolderName}
@@ -542,7 +542,7 @@ export default function GarageOnboardingWizard() {
                                             if (fieldErrors.accountHolderName) setFieldErrors(prev => ({ ...prev, accountHolderName: '' }));
                                         }}
                                         placeholder="As per bank records"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountHolderName ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountHolderName ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('accountHolderName')}
@@ -550,9 +550,9 @@ export default function GarageOnboardingWizard() {
 
                             {/* Account Number */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Account Number *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Account Number *</label>
                                 <div className="relative">
-                                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                     <input
                                         type="text"
                                         value={bank.accountNumber}
@@ -563,7 +563,7 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         placeholder="Enter account number"
                                         inputMode="numeric"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('accountNumber')}
@@ -571,7 +571,7 @@ export default function GarageOnboardingWizard() {
 
                             {/* Confirm Account Number */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm Account Number *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Confirm Account Number *</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -583,7 +583,7 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         placeholder="Re-enter account number"
                                         inputMode="numeric"
-                                        className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.confirmAccountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.confirmAccountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                     {bank.confirmAccountNumber && bank.accountNumber === bank.confirmAccountNumber && (
                                         <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
@@ -594,9 +594,9 @@ export default function GarageOnboardingWizard() {
 
                             {/* IFSC */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">IFSC Code *</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">IFSC Code *</label>
                                 <div className="relative">
-                                    <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <Landmark className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                                     <input
                                         type="text"
                                         value={bank.ifscCode}
@@ -607,7 +607,7 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         placeholder="SBIN0001234"
                                         maxLength={11}
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.ifscCode ? 'border-red-300 bg-red-50/50' : 'border-slate-200'} focus:ring-2 focus:ring-blue-500 uppercase font-mono`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.ifscCode ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500 uppercase font-mono`}
                                     />
                                 </div>
                                 {renderFieldError('ifscCode')}
@@ -615,20 +615,20 @@ export default function GarageOnboardingWizard() {
 
                             {/* Bank Name */}
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Bank Name</label>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">Bank Name</label>
                                 <input
                                     type="text"
                                     value={bank.bankName}
                                     onChange={(e) => setBank({ ...bank, bankName: e.target.value })}
                                     placeholder="State Bank of India"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
 
                             <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => { setStep('business'); setFieldErrors({}); }}
-                                    className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
+                                    className="flex-1 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
                                 >
                                     <ArrowLeft className="w-5 h-5" /> Back
                                 </button>
@@ -645,7 +645,7 @@ export default function GarageOnboardingWizard() {
 
                             <button
                                 onClick={handleSkipBank}
-                                className="w-full text-slate-400 text-sm font-semibold mt-2"
+                                className="w-full text-slate-400 dark:text-[var(--app-muted)] text-sm font-semibold mt-2"
                             >
                                 Skip for now (add later)
                             </button>
@@ -663,10 +663,10 @@ export default function GarageOnboardingWizard() {
                             <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <CheckCircle className="w-12 h-12 text-green-600" />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900 mb-2">Welcome Aboard!</h2>
-                            <p className="text-slate-500 mb-8">Your garage is all set up and ready to go.</p>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">Welcome Aboard!</h2>
+                            <p className="text-slate-500 dark:text-[var(--app-muted)] mb-8">Your garage is all set up and ready to go.</p>
                             <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
-                            <p className="text-slate-400 text-sm mt-2">Redirecting to dashboard...</p>
+                            <p className="text-slate-400 dark:text-[var(--app-muted)] text-sm mt-2">Redirecting to dashboard...</p>
                         </motion.div>
                     )}
                 </AnimatePresence>

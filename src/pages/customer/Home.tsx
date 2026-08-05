@@ -299,11 +299,11 @@ export default function CustomerHome() {
     const activeFiltersCount = (sortBy !== 'distance' ? 1 : 0) + (showOpenOnly ? 1 : 0) + (minRating > 0 ? 1 : 0);
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col pt-safe pb-6 px-4">
+        <div className="max-w-md mx-auto min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe pb-6 px-4">
             {/* Header */}
             <header className="flex items-center justify-between py-6 mb-2">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Find a Mechanic</h1>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-[var(--app-text)] tracking-tight">Find a Mechanic</h1>
                     <p className="text-blue-600 text-sm font-semibold flex items-center gap-1.5 mt-1">
                         <Navigation className="w-3.5 h-3.5 fill-blue-600" />
                         {loading || isLoadingGarages ? 'Locating...' :
@@ -313,7 +313,7 @@ export default function CustomerHome() {
                 </div>
                 <button
                     onClick={() => setShowProfilePanel(true)}
-                    className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400 active:bg-slate-50 transition-colors"
+                    className="w-12 h-12 flex items-center justify-center bg-white dark:bg-[var(--app-surface)] rounded-2xl shadow-sm border border-slate-100 dark:border-[var(--app-border)] text-slate-400 dark:text-[var(--app-muted)] active:bg-slate-50 dark:bg-[var(--app-bg)] transition-colors"
                 >
                     <Settings className="w-5.5 h-5.5" />
                 </button>
@@ -322,11 +322,11 @@ export default function CustomerHome() {
             {/* Search */}
             <div className="flex gap-3 mb-8">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-[var(--app-muted)]" />
                     <input
                         type="text"
                         placeholder="Search mechanics or garages"
-                        className="w-full h-14 bg-white rounded-2xl pl-12 pr-4 border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 font-medium"
+                        className="w-full h-14 bg-white dark:bg-[var(--app-surface)] rounded-2xl pl-12 pr-4 border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 dark:placeholder:text-[#5A6B82] font-medium"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
@@ -384,13 +384,13 @@ export default function CustomerHome() {
                             )}
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-slate-900 text-sm">Rate your experience</h3>
-                            <p className="text-xs text-slate-600 mt-0.5">{unratedService.garageName}</p>
-                            <p className="text-xs text-slate-400 mt-1 line-clamp-1">{unratedService.serviceDescription}</p>
+                            <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)] text-sm">Rate your experience</h3>
+                            <p className="text-xs text-slate-600 dark:text-[var(--app-muted)] mt-0.5">{unratedService.garageName}</p>
+                            <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1 line-clamp-1">{unratedService.serviceDescription}</p>
                         </div>
                         <button
                             onClick={() => setUnratedService(null)}
-                            className="text-slate-400 hover:text-slate-600"
+                            className="text-slate-400 dark:text-[var(--app-muted)] hover:text-slate-600 dark:text-[var(--app-muted)]"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -425,7 +425,7 @@ export default function CustomerHome() {
                                 placeholder="Add a comment (optional)"
                                 rows={2}
                                 maxLength={500}
-                                className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white dark:bg-[var(--app-surface)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
                             />
                             <button
                                 onClick={handleSubmitReview}
@@ -446,18 +446,18 @@ export default function CustomerHome() {
             {/* Garage List */}
             <div className="flex-1 space-y-5">
                 <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-xl font-bold text-slate-900">Nearby Garages</h2>
-                    <span className="text-slate-400 text-sm">{totalFilteredCount} found</span>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">Nearby Garages</h2>
+                    <span className="text-slate-400 dark:text-[var(--app-muted)] text-sm">{totalFilteredCount} found</span>
                 </div>
 
                 {isLoadingGarages ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
                         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-                        <p className="text-slate-400 font-medium">Finding best mechanics...</p>
+                        <p className="text-slate-400 dark:text-[var(--app-muted)] font-medium">Finding best mechanics...</p>
                     </div>
                 ) : filteredGarages.length === 0 ? (
                     <div className="text-center py-20">
-                        <p className="text-slate-400 font-medium">No results Match your search</p>
+                        <p className="text-slate-400 dark:text-[var(--app-muted)] font-medium">No results Match your search</p>
                     </div>
                 ) : (
                     filteredGarages.map(garage => (
@@ -466,7 +466,7 @@ export default function CustomerHome() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             key={garage.id}
-                            className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-row h-36"
+                            className="w-full bg-white dark:bg-[var(--app-surface)] rounded-3xl shadow-sm border border-slate-100 dark:border-[var(--app-border)] overflow-hidden flex flex-row h-36"
                         >
                             <div className="w-1/3 h-full relative" onClick={() => navigate(`/customer/garage/${garage.id}`)}>
                                 <img
@@ -478,15 +478,15 @@ export default function CustomerHome() {
 
                             <div className="flex-1 p-4 flex flex-col justify-between" onClick={() => navigate(`/customer/garage/${garage.id}`)}>
                                 <div>
-                                    <h3 className="font-bold text-slate-900 mb-1 truncate text-lg leading-tight">{garage.name}</h3>
+                                    <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)] mb-1 truncate text-lg leading-tight">{garage.name}</h3>
                                     <div className="flex items-center gap-2 text-xs mb-2">
                                         <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100">
                                             <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                                             <span className="font-bold text-amber-700">{garage.rating}</span>
                                         </div>
-                                        <span className="text-slate-400 font-medium">({garage.reviews} reviews)</span>
+                                        <span className="text-slate-400 dark:text-[var(--app-muted)] font-medium">({garage.reviews} reviews)</span>
                                     </div>
-                                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-[var(--app-muted)]">
                                         <span className="flex items-center gap-1">
                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                                             {garage.totalServices || 0} services
@@ -501,7 +501,7 @@ export default function CustomerHome() {
                                 </div>
 
                                 <div className="flex items-center justify-between mt-auto">
-                                    <span className="text-[10px] text-slate-400 font-medium bg-slate-50 px-2 py-1 rounded-full border border-slate-100">
+                                    <span className="text-[10px] text-slate-400 dark:text-[var(--app-muted)] font-medium bg-slate-50 dark:bg-[var(--app-bg)] px-2 py-1 rounded-full border border-slate-100 dark:border-[var(--app-border)]">
                                         Joined since {garage.joinedDate}
                                     </span>
 
@@ -562,14 +562,14 @@ export default function CustomerHome() {
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[3rem] p-8 pb-12 z-[101] shadow-2xl max-w-md mx-auto"
+                            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[var(--app-surface)] rounded-t-[3rem] p-8 pb-12 z-[101] shadow-2xl max-w-md mx-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8" />
+                            <div className="w-12 h-1.5 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-full mx-auto mb-8" />
 
                             <div className="flex justify-between items-start mb-6">
                                 <div className="flex-1">
-                                    <h2 className="text-2xl font-black text-slate-900 mb-1">{selectedGarage.name}</h2>
+                                    <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-1">{selectedGarage.name}</h2>
                                     <p className="text-blue-600 font-bold flex items-center gap-1 bg-blue-50 w-fit px-3 py-1 rounded-full text-xs">
                                         <MapPin className="w-3 h-3" />
                                         {selectedGarage.distance} from you
@@ -577,7 +577,7 @@ export default function CustomerHome() {
                                 </div>
                                 <button
                                     onClick={() => setSelectedGarage(null)}
-                                    className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400"
+                                    className="w-10 h-10 bg-slate-50 dark:bg-[var(--app-bg)] rounded-full flex items-center justify-center text-slate-400 dark:text-[var(--app-muted)]"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -590,13 +590,13 @@ export default function CustomerHome() {
                             />
 
                             <div className="grid grid-cols-2 gap-4 mb-8 text-center text-sm font-bold">
-                                <div className="bg-slate-50 p-4 rounded-2xl">
-                                    <p className="text-slate-400 text-xs mb-1">Open Until</p>
-                                    <p className="text-slate-900">08:00 PM</p>
+                                <div className="bg-slate-50 dark:bg-[var(--app-bg)] p-4 rounded-2xl">
+                                    <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs mb-1">Open Until</p>
+                                    <p className="text-slate-900 dark:text-[var(--app-text)]">08:00 PM</p>
                                 </div>
-                                <div className="bg-slate-50 p-4 rounded-2xl">
-                                    <p className="text-slate-400 text-xs mb-1">Rating</p>
-                                    <p className="text-slate-900 flex items-center justify-center gap-1">
+                                <div className="bg-slate-50 dark:bg-[var(--app-bg)] p-4 rounded-2xl">
+                                    <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs mb-1">Rating</p>
+                                    <p className="text-slate-900 dark:text-[var(--app-text)] flex items-center justify-center gap-1">
                                         <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                                         {selectedGarage.rating}
                                     </p>
@@ -609,7 +609,7 @@ export default function CustomerHome() {
                                         const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedGarage.lat},${selectedGarage.lng}`;
                                         window.open(url, '_blank');
                                     }}
-                                    className="flex-1 h-16 bg-slate-100 rounded-[1.25rem] text-slate-700 font-black flex items-center justify-center gap-3 active:scale-95 transition-transform"
+                                    className="flex-1 h-16 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-[1.25rem] text-slate-700 dark:text-[var(--app-text)] font-black flex items-center justify-center gap-3 active:scale-95 transition-transform"
                                 >
                                     <Navigation className="w-5 h-5" />
                                     DIRECTIONS
@@ -642,14 +642,14 @@ export default function CustomerHome() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="w-full max-w-sm bg-white rounded-[2.5rem] p-8 text-center relative z-10 shadow-2xl"
+                            className="w-full max-w-sm bg-white dark:bg-[var(--app-surface)] rounded-[2.5rem] p-8 text-center relative z-10 shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                 <LogOut className="w-10 h-10" />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900 mb-2">Ready to Leave?</h2>
-                            <p className="text-slate-500 font-medium mb-10 leading-relaxed">You will need to re-verify your phone number to login again.</p>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">Ready to Leave?</h2>
+                            <p className="text-slate-500 dark:text-[var(--app-muted)] font-medium mb-10 leading-relaxed">You will need to re-verify your phone number to login again.</p>
                             <div className="flex flex-col gap-3">
                                 <button
                                     onClick={handleLogout}
@@ -659,7 +659,7 @@ export default function CustomerHome() {
                                 </button>
                                 <button
                                     onClick={() => setShowLogoutModal(false)}
-                                    className="w-full h-16 bg-slate-50 text-slate-500 font-bold rounded-2xl"
+                                    className="w-full h-16 bg-slate-50 dark:bg-[var(--app-bg)] text-slate-500 dark:text-[var(--app-muted)] font-bold rounded-2xl"
                                 >
                                     Cancel
                                 </button>
@@ -685,7 +685,7 @@ export default function CustomerHome() {
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 flex flex-col"
+                            className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-[var(--app-surface)] shadow-2xl z-50 flex flex-col"
                         >
                             {/* Panel Header */}
                             <div className="p-6 bg-blue-600 text-white">
@@ -715,14 +715,14 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         navigate('/customer/profile');
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
                                         <User className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <p className="font-bold text-slate-900">Profile</p>
-                                        <p className="text-slate-400 text-xs">Your info & vehicle</p>
+                                        <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Profile</p>
+                                        <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Your info & vehicle</p>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-500" />
                                 </button>
@@ -732,14 +732,14 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         navigate('/customer/activity');
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                                         <Clock className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <p className="font-bold text-slate-900">Activity</p>
-                                        <p className="text-slate-400 text-xs">View your service history</p>
+                                        <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Activity</p>
+                                        <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">View your service history</p>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
                                 </button>
@@ -749,21 +749,21 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         navigate('/customer/support');
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
                                         <Headphones className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <p className="font-bold text-slate-900">Support</p>
-                                        <p className="text-slate-400 text-xs">Get help & contact us</p>
+                                        <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Support</p>
+                                        <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Get help & contact us</p>
                                     </div>
                                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500" />
                                 </button>
                             </div>
 
                             {/* Logout Button */}
-                            <div className="p-4 border-t border-slate-100">
+                            <div className="p-4 border-t border-slate-100 dark:border-[var(--app-border)]">
                                 <button
                                     onClick={() => {
                                         setShowProfilePanel(false);
@@ -793,18 +793,18 @@ export default function CustomerHome() {
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
-                            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6 pb-10 max-h-[80vh] overflow-y-auto"
+                            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[var(--app-surface)] rounded-t-3xl z-50 p-6 pb-10 max-h-[80vh] overflow-y-auto"
                         >
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-slate-900">Filters</h2>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">Filters</h2>
                                 <button onClick={() => setShowFilterModal(false)}>
-                                    <X className="w-6 h-6 text-slate-400" />
+                                    <X className="w-6 h-6 text-slate-400 dark:text-[var(--app-muted)]" />
                                 </button>
                             </div>
 
                             {/* Sort By */}
                             <div className="mb-6">
-                                <h3 className="text-sm font-semibold text-slate-700 mb-3">Sort By</h3>
+                                <h3 className="text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-3">Sort By</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {[
                                         { value: 'distance', label: 'Distance', icon: '📍' },
@@ -816,11 +816,11 @@ export default function CustomerHome() {
                                             onClick={() => setSortBy(option.value as any)}
                                             className={`p-3 rounded-xl border-2 text-left transition-all ${sortBy === option.value
                                                 ? 'border-blue-500 bg-blue-50'
-                                                : 'border-slate-100 bg-white'
+                                                : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)]'
                                                 }`}
                                         >
                                             <span className="text-lg">{option.icon}</span>
-                                            <p className={`text-sm font-semibold mt-1 ${sortBy === option.value ? 'text-blue-600' : 'text-slate-700'
+                                            <p className={`text-sm font-semibold mt-1 ${sortBy === option.value ? 'text-blue-600' : 'text-slate-700 dark:text-[var(--app-text)]'
                                                 }`}>{option.label}</p>
                                         </button>
                                     ))}
@@ -833,24 +833,24 @@ export default function CustomerHome() {
                                     onClick={() => setShowOpenOnly(!showOpenOnly)}
                                     className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${showOpenOnly
                                         ? 'border-green-500 bg-green-50'
-                                        : 'border-slate-100 bg-white'
+                                        : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)]'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-3 h-3 rounded-full ${showOpenOnly ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
-                                        <span className={`font-semibold ${showOpenOnly ? 'text-green-600' : 'text-slate-700'}`}>
+                                        <span className={`font-semibold ${showOpenOnly ? 'text-green-600' : 'text-slate-700 dark:text-[var(--app-text)]'}`}>
                                             Open Now Only
                                         </span>
                                     </div>
-                                    <div className={`w-12 h-7 rounded-full transition-all ${showOpenOnly ? 'bg-green-500' : 'bg-slate-200'}`}>
-                                        <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-all mt-1 ${showOpenOnly ? 'ml-6' : 'ml-1'}`} />
+                                    <div className={`w-12 h-7 rounded-full transition-all ${showOpenOnly ? 'bg-green-500' : 'bg-slate-200 dark:bg-[var(--app-surface-2)]'}`}>
+                                        <div className={`w-5 h-5 bg-white dark:bg-[var(--app-surface)] rounded-full shadow-md transition-all mt-1 ${showOpenOnly ? 'ml-6' : 'ml-1'}`} />
                                     </div>
                                 </button>
                             </div>
 
                             {/* Minimum Rating */}
                             <div className="mb-8">
-                                <h3 className="text-sm font-semibold text-slate-700 mb-3">Minimum Rating</h3>
+                                <h3 className="text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-3">Minimum Rating</h3>
                                 <div className="flex gap-2">
                                     {[0, 3, 3.5, 4, 4.5].map(rating => (
                                         <button
@@ -858,12 +858,12 @@ export default function CustomerHome() {
                                             onClick={() => setMinRating(rating)}
                                             className={`flex-1 p-3 rounded-xl border-2 text-center transition-all ${minRating === rating
                                                 ? 'border-amber-500 bg-amber-50'
-                                                : 'border-slate-100 bg-white'
+                                                : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)]'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-center gap-1">
                                                 {rating > 0 && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
-                                                <span className={`text-sm font-semibold ${minRating === rating ? 'text-amber-600' : 'text-slate-600'
+                                                <span className={`text-sm font-semibold ${minRating === rating ? 'text-amber-600' : 'text-slate-600 dark:text-[var(--app-muted)]'
                                                     }`}>
                                                     {rating === 0 ? 'Any' : `${rating}+`}
                                                 </span>
@@ -881,7 +881,7 @@ export default function CustomerHome() {
                                         setShowOpenOnly(false);
                                         setMinRating(0);
                                     }}
-                                    className="flex-1 py-4 rounded-xl border-2 border-slate-200 text-slate-600 font-bold"
+                                    className="flex-1 py-4 rounded-xl border-2 border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] font-bold"
                                 >
                                     Reset
                                 </button>
@@ -911,41 +911,41 @@ export default function CustomerHome() {
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10"
+                            className="bg-white dark:bg-[var(--app-surface)] rounded-t-3xl w-full max-w-md p-6 pb-10"
                         >
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
                                     <Shield className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900">Service Verification</h3>
-                                    <p className="text-slate-400 text-sm">Confirm this service is accurate</p>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-[var(--app-text)]">Service Verification</h3>
+                                    <p className="text-slate-400 dark:text-[var(--app-muted)] text-sm">Confirm this service is accurate</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 {pendingApprovals.map(service => (
-                                    <div key={service._id} className="bg-slate-50 rounded-2xl p-4">
+                                    <div key={service._id} className="bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl p-4">
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                                                 <Wrench className="w-5 h-5 text-blue-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="font-bold text-slate-900">{service.garageName}</p>
-                                                <p className="text-slate-500 text-sm">{service.description}</p>
+                                                <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">{service.garageName}</p>
+                                                <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">{service.description}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between mb-4 px-2">
                                             <div>
-                                                <p className="text-xs text-slate-400">Service Amount</p>
-                                                <p className="font-bold text-slate-900">Rs.{service.amount}</p>
+                                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)]">Service Amount</p>
+                                                <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Rs.{service.amount}</p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-slate-400">Platform Fee</p>
-                                                <p className="font-bold text-slate-500">Rs.{service.platformFee}</p>
+                                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)]">Platform Fee</p>
+                                                <p className="font-bold text-slate-500 dark:text-[var(--app-muted)]">Rs.{service.platformFee}</p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-slate-400">Total</p>
+                                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)]">Total</p>
                                                 <p className="font-bold text-blue-600">Rs.{(service.amount + service.platformFee).toFixed(2)}</p>
                                             </div>
                                         </div>

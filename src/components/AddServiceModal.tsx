@@ -136,14 +136,14 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                     <motion.div
                         initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
                         transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                        className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto"
+                        className="bg-white dark:bg-[var(--app-surface)] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="sticky top-0 bg-white flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
-                            <h2 className="text-2xl font-black text-slate-900">
+                        <div className="sticky top-0 bg-white dark:bg-[var(--app-surface)] flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 dark:border-[var(--app-border)]">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)]">
                                 {step === 'form' ? 'Add Service' : step === 'otp' ? 'Verify OTP' : step === 'payment' ? 'Complete Payment' : 'Done'}
                             </h2>
-                            <button onClick={onClose} className="text-slate-400 active:scale-90 transition-transform">
+                            <button onClick={onClose} className="text-slate-400 dark:text-[var(--app-muted)] active:scale-90 transition-transform">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -152,34 +152,34 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                         {step === 'form' && (
                             <div className="p-6 space-y-5">
                                 <div>
-                                    <label className="text-sm font-semibold text-slate-600">Customer phone</label>
+                                    <label className="text-sm font-semibold text-slate-600 dark:text-[var(--app-muted)]">Customer phone</label>
                                     <div className="relative mt-2">
-                                        <Phone className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                                        <Phone className="w-5 h-5 text-slate-400 dark:text-[var(--app-muted)] absolute left-4 top-1/2 -translate-y-1/2" />
                                         <input type="tel" value={customerPhone}
                                             onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                                             placeholder="10-digit number"
-                                            className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-4 text-lg font-medium" />
+                                            className="w-full h-14 bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl pl-12 pr-4 text-lg font-medium" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-sm font-semibold text-slate-600">Vehicle number</label>
+                                    <label className="text-sm font-semibold text-slate-600 dark:text-[var(--app-muted)]">Vehicle number</label>
                                     <input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())} placeholder="MH12AB1234"
-                                        className="w-full h-14 bg-slate-50 rounded-2xl px-4 mt-2 text-lg font-medium tracking-wide uppercase" />
+                                        className="w-full h-14 bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl px-4 mt-2 text-lg font-medium tracking-wide uppercase" />
                                 </div>
 
                                 <div>
-                                    <label className="text-sm font-semibold text-slate-600">What was done?</label>
+                                    <label className="text-sm font-semibold text-slate-600 dark:text-[var(--app-muted)]">What was done?</label>
                                     <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
                                         placeholder="e.g. oil change + front brake pads. Type it however you like."
-                                        className="w-full bg-slate-50 rounded-2xl px-4 py-3 mt-2 font-medium" />
+                                        className="w-full bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl px-4 py-3 mt-2 font-medium" />
                                 </div>
 
                                 <div>
-                                    <label className="text-sm font-semibold text-slate-600">Total amount</label>
+                                    <label className="text-sm font-semibold text-slate-600 dark:text-[var(--app-muted)]">Total amount</label>
                                     <div className="relative mt-2">
-                                        <IndianRupee className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                                        <input value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="0" className="w-full h-14 bg-slate-50 rounded-2xl pl-12 pr-4 text-lg font-semibold" />
+                                        <IndianRupee className="w-5 h-5 text-slate-400 dark:text-[var(--app-muted)] absolute left-4 top-1/2 -translate-y-1/2" />
+                                        <input value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))} placeholder="0" className="w-full h-14 bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl pl-12 pr-4 text-lg font-semibold" />
                                     </div>
                                 </div>
 
@@ -195,7 +195,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                         {/* ---- OTP ---- */}
                         {step === 'otp' && (
                             <div className="p-6 space-y-5">
-                                <p className="text-slate-500">The customer shares the 6-digit OTP with you. The garage cannot skip this step.</p>
+                                <p className="text-slate-500 dark:text-[var(--app-muted)]">The customer shares the 6-digit OTP with you. The garage cannot skip this step.</p>
                                 {devOtp && (
                                     <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-amber-800 font-bold text-center">
                                         Dev OTP: {devOtp}
@@ -203,7 +203,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                 )}
                                 <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                     placeholder="000000" maxLength={6}
-                                    className="w-full h-20 bg-slate-50 rounded-3xl text-center text-4xl font-bold tracking-[1rem]" />
+                                    className="w-full h-20 bg-slate-50 dark:bg-[var(--app-bg)] rounded-3xl text-center text-4xl font-bold tracking-[1rem]" />
                                 {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
                                 <button onClick={handleVerify} disabled={otp.length < 6 || loading}
                                     className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
@@ -215,7 +215,7 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                         {/* ---- PAYMENT ---- */}
                         {step === 'payment' && (
                             <div className="p-6 space-y-4">
-                                <p className="text-slate-500">QR is a verified transaction (platform fee ₹1.90). Cash is unverified (no fee).</p>
+                                <p className="text-slate-500 dark:text-[var(--app-muted)]">QR is a verified transaction (platform fee ₹1.90). Cash is unverified (no fee).</p>
                                 {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
                                 <button onClick={() => handlePayment('qr')} disabled={loading}
                                     className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
@@ -234,12 +234,12 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                                 <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
                                     <Check className="w-8 h-8 text-green-600" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-1">Payment complete</h3>
-                                <p className="text-slate-500 mb-4">Invoice <span className="font-mono font-semibold text-slate-700">{summary.invoice_number}</span></p>
-                                <div className="w-full bg-slate-50 rounded-2xl p-4 space-y-2 text-left">
-                                    <div className="flex justify-between"><span className="text-slate-500">Customer pays</span><span className="font-bold">₹{summary.customer_pays.toFixed(2)}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">Platform fee</span><span className="font-bold">₹{summary.platform_fee.toFixed(2)}</span></div>
-                                    <div className="flex justify-between"><span className="text-slate-500">Garage receives</span><span className="font-bold">₹{summary.garage_receives.toFixed(2)}</span></div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)] mb-1">Payment complete</h3>
+                                <p className="text-slate-500 dark:text-[var(--app-muted)] mb-4">Invoice <span className="font-mono font-semibold text-slate-700 dark:text-[var(--app-text)]">{summary.invoice_number}</span></p>
+                                <div className="w-full bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl p-4 space-y-2 text-left">
+                                    <div className="flex justify-between"><span className="text-slate-500 dark:text-[var(--app-muted)]">Customer pays</span><span className="font-bold">₹{Number(summary.customer_pays ?? 0).toFixed(2)}</span></div>
+                                    <div className="flex justify-between"><span className="text-slate-500 dark:text-[var(--app-muted)]">Platform fee</span><span className="font-bold">₹{Number(summary.platform_fee ?? 0).toFixed(2)}</span></div>
+                                    <div className="flex justify-between"><span className="text-slate-500 dark:text-[var(--app-muted)]">Garage receives</span><span className="font-bold">₹{Number(summary.garage_receives ?? 0).toFixed(2)}</span></div>
                                     {summary.verified && <div className="flex items-center gap-1 text-green-600 font-semibold pt-1"><ShieldCheck className="w-4 h-4" /> Verified transaction</div>}
                                 </div>
                                 <button onClick={onSuccess} className="mt-6 w-full h-14 btn-premium rounded-2xl font-bold text-white">Done</button>

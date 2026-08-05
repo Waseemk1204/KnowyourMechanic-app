@@ -45,14 +45,14 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
             ) : (
                 <button
                     onClick={() => setOpen(true)}
-                    className="w-full bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center gap-3 active:scale-[0.99] transition-transform"
+                    className="w-full bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-[var(--app-border)] flex items-center gap-3 active:scale-[0.99] transition-transform"
                 >
                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                         <Repeat className="w-5 h-5" />
                     </div>
                     <div className="flex-1 text-left">
-                        <p className="font-bold text-slate-900">Switch role</p>
-                        <p className="text-slate-500 text-sm">Currently: {ROLE_META[current]?.label ?? current}</p>
+                        <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Switch role</p>
+                        <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Currently: {ROLE_META[current]?.label ?? current}</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-slate-300" />
                 </button>
@@ -68,12 +68,12 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                         <motion.div
                             initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}
                             transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-                            className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6"
+                            className="bg-white dark:bg-[var(--app-surface)] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-5">
-                                <h2 className="text-xl font-black text-slate-900">Switch role</h2>
-                                <button onClick={() => setOpen(false)} className="text-slate-400 active:scale-90 transition-transform">
+                                <h2 className="text-xl font-black text-slate-900 dark:text-[var(--app-text)]">Switch role</h2>
+                                <button onClick={() => setOpen(false)} className="text-slate-400 dark:text-[var(--app-muted)] active:scale-90 transition-transform">
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
@@ -89,14 +89,14 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                                             key={role}
                                             onClick={() => choose(role)}
                                             disabled={busy !== null}
-                                            className={`w-full rounded-2xl p-4 flex items-center gap-4 border transition-all text-left ${isCurrent ? 'border-blue-300 bg-blue-50' : 'border-slate-100 bg-white hover:border-blue-200'}`}
+                                            className={`w-full rounded-2xl p-4 flex items-center gap-4 border transition-all text-left ${isCurrent ? 'border-blue-300 bg-blue-50' : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)] hover:border-blue-200'}`}
                                         >
                                             <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
                                                 <Icon className="w-6 h-6" />
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="font-bold text-slate-900">{meta.label}</h3>
-                                                <p className="text-slate-500 text-sm">{meta.sub}</p>
+                                                <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)]">{meta.label}</h3>
+                                                <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">{meta.sub}</p>
                                             </div>
                                             {busy === role ? (
                                                 <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
