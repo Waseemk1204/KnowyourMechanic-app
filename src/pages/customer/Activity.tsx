@@ -23,9 +23,9 @@ interface ServiceRecord {
 }
 
 interface Review {
-    _id: string;
+    _id?: string;
     rating: number;
-    comment?: string;
+    comment?: string | null;
 }
 
 interface GarageReviews {

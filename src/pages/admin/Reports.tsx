@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-    ArrowLeft, Loader2, Flag, AlertTriangle, Shield, CheckCircle,
+    Loader2, Flag, AlertTriangle, Shield, CheckCircle,
     XCircle, Clock, ChevronDown, Building2, User
 } from 'lucide-react';
 import { getAdminReports, updateReportStatus } from '../../lib/data';
@@ -33,7 +32,6 @@ interface ReportItem {
 }
 
 export default function AdminReports() {
-    const navigate = useNavigate();
     const [reports, setReports] = useState<ReportItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');

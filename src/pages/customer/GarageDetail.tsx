@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft, Star, MapPin, Clock, Phone, Navigation,
-    X, Check, Loader2, AlertTriangle, Flag, Timer
+    X, Check, Loader2, AlertTriangle, Flag, Timer, Calendar
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import {

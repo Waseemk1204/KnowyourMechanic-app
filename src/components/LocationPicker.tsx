@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Loader2, Navigation, Check, AlertTriangle } from 'lucide-react';
+import { Loader2, Navigation, Check, AlertTriangle } from 'lucide-react';
 
 interface LocationPickerProps {
     address: string;

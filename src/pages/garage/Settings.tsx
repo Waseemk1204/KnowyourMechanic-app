@@ -383,14 +383,14 @@ export default function GarageSettings() {
                         </div>
 
                         <LocationPicker
-                            value={business.address}
+                            address={business.address}
                             coordinates={business.coordinates}
-                            onChange={(address, coords) => setBusiness({
+                            hasValidLocation={Array.isArray(business.coordinates) && business.coordinates.length === 2}
+                            onLocationDetected={(address, coords) => setBusiness({
                                 ...business,
                                 address,
-                                coordinates: coords
+                                coordinates: coords,
                             })}
-                            placeholder="Enter your garage address"
                         />
 
                         <TimeRangePicker
