@@ -69,13 +69,13 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
 
             {hasValidLocation ? (
                 /* Show detected location */
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800/50 rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/40 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Check className="w-5 h-5 text-green-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-green-800">Location Verified</p>
+                            <p className="text-sm font-semibold text-green-800 dark:text-green-200">Location Verified</p>
                             <p className="text-xs text-green-600 mt-1 line-clamp-2">{address}</p>
                             <p className="text-[10px] text-green-500 mt-1 font-mono">
                                 {Number(coordinates?.[1] ?? 0).toFixed(5)}°N, {Number(coordinates?.[0] ?? 0).toFixed(5)}°E
@@ -85,7 +85,7 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
                             type="button"
                             onClick={handleAutoDetect}
                             disabled={loading}
-                            className="text-xs text-green-700 font-bold underline flex-shrink-0"
+                            className="text-xs text-green-700 dark:text-green-300 font-bold underline flex-shrink-0"
                         >
                             {loading ? 'Detecting...' : 'Re-detect'}
                         </button>
@@ -97,9 +97,9 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
                     type="button"
                     onClick={handleAutoDetect}
                     disabled={loading}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50/50 hover:bg-blue-50 transition-colors disabled:opacity-60"
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50/50 dark:bg-blue-950/50 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors disabled:opacity-60"
                 >
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
                         {loading ? (
                             <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
                         ) : (
@@ -107,7 +107,7 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
                         )}
                     </div>
                     <div className="text-left">
-                        <p className="font-bold text-blue-900 text-sm">
+                        <p className="font-bold text-blue-900 dark:text-blue-200 text-sm">
                             {loading ? 'Detecting your location...' : 'Detect My Location'}
                         </p>
                         <p className="text-xs text-blue-600 mt-0.5">
@@ -118,7 +118,7 @@ export default function LocationPicker({ address, coordinates, hasValidLocation,
             )}
 
             {error && (
-                <div className="flex items-center gap-2 text-red-600 text-xs bg-red-50 px-3 py-2 rounded-lg">
+                <div className="flex items-center gap-2 text-red-600 text-xs bg-red-50 dark:bg-red-950/40 px-3 py-2 rounded-lg">
                     <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                     {error}
                 </div>

@@ -70,10 +70,10 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
 
     const status = ticket?.status;
     const banner = status === 'claimed'
-        ? { icon: Headphones, text: 'Connected with support', cls: 'bg-green-50 text-green-700' }
+        ? { icon: Headphones, text: 'Connected with support', cls: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300' }
         : status === 'resolved'
             ? { icon: CheckCircle, text: 'This chat was resolved', cls: 'bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-600 dark:text-[var(--app-muted)]' }
-            : { icon: Clock, text: 'Waiting for an agent to join…', cls: 'bg-amber-50 text-amber-700' };
+            : { icon: Clock, text: 'Waiting for an agent to join…', cls: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300' };
     const BannerIcon = banner.icon;
 
     return (
@@ -115,7 +115,7 @@ export default function LiveChatPanel({ openerRole, onClose }: Props) {
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center px-6">
-                        <div className="w-16 h-16 bg-blue-50 rounded-3xl flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 bg-blue-50 dark:bg-blue-950/40 rounded-3xl flex items-center justify-center mb-4">
                             <Headphones className="w-8 h-8 text-blue-600" />
                         </div>
                         <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)]">How can we help?</h3>

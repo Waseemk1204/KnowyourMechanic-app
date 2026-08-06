@@ -327,13 +327,13 @@ export default function GarageSettings() {
             <div className="px-6 -mt-4 space-y-6">
                 {/* Success/Error Messages */}
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
+                    <div className="bg-red-50 dark:bg-red-950/40 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm flex items-center gap-2">
+                    <div className="bg-green-50 dark:bg-green-950/40 text-green-600 p-3 rounded-xl text-sm flex items-center gap-2">
                         <Check className="w-4 h-4" />
                         {success}
                     </div>
@@ -506,8 +506,8 @@ export default function GarageSettings() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="bg-amber-50 p-4 rounded-xl mb-4">
-                                <p className="text-amber-800 text-sm">
+                            <div className="bg-amber-50 dark:bg-amber-950/40 p-4 rounded-xl mb-4">
+                                <p className="text-amber-800 dark:text-amber-200 text-sm">
                                     ⚠️ Changing bank details will affect where your earnings are deposited.
                                 </p>
                             </div>
@@ -578,7 +578,7 @@ export default function GarageSettings() {
 
                             {/* Bank Error Message */}
                             {bankError && (
-                                <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
+                                <div className="bg-red-50 dark:bg-red-950/40 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
                                     <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                                     {bankError}
                                 </div>

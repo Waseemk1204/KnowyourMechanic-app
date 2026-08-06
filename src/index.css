@@ -236,4 +236,21 @@ textarea:focus {
         color: var(--app-text);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
+
+    /* Auth page uses a deep-black / zinc palette (like the staff consoles),
+       scoped so the customer/garage pages keep their softer navy dark. */
+    .auth-dark {
+        --app-bg: #000000;
+        --app-surface: #0C0C0E;
+        --app-surface-2: #18181B;
+        --app-text: #F4F4F5;
+        --app-muted: #A1A1AA;
+        --app-border: #27272A;
+        --app-input-bg: #161618;
+    }
+    .auth-dark.premium-card,
+    .auth-dark .premium-card {
+        background: var(--app-surface);
+        border-color: rgba(255, 255, 255, 0.06);
+    }
 }

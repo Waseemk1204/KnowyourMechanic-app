@@ -373,10 +373,10 @@ export default function CustomerHome() {
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-5 mb-6 border border-amber-200"
+                    className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-5 mb-6 border border-amber-200 dark:border-amber-800/50"
                 >
                     <div className="flex items-start gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {unratedService.garagePhoto ? (
                                 <img src={unratedService.garagePhoto} alt="" className="w-full h-full object-cover" />
                             ) : (
@@ -425,7 +425,7 @@ export default function CustomerHome() {
                                 placeholder="Add a comment (optional)"
                                 rows={2}
                                 maxLength={500}
-                                className="w-full px-4 py-3 rounded-xl border border-amber-200 bg-white dark:bg-[var(--app-surface)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                className="w-full px-4 py-3 rounded-xl border border-amber-200 dark:border-amber-800/50 bg-white dark:bg-[var(--app-surface)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400"
                             />
                             <button
                                 onClick={handleSubmitReview}
@@ -480,9 +480,9 @@ export default function CustomerHome() {
                                 <div>
                                     <h3 className="font-bold text-slate-900 dark:text-[var(--app-text)] mb-1 truncate text-lg leading-tight">{garage.name}</h3>
                                     <div className="flex items-center gap-2 text-xs mb-2">
-                                        <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-100">
+                                        <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900/50">
                                             <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                            <span className="font-bold text-amber-700">{garage.rating}</span>
+                                            <span className="font-bold text-amber-700 dark:text-amber-300">{garage.rating}</span>
                                         </div>
                                         <span className="text-slate-400 dark:text-[var(--app-muted)] font-medium">({garage.reviews} reviews)</span>
                                     </div>
@@ -512,7 +512,7 @@ export default function CustomerHome() {
                                                 console.log('Opening directions to:', { lat: garage.lat, lng: garage.lng, name: garage.name });
                                                 window.open(`https://www.google.com/maps/dir//${garage.lat},${garage.lng}`);
                                             }}
-                                            className="w-9 h-9 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition-colors border border-blue-100"
+                                            className="w-9 h-9 bg-blue-50 dark:bg-blue-950/40 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-900/50"
                                         >
                                             <Navigation className="w-4 h-4 fill-blue-600" />
                                         </button>
@@ -523,7 +523,7 @@ export default function CustomerHome() {
                                                     e.stopPropagation();
                                                     window.open(`tel:${garage.phone}`);
                                                 }}
-                                                className="w-9 h-9 bg-green-50 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 transition-colors border border-green-100"
+                                                className="w-9 h-9 bg-green-50 dark:bg-green-950/40 rounded-full flex items-center justify-center text-green-600 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-100 dark:border-green-900/50"
                                             >
                                                 <Phone className="w-4 h-4" />
                                             </button>
@@ -539,7 +539,7 @@ export default function CustomerHome() {
                 {hasMore && !isLoadingGarages && (
                     <button
                         onClick={() => setVisibleCount(prev => prev + 5)}
-                        className="w-full py-3 bg-blue-50 text-blue-600 font-bold rounded-2xl hover:bg-blue-100 transition-colors"
+                        className="w-full py-3 bg-blue-50 dark:bg-blue-950/40 text-blue-600 font-bold rounded-2xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                     >
                         See More
                     </button>
@@ -570,7 +570,7 @@ export default function CustomerHome() {
                             <div className="flex justify-between items-start mb-6">
                                 <div className="flex-1">
                                     <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-1">{selectedGarage.name}</h2>
-                                    <p className="text-blue-600 font-bold flex items-center gap-1 bg-blue-50 w-fit px-3 py-1 rounded-full text-xs">
+                                    <p className="text-blue-600 font-bold flex items-center gap-1 bg-blue-50 dark:bg-blue-950/40 w-fit px-3 py-1 rounded-full text-xs">
                                         <MapPin className="w-3 h-3" />
                                         {selectedGarage.distance} from you
                                     </p>
@@ -645,7 +645,7 @@ export default function CustomerHome() {
                             className="w-full max-w-sm bg-white dark:bg-[var(--app-surface)] rounded-[2.5rem] p-8 text-center relative z-10 shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <div className="w-20 h-20 bg-red-50 dark:bg-red-950/40 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                 <LogOut className="w-10 h-10" />
                             </div>
                             <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">Ready to Leave?</h2>
@@ -717,7 +717,7 @@ export default function CustomerHome() {
                                     }}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                 >
-                                    <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
+                                    <div className="w-12 h-12 bg-purple-50 dark:bg-purple-950/40 rounded-xl flex items-center justify-center text-purple-600">
                                         <User className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 text-left">
@@ -734,7 +734,7 @@ export default function CustomerHome() {
                                     }}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                 >
-                                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                    <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-600">
                                         <Clock className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 text-left">
@@ -751,7 +751,7 @@ export default function CustomerHome() {
                                     }}
                                     className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
                                 >
-                                    <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-green-600">
+                                    <div className="w-12 h-12 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center text-green-600">
                                         <Headphones className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1 text-left">
@@ -769,7 +769,7 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         setShowLogoutModal(true);
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
                                 >
                                     <LogOut className="w-5 h-5" />
                                     <span className="font-bold">Logout</span>
@@ -815,7 +815,7 @@ export default function CustomerHome() {
                                             key={option.value}
                                             onClick={() => setSortBy(option.value as any)}
                                             className={`p-3 rounded-xl border-2 text-left transition-all ${sortBy === option.value
-                                                ? 'border-blue-500 bg-blue-50'
+                                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40'
                                                 : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)]'
                                                 }`}
                                         >
@@ -832,7 +832,7 @@ export default function CustomerHome() {
                                 <button
                                     onClick={() => setShowOpenOnly(!showOpenOnly)}
                                     className={`w-full p-4 rounded-xl border-2 flex items-center justify-between transition-all ${showOpenOnly
-                                        ? 'border-green-500 bg-green-50'
+                                        ? 'border-green-500 bg-green-50 dark:bg-green-950/40'
                                         : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)]'
                                         }`}
                                 >
@@ -857,7 +857,7 @@ export default function CustomerHome() {
                                             key={rating}
                                             onClick={() => setMinRating(rating)}
                                             className={`flex-1 p-3 rounded-xl border-2 text-center transition-all ${minRating === rating
-                                                ? 'border-amber-500 bg-amber-50'
+                                                ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40'
                                                 : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)]'
                                                 }`}
                                         >
@@ -914,7 +914,7 @@ export default function CustomerHome() {
                             className="bg-white dark:bg-[var(--app-surface)] rounded-t-3xl w-full max-w-md p-6 pb-10"
                         >
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-2xl flex items-center justify-center">
                                     <Shield className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <div>
@@ -927,7 +927,7 @@ export default function CustomerHome() {
                                 {pendingApprovals.map(service => (
                                     <div key={service._id} className="bg-slate-50 dark:bg-[var(--app-bg)] rounded-2xl p-4">
                                         <div className="flex items-center gap-3 mb-3">
-                                            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center">
                                                 <Wrench className="w-5 h-5 text-blue-600" />
                                             </div>
                                             <div className="flex-1">
@@ -953,7 +953,7 @@ export default function CustomerHome() {
                                             <button
                                                 onClick={() => handleRejectService(service._id)}
                                                 disabled={approvingId === service._id}
-                                                className="flex-1 py-3 rounded-xl bg-red-50 text-red-600 font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                                                className="flex-1 py-3 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 font-bold flex items-center justify-center gap-2 disabled:opacity-50"
                                             >
                                                 <XCircle className="w-4 h-4" />
                                                 Reject

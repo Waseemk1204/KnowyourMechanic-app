@@ -140,7 +140,7 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe px-6 pb-12 overflow-hidden text-slate-900 dark:text-[var(--app-text)]">
+        <div className="auth-dark min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe px-6 pb-12 overflow-hidden text-slate-900 dark:text-[var(--app-text)]">
 
             <AnimatePresence mode="wait">
                 {step === 'phone' && (
@@ -182,7 +182,7 @@ export default function AuthPage() {
                                     </div>
                                 </div>
 
-                                {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
+                                {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 dark:bg-red-950/40 py-2 rounded-lg">{error}</p>}
 
                                 <button
                                     type="submit"
@@ -243,7 +243,7 @@ export default function AuthPage() {
                                 />
                             </div>
 
-                            {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 py-2 rounded-lg">{error}</p>}
+                            {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 dark:bg-red-950/40 py-2 rounded-lg">{error}</p>}
 
                             <button
                                 type="submit"
@@ -282,7 +282,7 @@ export default function AuthPage() {
                                 disabled={loading}
                                 className="w-full premium-card p-8 flex items-center gap-6 group hover:border-blue-300 transition-all text-left"
                             >
-                                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 text-blue-600 group-hover:text-white transition-colors shadow-inner">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center group-hover:bg-blue-600 text-blue-600 group-hover:text-white transition-colors shadow-inner">
                                     <Car className="w-8 h-8" />
                                 </div>
                                 <div className="flex-1">
@@ -308,7 +308,7 @@ export default function AuthPage() {
                             </button>
                         </div>
 
-                        {error && <p className="text-red-500 text-sm font-medium text-center mt-6 bg-red-50 py-2 rounded-lg">{error}</p>}
+                        {error && <p className="text-red-500 text-sm font-medium text-center mt-6 bg-red-50 dark:bg-red-950/40 py-2 rounded-lg">{error}</p>}
                     </motion.div>
                 )}
 
@@ -335,7 +335,7 @@ export default function AuthPage() {
                                         disabled={loading}
                                         className="w-full premium-card p-6 flex items-center gap-5 group hover:border-blue-300 transition-all text-left"
                                     >
-                                        <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 text-blue-600 group-hover:text-white transition-colors shadow-inner">
+                                        <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center group-hover:bg-blue-600 text-blue-600 group-hover:text-white transition-colors shadow-inner">
                                             <Icon className="w-7 h-7" />
                                         </div>
                                         <div className="flex-1">
@@ -348,7 +348,7 @@ export default function AuthPage() {
                             })}
                         </div>
 
-                        {error && <p className="text-red-500 text-sm font-medium text-center mt-6 bg-red-50 py-2 rounded-lg">{error}</p>}
+                        {error && <p className="text-red-500 text-sm font-medium text-center mt-6 bg-red-50 dark:bg-red-950/40 py-2 rounded-lg">{error}</p>}
                     </motion.div>
                 )}
             </AnimatePresence>

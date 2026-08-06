@@ -198,20 +198,20 @@ export default function GarageServices() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => handleEdit(service)}
-                                        className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600"
+                                        className="w-8 h-8 bg-blue-50 dark:bg-blue-950/40 rounded-lg flex items-center justify-center text-blue-600"
                                     >
                                         <Edit className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(service._id)}
-                                        className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-600"
+                                        className="w-8 h-8 bg-red-50 dark:bg-red-950/40 rounded-lg flex items-center justify-center text-red-600"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
                             {!service.isActive && (
-                                <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg inline-block">
+                                <div className="text-xs text-red-600 bg-red-50 dark:bg-red-950/40 px-2 py-1 rounded-lg inline-block">
                                     Inactive
                                 </div>
                             )}
@@ -247,7 +247,7 @@ export default function GarageServices() {
                             </div>
 
                             {error && (
-                                <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">
+                                <div className="bg-red-50 dark:bg-red-950/40 text-red-600 p-3 rounded-xl mb-4 text-sm">
                                     {error}
                                 </div>
                             )}

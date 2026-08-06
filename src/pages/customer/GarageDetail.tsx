@@ -260,9 +260,9 @@ export default function GarageDetailPage() {
                     <h1 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">{garage.name}</h1>
 
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
+                        <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded-lg">
                             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                            <span className="text-sm font-bold text-amber-700">
+                            <span className="text-sm font-bold text-amber-700 dark:text-amber-300">
                                 {garage.rating.toFixed(1)}
                             </span>
                         </div>
@@ -564,7 +564,7 @@ export default function GarageDetailPage() {
                         >
                             {reportSuccess ? (
                                 <div className="text-center py-8">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Check className="w-8 h-8 text-green-600" />
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)] mb-2">Report Submitted</h3>
@@ -574,7 +574,7 @@ export default function GarageDetailPage() {
                                 <>
                                     <div className="flex items-center justify-between mb-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center">
                                                 <AlertTriangle className="w-5 h-5 text-red-600" />
                                             </div>
                                             <h3 className="text-xl font-bold text-slate-900 dark:text-[var(--app-text)]">Report Issue</h3>
@@ -599,7 +599,7 @@ export default function GarageDetailPage() {
                                                         key={opt.value}
                                                         onClick={() => setReportReason(opt.value)}
                                                         className={`px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all ${reportReason === opt.value
-                                                                ? 'bg-red-50 border-red-300 text-red-700'
+                                                                ? 'bg-red-50 dark:bg-red-950/40 border-red-300 text-red-700 dark:text-red-300'
                                                                 : 'bg-slate-50 dark:bg-[var(--app-bg)] border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:border-[var(--app-border)]'
                                                             }`}
                                                     >

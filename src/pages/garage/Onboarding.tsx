@@ -304,7 +304,7 @@ export default function GarageOnboardingWizard() {
                 {stepIndicator}
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+                    <div className="bg-red-50 dark:bg-red-950/40 text-red-600 p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                         {error}
                     </div>
@@ -324,8 +324,8 @@ export default function GarageOnboardingWizard() {
                             <div className="flex justify-center mb-2">
                                 <label className="cursor-pointer group">
                                     <div className={`w-24 h-24 rounded-2xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors ${business.photoBase64
-                                            ? 'border-green-300 bg-green-50'
-                                            : 'border-slate-300 dark:border-[var(--app-border)] bg-slate-100 dark:bg-[var(--app-surface-2)] group-hover:border-blue-400 group-hover:bg-blue-50'
+                                            ? 'border-green-300 bg-green-50 dark:bg-green-950/40'
+                                            : 'border-slate-300 dark:border-[var(--app-border)] bg-slate-100 dark:bg-[var(--app-surface-2)] group-hover:border-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40'
                                         }`}>
                                         {business.photoBase64 ? (
                                             <img src={business.photoBase64} alt="Preview" className="w-full h-full object-cover" />
@@ -358,7 +358,7 @@ export default function GarageOnboardingWizard() {
                                             if (fieldErrors.name) setFieldErrors(prev => ({ ...prev, name: '' }));
                                         }}
                                         placeholder="Your Garage Name"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.name ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.name ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('name')}
@@ -381,7 +381,7 @@ export default function GarageOnboardingWizard() {
                                             if (err) setFieldErrors(prev => ({ ...prev, email: err }));
                                         }}
                                         placeholder="garage@email.com"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.email ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.email ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('email')}
@@ -407,7 +407,7 @@ export default function GarageOnboardingWizard() {
                                         placeholder="9876543210"
                                         maxLength={10}
                                         inputMode="numeric"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.phone ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.phone ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                     {business.phone.length > 0 && (
                                         <span className={`absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono ${business.phone.length === 10 ? 'text-green-500' : 'text-slate-400 dark:text-[var(--app-muted)]'
@@ -476,8 +476,8 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         onBlur={() => verifyReferral(business.referralCode)}
                                         placeholder="e.g. KYM-A7X3K"
-                                        className={`w-full px-4 py-3 rounded-xl border font-mono uppercase focus:ring-2 focus:ring-blue-500 pr-10 ${referralStatus.valid === true ? 'border-green-300 bg-green-50/50' :
-                                                referralStatus.valid === false ? 'border-red-300 bg-red-50/50' :
+                                        className={`w-full px-4 py-3 rounded-xl border font-mono uppercase focus:ring-2 focus:ring-blue-500 pr-10 ${referralStatus.valid === true ? 'border-green-300 bg-green-50/50 dark:bg-green-950/50' :
+                                                referralStatus.valid === false ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' :
                                                     'border-slate-200 dark:border-[var(--app-border)]'
                                             }`}
                                     />
@@ -522,8 +522,8 @@ export default function GarageOnboardingWizard() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-4"
                         >
-                            <div className="bg-blue-50 p-4 rounded-xl mb-4">
-                                <p className="text-blue-800 text-sm">
+                            <div className="bg-blue-50 dark:bg-blue-950/40 p-4 rounded-xl mb-4">
+                                <p className="text-blue-800 dark:text-blue-200 text-sm">
                                     💰 Your earnings will be transferred to this account automatically.
                                 </p>
                             </div>
@@ -542,7 +542,7 @@ export default function GarageOnboardingWizard() {
                                             if (fieldErrors.accountHolderName) setFieldErrors(prev => ({ ...prev, accountHolderName: '' }));
                                         }}
                                         placeholder="As per bank records"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountHolderName ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountHolderName ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('accountHolderName')}
@@ -563,7 +563,7 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         placeholder="Enter account number"
                                         inputMode="numeric"
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.accountNumber ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                 </div>
                                 {renderFieldError('accountNumber')}
@@ -583,7 +583,7 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         placeholder="Re-enter account number"
                                         inputMode="numeric"
-                                        className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.confirmAccountNumber ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
+                                        className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.confirmAccountNumber ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500`}
                                     />
                                     {bank.confirmAccountNumber && bank.accountNumber === bank.confirmAccountNumber && (
                                         <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
@@ -607,7 +607,7 @@ export default function GarageOnboardingWizard() {
                                         }}
                                         placeholder="SBIN0001234"
                                         maxLength={11}
-                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.ifscCode ? 'border-red-300 bg-red-50/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500 uppercase font-mono`}
+                                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${fieldErrors.ifscCode ? 'border-red-300 bg-red-50/50 dark:bg-red-950/50' : 'border-slate-200 dark:border-[var(--app-border)]'} focus:ring-2 focus:ring-blue-500 uppercase font-mono`}
                                     />
                                 </div>
                                 {renderFieldError('ifscCode')}
@@ -660,7 +660,7 @@ export default function GarageOnboardingWizard() {
                             animate={{ opacity: 1, scale: 1 }}
                             className="text-center py-12"
                         >
-                            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <div className="w-24 h-24 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <CheckCircle className="w-12 h-12 text-green-600" />
                             </div>
                             <h2 className="text-2xl font-black text-slate-900 dark:text-[var(--app-text)] mb-2">Welcome Aboard!</h2>

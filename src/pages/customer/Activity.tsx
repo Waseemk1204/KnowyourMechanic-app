@@ -193,7 +193,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
 
             <div className="px-6">
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-4 rounded-2xl mb-4 flex items-center gap-3">
+                    <div className="bg-red-50 dark:bg-red-950/40 text-red-600 p-4 rounded-2xl mb-4 flex items-center gap-3">
                         <AlertCircle className="w-5 h-5" />
                         {error}
                     </div>
@@ -218,7 +218,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                     className="flex items-start gap-4 mb-3 cursor-pointer"
                                     onClick={() => garageId && navigate(`/customer/garage/${garageId}`)}
                                 >
-                                    <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center overflow-hidden">
+                                    <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center overflow-hidden">
                                         {service.garageId?.photoUrl ? (
                                             <img
                                                 src={service.garageId.photoUrl}
@@ -245,8 +245,8 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                             {formatDate(service.createdAt)}
                                         </div>
                                         <div className={`text-xs px-2 py-0.5 rounded-full ${service.isReliable
-                                            ? 'bg-green-50 text-green-600'
-                                            : 'bg-amber-50 text-amber-600'
+                                            ? 'bg-green-50 dark:bg-green-950/40 text-green-600'
+                                            : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600'
                                             }`}>
                                             {service.isReliable ? 'Verified' : 'Cash'}
                                         </div>
@@ -419,7 +419,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                         >
                             {reportSuccess ? (
                                 <div className="text-center py-6">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Check className="w-8 h-8 text-green-600" />
                                     </div>
                                     <h3 className="text-xl font-black text-slate-900 dark:text-[var(--app-text)]">Report Submitted</h3>
@@ -429,7 +429,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                 <>
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-xl flex items-center justify-center">
                                                 <AlertTriangle className="w-5 h-5 text-red-600" />
                                             </div>
                                             <div>
@@ -452,7 +452,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                 key={opt.value}
                                                 onClick={() => setReportReason(opt.value)}
                                                 className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${reportReason === opt.value
-                                                    ? 'border-red-500 bg-red-50 text-red-700'
+                                                    ? 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300'
                                                     : 'border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:border-[var(--app-border)]'
                                                     }`}
                                             >

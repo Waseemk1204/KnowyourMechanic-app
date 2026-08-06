@@ -42,7 +42,7 @@ export default function GarageSupport() {
             label: 'Live Chat',
             description: 'Chat with our support team',
             color: 'text-blue-600',
-            bg: 'bg-blue-50',
+            bg: 'bg-blue-50 dark:bg-blue-950/40',
             action: () => setShowChat(true)
         },
         {
@@ -50,7 +50,7 @@ export default function GarageSupport() {
             label: 'Email Us',
             description: 'knowyourmechanic@gmail.com',
             color: 'text-indigo-600',
-            bg: 'bg-indigo-50',
+            bg: 'bg-indigo-50 dark:bg-indigo-950/40',
             action: () => window.open('mailto:knowyourmechanic@gmail.com')
         },
     ];

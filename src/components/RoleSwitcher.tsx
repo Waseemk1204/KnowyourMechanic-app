@@ -47,7 +47,7 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                     onClick={() => setOpen(true)}
                     className="w-full bg-white dark:bg-[var(--app-surface)] rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-[var(--app-border)] flex items-center gap-3 active:scale-[0.99] transition-transform"
                 >
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600">
                         <Repeat className="w-5 h-5" />
                     </div>
                     <div className="flex-1 text-left">
@@ -89,9 +89,9 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                                             key={role}
                                             onClick={() => choose(role)}
                                             disabled={busy !== null}
-                                            className={`w-full rounded-2xl p-4 flex items-center gap-4 border transition-all text-left ${isCurrent ? 'border-blue-300 bg-blue-50' : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)] hover:border-blue-200'}`}
+                                            className={`w-full rounded-2xl p-4 flex items-center gap-4 border transition-all text-left ${isCurrent ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)] hover:border-blue-200 dark:border-blue-800/50'}`}
                                         >
-                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600">
                                                 <Icon className="w-6 h-6" />
                                             </div>
                                             <div className="flex-1">
