@@ -1,0 +1,13 @@
+#!/bin/sh
+# Blocks a push if the project doesn't type-check. Catches missing imports and
+# other type errors that the Vite dev server (esbuild) does NOT catch — those
+# otherwise ship and crash at runtime as "Something went wrong".
+echo "▶ Type-checking before push (tsc -b)…"
+if ! npm run --silent typecheck; then
+  echo ""
+  echo "✗ Type-check failed — push blocked. Fix the errors above."
+  echo "  Emergency bypass (use sparingly): git push --no-verify"
+  exit 1
+fi
+echo "✓ Type-check passed — pushing."
+exit 0
