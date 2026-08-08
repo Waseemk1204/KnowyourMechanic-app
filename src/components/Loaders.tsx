@@ -11,12 +11,12 @@ export const DashboardSkeleton = () => (
     <div className="min-h-screen bg-slate-50 dark:bg-[var(--app-bg)] flex flex-col pt-safe pb-6">
         {/* Header Skeleton */}
         <div className="h-72 w-full bg-slate-200 dark:bg-[var(--app-surface-2)] animate-pulse mb-6 relative">
-            <div className="absolute top-4 right-6 w-10 h-10 bg-slate-300 rounded-full" />
+            <div className="absolute top-4 right-6 w-10 h-10 bg-slate-300 dark:bg-slate-700 rounded-full" />
             <div className="absolute bottom-6 left-6 right-6 space-y-3">
-                <div className="h-8 w-48 bg-slate-300 rounded" />
+                <div className="h-8 w-48 bg-slate-300 dark:bg-slate-700 rounded" />
                 <div className="flex gap-3">
-                    <div className="h-6 w-24 bg-slate-300 rounded-full" />
-                    <div className="h-6 w-24 bg-slate-300 rounded-full" />
+                    <div className="h-6 w-24 bg-slate-300 dark:bg-slate-700 rounded-full" />
+                    <div className="h-6 w-24 bg-slate-300 dark:bg-slate-700 rounded-full" />
                 </div>
             </div>
         </div>

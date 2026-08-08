@@ -268,7 +268,7 @@ export default function GarageDashboard() {
                                             <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Profile Settings</p>
                                             <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Edit garage details & photo</p>
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
+                                        <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-blue-500" />
                                     </button>
 
                                     <button
@@ -285,7 +285,7 @@ export default function GarageDashboard() {
                                             <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Support</p>
                                             <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Get help & contact us</p>
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500" />
+                                        <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-green-500" />
                                     </button>
                                 </div>
 
@@ -408,7 +408,7 @@ export default function GarageDashboard() {
                                             </span>
                                         </div>
                                     </div>
-                                    <p className="text-slate-300 text-[10px]">
+                                    <p className="text-slate-300 dark:text-slate-600 text-[10px]">
                                         {new Date(service.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>

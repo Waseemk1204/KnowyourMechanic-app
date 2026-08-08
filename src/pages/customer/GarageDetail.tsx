@@ -381,7 +381,7 @@ export default function GarageDetailPage() {
                                                 key={star}
                                                 className={`w-5 h-5 ${star <= myReview.rating
                                                     ? 'fill-amber-400 text-amber-400'
-                                                    : 'text-slate-300'
+                                                    : 'text-slate-300 dark:text-slate-600'
                                                     }`}
                                             />
                                         ))}
@@ -404,7 +404,7 @@ export default function GarageDetailPage() {
                     {/* All Reviews */}
                     {reviews.length === 0 ? (
                         <div className="bg-white dark:bg-[var(--app-surface)] rounded-2xl p-6 text-center">
-                            <Star className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                            <Star className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                             <p className="text-slate-400 dark:text-[var(--app-muted)]">No reviews yet</p>
                         </div>
                     ) : (
@@ -425,7 +425,7 @@ export default function GarageDetailPage() {
                                                         key={star}
                                                         className={`w-4 h-4 ${star <= review.rating
                                                             ? 'fill-amber-400 text-amber-400'
-                                                            : 'text-slate-300'
+                                                            : 'text-slate-300 dark:text-slate-600'
                                                             }`}
                                                     />
                                                 ))}
@@ -500,7 +500,7 @@ export default function GarageDetailPage() {
                                                 <Star
                                                     className={`w-10 h-10 ${star <= reviewRating
                                                         ? 'fill-amber-400 text-amber-400'
-                                                        : 'text-slate-300'
+                                                        : 'text-slate-300 dark:text-slate-600'
                                                         }`}
                                                 />
                                             </button>

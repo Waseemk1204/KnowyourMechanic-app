@@ -289,7 +289,7 @@ export default function AuthPage() {
                                     <h3 className="font-bold text-xl text-slate-900 dark:text-[var(--app-text)]">Customer</h3>
                                     <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Find local experts</p>
                                 </div>
-                                <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                                <ChevronRight className="w-6 h-6 text-slate-300 dark:text-slate-600 group-hover:text-blue-600 transition-colors" />
                             </button>
 
                             <button
@@ -304,7 +304,7 @@ export default function AuthPage() {
                                     <h3 className="font-bold text-xl text-slate-900 dark:text-[var(--app-text)]">Garage Owner</h3>
                                     <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Grow your business</p>
                                 </div>
-                                <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                                <ChevronRight className="w-6 h-6 text-slate-300 dark:text-slate-600 group-hover:text-blue-600 transition-colors" />
                             </button>
                         </div>
 
@@ -342,7 +342,7 @@ export default function AuthPage() {
                                             <h3 className="font-bold text-lg text-slate-900 dark:text-[var(--app-text)]">{meta.label}</h3>
                                             <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">{meta.sub}</p>
                                         </div>
-                                        <ChevronRight className="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                                        <ChevronRight className="w-6 h-6 text-slate-300 dark:text-slate-600 group-hover:text-blue-600 transition-colors" />
                                     </button>
                                 );
                             })}

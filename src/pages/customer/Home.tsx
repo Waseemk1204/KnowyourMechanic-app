@@ -373,7 +373,7 @@ export default function CustomerHome() {
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-3xl p-5 mb-6 border border-amber-200 dark:border-amber-800/50"
+                    className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 rounded-3xl p-5 mb-6 border border-amber-200 dark:border-amber-800/50"
                 >
                     <div className="flex items-start gap-3 mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -406,7 +406,7 @@ export default function CustomerHome() {
                                 <Star
                                     className={`w-10 h-10 ${star <= reviewRating
                                         ? 'fill-amber-400 text-amber-400'
-                                        : 'text-slate-300'
+                                        : 'text-slate-300 dark:text-slate-600'
                                         }`}
                                 />
                             </button>
@@ -724,7 +724,7 @@ export default function CustomerHome() {
                                         <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Profile</p>
                                         <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Your info & vehicle</p>
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-500" />
+                                    <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-purple-500" />
                                 </button>
 
                                 <button
@@ -741,7 +741,7 @@ export default function CustomerHome() {
                                         <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Activity</p>
                                         <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">View your service history</p>
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
+                                    <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-blue-500" />
                                 </button>
 
                                 <button
@@ -758,7 +758,7 @@ export default function CustomerHome() {
                                         <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Support</p>
                                         <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs">Get help & contact us</p>
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-green-500" />
+                                    <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-green-500" />
                                 </button>
                             </div>
 
@@ -837,7 +837,7 @@ export default function CustomerHome() {
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-3 h-3 rounded-full ${showOpenOnly ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+                                        <div className={`w-3 h-3 rounded-full ${showOpenOnly ? 'bg-green-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
                                         <span className={`font-semibold ${showOpenOnly ? 'text-green-600' : 'text-slate-700 dark:text-[var(--app-text)]'}`}>
                                             Open Now Only
                                         </span>

@@ -99,7 +99,7 @@ export default function GarageSupport() {
                             <h3 className="font-black text-slate-900 dark:text-[var(--app-text)]">{option.label}</h3>
                             <p className="text-slate-400 dark:text-[var(--app-muted)] text-xs font-bold uppercase tracking-wider">{option.description}</p>
                         </div>
-                        <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600" />
+                        <ArrowRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-blue-600" />
                     </motion.button>
                 ))}
 

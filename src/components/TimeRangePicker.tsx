@@ -86,7 +86,7 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
                         ))}
                     </select>
                 </div>
-                <div className="text-slate-300 font-bold pt-5">—</div>
+                <div className="text-slate-300 dark:text-slate-600 font-bold pt-5">—</div>
                 <div className="flex-1">
                     <label className="block text-xs text-slate-400 dark:text-[var(--app-muted)] mb-1">Closes at</label>
                     <select

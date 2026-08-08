@@ -276,7 +276,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                             <Star
                                                                 className={`w-8 h-8 ${star <= reviewRating
                                                                     ? 'fill-amber-400 text-amber-400'
-                                                                    : 'text-slate-300'
+                                                                    : 'text-slate-300 dark:text-slate-600'
                                                                     }`}
                                                             />
                                                         </button>
@@ -315,7 +315,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                                 key={star}
                                                                 className={`w-4 h-4 ${star <= myReview.rating
                                                                     ? 'fill-amber-400 text-amber-400'
-                                                                    : 'text-slate-300'
+                                                                    : 'text-slate-300 dark:text-slate-600'
                                                                     }`}
                                                             />
                                                         ))}
@@ -352,7 +352,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                     e.stopPropagation();
                                                     downloadInvoice(service);
                                                 }}
-                                                className="p-2 text-slate-300 hover:text-blue-500 transition-colors"
+                                                className="p-2 text-slate-300 dark:text-slate-600 hover:text-blue-500 transition-colors"
                                                 title="Download Invoice"
                                             >
                                                 <Download className="w-4 h-4" />
@@ -368,7 +368,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                     setReportDescription('');
                                                     setReportSuccess(false);
                                                 }}
-                                                className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                                                className="p-2 text-slate-300 dark:text-slate-600 hover:text-red-500 transition-colors"
                                                 title="Report an issue"
                                             >
                                                 <Flag className="w-4 h-4" />
@@ -382,11 +382,11 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
 
                     {services.length === 0 && !error && (
                         <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-20 h-20 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-3xl flex items-center justify-center text-slate-300 mb-6">
+                            <div className="w-20 h-20 bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-3xl flex items-center justify-center text-slate-300 dark:text-slate-600 mb-6">
                                 <Clock className="w-10 h-10" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-400 dark:text-[var(--app-muted)]">No services yet</h3>
-                            <p className="text-slate-300 font-medium mt-2">
+                            <p className="text-slate-300 dark:text-slate-600 font-medium mt-2">
                                 Your service history will appear here
                             </p>
                         </div>

@@ -54,7 +54,7 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                         <p className="font-bold text-slate-900 dark:text-[var(--app-text)]">Switch role</p>
                         <p className="text-slate-500 dark:text-[var(--app-muted)] text-sm">Currently: {ROLE_META[current]?.label ?? current}</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-slate-300" />
+                    <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600" />
                 </button>
             )}
 
@@ -103,7 +103,7 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                                             ) : isCurrent ? (
                                                 <Check className="w-5 h-5 text-blue-600" />
                                             ) : (
-                                                <ChevronRight className="w-5 h-5 text-slate-300" />
+                                                <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600" />
                                             )}
                                         </button>
                                     );
