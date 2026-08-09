@@ -546,6 +546,30 @@ export async function saveGarageBankDetails(
     if (error) throw new Error(error.message);
 }
 
+export interface GaragePayout {
+    accountNumber: string;
+    ifscCode: string;
+    accountHolderName: string;
+    bankName: string;
+}
+
+// Reads the owning garage's saved payout/bank details from the private table
+// (RLS restricts this to the owner + admins). Returns null if none saved.
+export async function getMyGaragePayout(garageId: string): Promise<GaragePayout | null> {
+    const { data, error } = await supabase
+        .from('garage_payout_details')
+        .select('bank_account_number,bank_ifsc_code,bank_account_holder_name,bank_name')
+        .eq('garage_id', garageId)
+        .maybeSingle();
+    if (error || !data) return null;
+    return {
+        accountNumber: data.bank_account_number || '',
+        ifscCode: data.bank_ifsc_code || '',
+        accountHolderName: data.bank_account_holder_name || '',
+        bankName: data.bank_name || '',
+    };
+}
+
 export async function completeGarageOnboarding(garageId: string): Promise<void> {
     const { error } = await supabase.from('garages').update({ onboarding_status: 'completed', is_verified: true }).eq('id', garageId);
     if (error) throw new Error(error.message);

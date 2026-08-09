@@ -10,7 +10,7 @@ import TimeRangePicker from '../../components/TimeRangePicker';
 import WorkingDaysPicker from '../../components/WorkingDaysPicker';
 import LocationPicker from '../../components/LocationPicker';
 import { useAuth } from '../../contexts/AuthContext';
-import { getMyGarage, saveGarageBusinessInfo, saveGarageBankDetails } from '../../lib/data';
+import { getMyGarage, saveGarageBusinessInfo, saveGarageBankDetails, getMyGaragePayout } from '../../lib/data';
 import RoleSwitcher from '../../components/RoleSwitcher';
 
 
@@ -98,6 +98,11 @@ export default function GarageSettings() {
                     legalBusinessName: (g as any).legal_business_name || '',
                 });
                 if (g.photo_url) setPhotoUrl(g.photo_url);
+
+                // Load saved payout details (owner-only) so the bank section
+                // shows the existing account (masked) instead of appearing empty.
+                const payout = await getMyGaragePayout(g.id);
+                if (payout && payout.accountNumber) setBank(payout);
             }
         } catch (err) {
             console.error('Error fetching garage details:', err);
