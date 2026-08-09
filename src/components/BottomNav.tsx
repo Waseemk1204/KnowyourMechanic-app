@@ -33,7 +33,7 @@ export default function BottomNav({ role }: BottomNavProps) {
                             onClick={() => navigate(tab.path)}
                             className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-2xl transition-all duration-300 ${isActive
                                     ? 'text-blue-600 scale-105 font-semibold'
-                                    : 'text-slate-400 dark:text-[var(--app-muted)] hover:text-slate-600 dark:text-[var(--app-muted)]'
+                                    : 'text-slate-400 dark:text-[var(--app-muted)] hover:text-slate-600 dark:hover:text-[var(--app-muted)]'
                                 }`}
                         >
                             <tab.icon className={`w-6 h-6 ${isActive ? 'fill-blue-600/10' : ''}`} />

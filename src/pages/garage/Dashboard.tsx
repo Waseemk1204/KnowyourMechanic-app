@@ -143,6 +143,10 @@ export default function GarageDashboard() {
             const openMinutes = parseTime(openStr);
             const closeMinutes = parseTime(closeStr);
 
+            // Overnight hours wrap past midnight (close < open).
+            if (closeMinutes <= openMinutes) {
+                return currentMinutes >= openMinutes || currentMinutes < closeMinutes;
+            }
             return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
         } catch {
             return true; // Default to open if parsing fails
@@ -259,7 +263,7 @@ export default function GarageDashboard() {
                                             // Navigate to profile settings
                                             navigate('/garage/settings');
                                         }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
+                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-[var(--app-bg)] transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-600">
                                             <Edit className="w-5 h-5" />
@@ -276,7 +280,7 @@ export default function GarageDashboard() {
                                             setShowProfilePanel(false);
                                             navigate('/garage/support');
                                         }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
+                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-[var(--app-bg)] transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center text-green-600">
                                             <Headphones className="w-5 h-5" />

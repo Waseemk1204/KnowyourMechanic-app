@@ -298,7 +298,7 @@ export default function GarageDetailPage() {
                     <div className="flex gap-3 mt-6">
                         <button
                             onClick={handleCall}
-                            className="flex-1 flex items-center justify-center gap-2 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-3 rounded-xl font-semibold hover:bg-slate-200 dark:bg-[var(--app-surface-2)] transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-3 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-[var(--app-surface-2)] transition-colors"
                         >
                             <Phone className="w-5 h-5" />
                             Call
@@ -449,7 +449,7 @@ export default function GarageDetailPage() {
                             {visibleReviews < reviews.length && (
                                 <button
                                     onClick={() => setVisibleReviews(prev => prev + 20)}
-                                    className="w-full mt-4 py-3 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] rounded-xl font-semibold hover:bg-slate-200 dark:bg-[var(--app-surface-2)] transition-colors"
+                                    className="w-full mt-4 py-3 bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-[var(--app-surface-2)] transition-colors"
                                 >
                                     See More Reviews
                                 </button>
@@ -600,7 +600,7 @@ export default function GarageDetailPage() {
                                                         onClick={() => setReportReason(opt.value)}
                                                         className={`px-3 py-2.5 rounded-xl text-sm font-semibold border transition-all ${reportReason === opt.value
                                                                 ? 'bg-red-50 dark:bg-red-950/40 border-red-300 text-red-700 dark:text-red-300'
-                                                                : 'bg-slate-50 dark:bg-[var(--app-bg)] border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:border-[var(--app-border)]'
+                                                                : 'bg-slate-50 dark:bg-[var(--app-bg)] border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:hover:border-[var(--app-border)]'
                                                             }`}
                                                     >
                                                         {opt.label}

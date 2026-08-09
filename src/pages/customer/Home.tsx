@@ -49,6 +49,10 @@ const isGarageOpen = (serviceHours?: string): boolean => {
     const openTime = convertTo24(startHour, startPeriod) * 60 + parseInt(startMin);
     const closeTime = convertTo24(endHour, endPeriod) * 60 + parseInt(endMin);
 
+    // Overnight hours (e.g. "10:00 PM - 2:00 AM") wrap past midnight, so close < open.
+    if (closeTime <= openTime) {
+        return currentTime >= openTime || currentTime <= closeTime;
+    }
     return currentTime >= openTime && currentTime <= closeTime;
 };
 
@@ -138,8 +142,13 @@ export default function CustomerHome() {
     useEffect(() => {
         const savedProfile = localStorage.getItem('customerProfile');
         if (savedProfile) {
-            const profile = JSON.parse(savedProfile);
-            if (profile.name) setCustomerName(profile.name);
+            try {
+                const profile = JSON.parse(savedProfile);
+                if (profile?.name) setCustomerName(profile.name);
+            } catch {
+                // Corrupted value — ignore rather than crash the effect.
+                localStorage.removeItem('customerProfile');
+            }
         }
     }, [showProfilePanel]);
 
@@ -313,7 +322,7 @@ export default function CustomerHome() {
                 </div>
                 <button
                     onClick={() => setShowProfilePanel(true)}
-                    className="w-12 h-12 flex items-center justify-center bg-white dark:bg-[var(--app-surface)] rounded-2xl shadow-sm border border-slate-100 dark:border-[var(--app-border)] text-slate-400 dark:text-[var(--app-muted)] active:bg-slate-50 dark:bg-[var(--app-bg)] transition-colors"
+                    className="w-12 h-12 flex items-center justify-center bg-white dark:bg-[var(--app-surface)] rounded-2xl shadow-sm border border-slate-100 dark:border-[var(--app-border)] text-slate-400 dark:text-[var(--app-muted)] active:bg-slate-50 dark:active:bg-[var(--app-bg)] transition-colors"
                 >
                     <Settings className="w-5.5 h-5.5" />
                 </button>
@@ -390,7 +399,7 @@ export default function CustomerHome() {
                         </div>
                         <button
                             onClick={() => setUnratedService(null)}
-                            className="text-slate-400 dark:text-[var(--app-muted)] hover:text-slate-600 dark:text-[var(--app-muted)]"
+                            className="text-slate-400 dark:text-[var(--app-muted)] hover:text-slate-600 dark:hover:text-[var(--app-muted)]"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -715,7 +724,7 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         navigate('/customer/profile');
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-[var(--app-bg)] transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-purple-50 dark:bg-purple-950/40 rounded-xl flex items-center justify-center text-purple-600">
                                         <User className="w-5 h-5" />
@@ -732,7 +741,7 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         navigate('/customer/activity');
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-[var(--app-bg)] transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-blue-50 dark:bg-blue-950/40 rounded-xl flex items-center justify-center text-blue-600">
                                         <Clock className="w-5 h-5" />
@@ -749,7 +758,7 @@ export default function CustomerHome() {
                                         setShowProfilePanel(false);
                                         navigate('/customer/support');
                                     }}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:bg-[var(--app-bg)] transition-all group"
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-[var(--app-bg)] transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-green-50 dark:bg-green-950/40 rounded-xl flex items-center justify-center text-green-600">
                                         <Headphones className="w-5 h-5" />

@@ -357,7 +357,7 @@ export default function GarageSettings() {
                                 type="text"
                                 value={business.name}
                                 onChange={(e) => setBusiness({ ...business, name: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                             />
                         </div>
 
@@ -368,7 +368,7 @@ export default function GarageSettings() {
                                     type="email"
                                     value={business.email}
                                     onChange={(e) => setBusiness({ ...business, email: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                                 />
                             </div>
                             <div>
@@ -377,7 +377,7 @@ export default function GarageSettings() {
                                     type="tel"
                                     value={business.phone}
                                     onChange={(e) => setBusiness({ ...business, phone: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                                 />
                             </div>
                         </div>
@@ -408,7 +408,7 @@ export default function GarageSettings() {
                             <select
                                 value={business.businessType}
                                 onChange={(e) => setBusiness({ ...business, businessType: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                             >
                                 <option value="individual">Individual</option>
                                 <option value="proprietorship">Proprietorship</option>
@@ -424,7 +424,7 @@ export default function GarageSettings() {
                                 value={business.legalBusinessName}
                                 onChange={(e) => setBusiness({ ...business, legalBusinessName: e.target.value })}
                                 placeholder="Same as garage name if not registered"
-                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                             />
                         </div>
 
@@ -519,7 +519,7 @@ export default function GarageSettings() {
                                     value={newBank.accountHolderName}
                                     onChange={(e) => setNewBank({ ...newBank, accountHolderName: e.target.value })}
                                     placeholder="As per bank records"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                                 />
                             </div>
 
@@ -530,7 +530,7 @@ export default function GarageSettings() {
                                     value={newBank.accountNumber}
                                     onChange={(e) => setNewBank({ ...newBank, accountNumber: e.target.value })}
                                     placeholder="Enter account number"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                                 />
                             </div>
 
@@ -541,7 +541,7 @@ export default function GarageSettings() {
                                     value={newBank.confirmAccountNumber}
                                     onChange={(e) => setNewBank({ ...newBank, confirmAccountNumber: e.target.value })}
                                     placeholder="Re-enter account number"
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)]"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)]"
                                 />
                             </div>
 
@@ -559,7 +559,7 @@ export default function GarageSettings() {
                                     }}
                                     placeholder="SBIN0001234"
                                     maxLength={11}
-                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)] uppercase"
+                                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)] uppercase"
                                 />
                             </div>
 

@@ -437,7 +437,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                 <p className="text-xs text-slate-400 dark:text-[var(--app-muted)]">{reportGarageName}</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => setReportGarageId(null)} className="p-2 hover:bg-slate-100 dark:bg-[var(--app-surface-2)] rounded-xl"><X className="w-5 h-5" /></button>
+                                        <button onClick={() => setReportGarageId(null)} className="p-2 hover:bg-slate-100 dark:hover:bg-[var(--app-surface-2)] rounded-xl"><X className="w-5 h-5" /></button>
                                     </div>
 
                                     <div className="space-y-2 mb-4">
@@ -453,7 +453,7 @@ h1{font-size:22px;margin:0 0 4px}.muted{color:#64748b;font-size:13px}
                                                 onClick={() => setReportReason(opt.value)}
                                                 className={`w-full text-left px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${reportReason === opt.value
                                                     ? 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300'
-                                                    : 'border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:border-[var(--app-border)]'
+                                                    : 'border-slate-200 dark:border-[var(--app-border)] text-slate-600 dark:text-[var(--app-muted)] hover:border-slate-300 dark:hover:border-[var(--app-border)]'
                                                     }`}
                                             >
                                                 {opt.label}

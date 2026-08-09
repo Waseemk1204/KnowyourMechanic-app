@@ -89,7 +89,7 @@ export default function RoleSwitcher({ variant = 'card' }: { variant?: 'card' | 
                                             key={role}
                                             onClick={() => choose(role)}
                                             disabled={busy !== null}
-                                            className={`w-full rounded-2xl p-4 flex items-center gap-4 border transition-all text-left ${isCurrent ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)] hover:border-blue-200 dark:border-blue-800/50'}`}
+                                            className={`w-full rounded-2xl p-4 flex items-center gap-4 border transition-all text-left ${isCurrent ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-100 dark:border-[var(--app-border)] bg-white dark:bg-[var(--app-surface)] hover:border-blue-200 dark:hover:border-blue-800/50'}`}
                                         >
                                             <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600">
                                                 <Icon className="w-6 h-6" />

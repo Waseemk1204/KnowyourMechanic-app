@@ -219,7 +219,7 @@ export default function AuthPage() {
                     >
                         <button
                             onClick={() => setStep('phone')}
-                            className="w-10 h-10 rounded-full border border-slate-200 dark:border-[var(--app-border)] flex items-center justify-center text-slate-400 dark:text-[var(--app-muted)] self-start mb-8 transition-colors active:bg-slate-100 dark:bg-[var(--app-surface-2)]"
+                            className="w-10 h-10 rounded-full border border-slate-200 dark:border-[var(--app-border)] flex items-center justify-center text-slate-400 dark:text-[var(--app-muted)] self-start mb-8 transition-colors active:bg-slate-100 dark:active:bg-[var(--app-surface-2)]"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </button>

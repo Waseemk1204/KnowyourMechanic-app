@@ -79,7 +79,7 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
                     <select
                         value={openTime}
                         onChange={(e) => handleChange('open', e.target.value)}
-                        className="w-full px-3 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)] text-sm font-medium"
+                        className="w-full px-3 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)] text-sm font-medium"
                     >
                         {timeOptions.map((time) => (
                             <option key={time} value={time}>{time}</option>
@@ -92,7 +92,7 @@ export default function TimeRangePicker({ value, onChange }: TimeRangePickerProp
                     <select
                         value={closeTime}
                         onChange={(e) => handleChange('close', e.target.value)}
-                        className="w-full px-3 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:bg-[var(--app-surface)] text-sm font-medium"
+                        className="w-full px-3 py-3 rounded-xl bg-slate-100 dark:bg-[var(--app-surface-2)] border-2 border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:outline-none focus:bg-white dark:focus:bg-[var(--app-surface)] text-sm font-medium"
                     >
                         {getCloseTimeOptions().map((time) => (
                             <option key={time} value={time}>{time}</option>
