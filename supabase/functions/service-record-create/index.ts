@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
       kind: "otp",
       title: "Confirm your service",
       body: `${garageName}: ${service} on ${vehicle} for Rs ${amountStr}. If correct, share OTP ${otp} with the garage. Don't share if you didn't get this service.`,
-      data: { otp, vehicle, service, amount: amountStr }
+      data: { otp, vehicle, service, amount: amountStr, garage: garageName }
     });
     deliveryChannel = routed.channel;
     deliveryId = routed.deliveryId;

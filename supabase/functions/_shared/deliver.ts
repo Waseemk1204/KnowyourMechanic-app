@@ -100,7 +100,7 @@ export async function routeDelivery(admin: any, p: DeliverParams): Promise<Deliv
   const waId = await recordDelivery(admin, p, "whatsapp");
   try {
     // Template + variables per case (must match the approved templates):
-    //   OTP              -> {{1}} vehicle, {{2}} service, {{3}} amount, {{4}} code
+    //   OTP              -> {{1}} garage, {{2}} vehicle, {{3}} service, {{4}} amount, {{5}} code
     //   invoice (simple) -> {{1}} invoice, {{2}} service, {{3}} vehicle, {{4}} amount
     //   invoice (lapsed) -> no variables (re-engagement; static copy)
     // (The fee value-prop invoice template is deferred until Route/fees are live.)
@@ -108,7 +108,7 @@ export async function routeDelivery(admin: any, p: DeliverParams): Promise<Deliv
     let bodyVars: string[];
     if (p.kind === "otp") {
       templateName = Deno.env.get("MSG91_WA_OTP_TEMPLATE");
-      bodyVars = [p.data?.vehicle ?? "", p.data?.service ?? "", p.data?.amount ?? "", p.data?.otp ?? ""];
+      bodyVars = [p.data?.garage ?? "", p.data?.vehicle ?? "", p.data?.service ?? "", p.data?.amount ?? "", p.data?.otp ?? ""];
     } else if (lapsed) {
       templateName = Deno.env.get("MSG91_WA_REENGAGE_TEMPLATE");
       bodyVars = [];
