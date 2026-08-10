@@ -152,6 +152,9 @@ Deno.serve(async (req) => {
     });
     deliveryChannel = routed.channel;
     deliveryId = routed.deliveryId;
+    // routeDelivery reports provider (WhatsApp/FCM) failures in-object rather
+    // than throwing — surface them so a failed send isn't silently "no error".
+    if (routed.error) otpNotice = routed.error;
   } catch (error) {
     otpNotice = error instanceof Error ? error.message : "OTP delivery failed.";
   }
