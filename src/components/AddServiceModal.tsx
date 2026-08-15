@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, IndianRupee, Send, Loader2, Check, QrCode, Banknote, ShieldCheck } from 'lucide-react';
+import { X, Phone, IndianRupee, Send, Loader2, Check, QrCode, Banknote, ShieldCheck, AlertTriangle } from 'lucide-react';
 import {
     createServiceRecordWithOtp,
     verifyServiceOtp,
@@ -32,12 +32,13 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
     const [devOtp, setDevOtp] = useState('');
     const [otp, setOtp] = useState('');
     const [summary, setSummary] = useState<PaymentSummary | null>(null);
+    const [cashWarn, setCashWarn] = useState(false); // confirm the "not trusted" cash penalty
 
     useEffect(() => {
         if (!isOpen) {
             setStep('form'); setError(''); setCustomerPhone(''); setVehicleNumber('');
             setNotes(''); setAmount('');
-            setRecordId(''); setDevOtp(''); setOtp(''); setSummary(null);
+            setRecordId(''); setDevOtp(''); setOtp(''); setSummary(null); setCashWarn(false);
         }
     }, [isOpen]);
 
@@ -215,16 +216,38 @@ export default function AddServiceModal({ isOpen, garageId, onClose, onSuccess }
                         {/* ---- PAYMENT ---- */}
                         {step === 'payment' && (
                             <div className="p-6 space-y-4">
-                                <p className="text-slate-500 dark:text-[var(--app-muted)]">QR is a verified transaction (platform fee ₹1.90). Cash is unverified (no fee).</p>
                                 {error && <p className="text-red-500 text-sm font-medium text-center bg-red-50 dark:bg-red-950/40 py-2 rounded-lg">{error}</p>}
-                                <button onClick={() => handlePayment('qr')} disabled={loading}
-                                    className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
-                                    <QrCode className="w-5 h-5" /> Complete with QR (verified)
-                                </button>
-                                <button onClick={() => handlePayment('cash')} disabled={loading}
-                                    className="w-full h-16 bg-slate-900 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
-                                    <Banknote className="w-5 h-5" /> Complete with Cash
-                                </button>
+                                {!cashWarn ? (
+                                    <>
+                                        <p className="text-slate-500 dark:text-[var(--app-muted)]">Digital payment is a <b className="text-slate-700 dark:text-[var(--app-text)]">verified, trusted</b> transaction. Cash is unverified — the service will be marked <b className="text-amber-700 dark:text-amber-300">Not Trusted</b> on the customer's record.</p>
+                                        <button onClick={() => handlePayment('qr')} disabled={loading}
+                                            className="w-full h-16 btn-premium rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                                            <QrCode className="w-5 h-5" /> Complete with QR (verified)
+                                        </button>
+                                        <button onClick={() => setCashWarn(true)} disabled={loading}
+                                            className="w-full h-16 bg-slate-900 dark:bg-slate-800 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                                            <Banknote className="w-5 h-5" /> Complete with Cash
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 flex gap-3">
+                                            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="font-bold text-amber-900 dark:text-amber-200">Mark this service “Not Trusted”?</p>
+                                                <p className="text-sm text-amber-800 dark:text-amber-300/90 mt-1">Cash skips verification. This service will show as <b>Not Trusted</b> on the customer's record and won't carry the verified badge. This can't be changed later.</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => handlePayment('cash')} disabled={loading}
+                                            className="w-full h-16 bg-slate-900 dark:bg-slate-800 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-2 disabled:opacity-40">
+                                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Banknote className="w-5 h-5" />} Yes, complete with cash
+                                        </button>
+                                        <button onClick={() => setCashWarn(false)} disabled={loading}
+                                            className="w-full h-12 rounded-2xl font-semibold text-slate-600 dark:text-[var(--app-muted)]">
+                                            Go back
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
 
