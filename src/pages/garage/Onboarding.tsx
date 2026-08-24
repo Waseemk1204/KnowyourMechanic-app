@@ -35,6 +35,7 @@ interface BankInfo {
     ifscCode: string;
     accountHolderName: string;
     bankName: string;
+    upiVpa: string;
 }
 
 interface FieldErrors {
@@ -76,6 +77,7 @@ export default function GarageOnboardingWizard() {
         ifscCode: '',
         accountHolderName: '',
         bankName: '',
+        upiVpa: '',
     });
 
     const [referralStatus, setReferralStatus] = useState<ReferralStatus>({
@@ -220,6 +222,7 @@ export default function GarageOnboardingWizard() {
                     ifscCode: bank.ifscCode,
                     accountHolderName: bank.accountHolderName,
                     bankName: bank.bankName,
+                    upiVpa: bank.upiVpa,
                 });
                 await completeGarageOnboarding(garageId);
             }
@@ -623,6 +626,20 @@ export default function GarageOnboardingWizard() {
                                     placeholder="State Bank of India"
                                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500"
                                 />
+                            </div>
+
+                            {/* UPI ID (optional) — used for direct collection during peak hours */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">UPI ID <span className="font-normal text-slate-400 dark:text-[var(--app-muted)]">(optional)</span></label>
+                                <input
+                                    type="text"
+                                    value={bank.upiVpa}
+                                    onChange={(e) => setBank({ ...bank, upiVpa: e.target.value.trim() })}
+                                    placeholder="yourname@bank"
+                                    autoCapitalize="none"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500"
+                                />
+                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1">Lets customers pay you directly during peak hours. You can add it later.</p>
                             </div>
 
                             <div className="flex gap-3 mt-6">

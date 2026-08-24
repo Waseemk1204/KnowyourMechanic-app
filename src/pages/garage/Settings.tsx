@@ -31,6 +31,7 @@ interface BankInfo {
     ifscCode: string;
     accountHolderName: string;
     bankName: string;
+    upiVpa: string;
 }
 
 export default function GarageSettings() {
@@ -64,6 +65,7 @@ export default function GarageSettings() {
         ifscCode: '',
         accountHolderName: '',
         bankName: '',
+        upiVpa: '',
     });
 
     const [newBank, setNewBank] = useState<BankInfo & { confirmAccountNumber: string }>({
@@ -72,6 +74,7 @@ export default function GarageSettings() {
         ifscCode: '',
         accountHolderName: '',
         bankName: '',
+        upiVpa: '',
     });
 
     const { userData } = useAuth();
@@ -165,6 +168,7 @@ export default function GarageSettings() {
                 ifscCode: newBank.ifscCode,
                 accountHolderName: newBank.accountHolderName,
                 bankName: newBank.bankName,
+                upiVpa: newBank.upiVpa,
             });
             {
                 setBank({
@@ -172,6 +176,7 @@ export default function GarageSettings() {
                     ifscCode: newBank.ifscCode,
                     accountHolderName: newBank.accountHolderName,
                     bankName: newBank.bankName,
+                    upiVpa: newBank.upiVpa,
                 });
                 setEditingBank(false);
                 setNewBank({
@@ -180,6 +185,7 @@ export default function GarageSettings() {
                     ifscCode: '',
                     accountHolderName: '',
                     bankName: '',
+                    upiVpa: '',
                 });
                 setSuccess('Bank details updated successfully!');
                 setTimeout(() => setSuccess(''), 3000);
@@ -488,7 +494,7 @@ export default function GarageSettings() {
                                         )}
                                     </div>
                                     <button
-                                        onClick={() => setEditingBank(true)}
+                                        onClick={() => { setNewBank(prev => ({ ...prev, upiVpa: bank.upiVpa })); setEditingBank(true); }}
                                         className="w-full bg-slate-100 dark:bg-[var(--app-surface-2)] text-slate-700 dark:text-[var(--app-text)] py-4 rounded-2xl font-bold"
                                     >
                                         Change Bank Details
@@ -581,6 +587,20 @@ export default function GarageSettings() {
                                 />
                             </div>
 
+                            {/* UPI ID (optional) */}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 dark:text-[var(--app-text)] mb-2">UPI ID <span className="font-normal text-slate-400 dark:text-[var(--app-muted)]">(optional)</span></label>
+                                <input
+                                    type="text"
+                                    value={newBank.upiVpa}
+                                    onChange={(e) => setNewBank({ ...newBank, upiVpa: e.target.value.trim() })}
+                                    placeholder="yourname@bank"
+                                    autoCapitalize="none"
+                                    className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 dark:border-[var(--app-border)] focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-[var(--app-surface)]"
+                                />
+                                <p className="text-xs text-slate-400 dark:text-[var(--app-muted)] mt-1">Used for direct collection during peak hours.</p>
+                            </div>
+
                             {/* Bank Error Message */}
                             {bankError && (
                                 <div className="bg-red-50 dark:bg-red-950/40 text-red-600 p-3 rounded-xl text-sm flex items-center gap-2">
@@ -599,6 +619,7 @@ export default function GarageSettings() {
                                             ifscCode: '',
                                             accountHolderName: '',
                                             bankName: '',
+                                            upiVpa: '',
                                         });
                                         setBankError('');
                                     }}

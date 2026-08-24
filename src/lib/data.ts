@@ -528,21 +528,24 @@ export async function saveGarageBusinessInfo(ownerProfileId: string, info: Garag
 
 export async function saveGarageBankDetails(
     garageId: string,
-    bank: { accountNumber: string; ifscCode: string; accountHolderName: string; bankName: string }
+    bank: { accountNumber: string; ifscCode: string; accountHolderName: string; bankName: string; upiVpa?: string }
 ): Promise<void> {
     // Payout/bank details live in a private table (garage_payout_details) that
     // only the owning garage + admins can read — never on the publicly-readable
-    // garages row.
+    // garages row. upi_vpa is the garage's own UPI ID for post-cap direct
+    // collection (customer pays it directly when the daily float cap is hit).
+    const row: Record<string, unknown> = {
+        garage_id: garageId,
+        bank_account_number: bank.accountNumber.replace(/\D/g, ''),
+        bank_ifsc_code: bank.ifscCode.toUpperCase(),
+        bank_account_holder_name: bank.accountHolderName.trim(),
+        bank_name: bank.bankName.trim(),
+        updated_at: new Date().toISOString(),
+    };
+    if (bank.upiVpa !== undefined) row.upi_vpa = bank.upiVpa.trim() || null;
     const { error } = await supabase
         .from('garage_payout_details')
-        .upsert({
-            garage_id: garageId,
-            bank_account_number: bank.accountNumber.replace(/\D/g, ''),
-            bank_ifsc_code: bank.ifscCode.toUpperCase(),
-            bank_account_holder_name: bank.accountHolderName.trim(),
-            bank_name: bank.bankName.trim(),
-            updated_at: new Date().toISOString(),
-        }, { onConflict: 'garage_id' });
+        .upsert(row, { onConflict: 'garage_id' });
     if (error) throw new Error(error.message);
 }
 
@@ -551,6 +554,7 @@ export interface GaragePayout {
     ifscCode: string;
     accountHolderName: string;
     bankName: string;
+    upiVpa: string;
 }
 
 // Reads the owning garage's saved payout/bank details from the private table
@@ -558,7 +562,7 @@ export interface GaragePayout {
 export async function getMyGaragePayout(garageId: string): Promise<GaragePayout | null> {
     const { data, error } = await supabase
         .from('garage_payout_details')
-        .select('bank_account_number,bank_ifsc_code,bank_account_holder_name,bank_name')
+        .select('bank_account_number,bank_ifsc_code,bank_account_holder_name,bank_name,upi_vpa')
         .eq('garage_id', garageId)
         .maybeSingle();
     if (error || !data) return null;
@@ -567,6 +571,7 @@ export async function getMyGaragePayout(garageId: string): Promise<GaragePayout 
         ifscCode: data.bank_ifsc_code || '',
         accountHolderName: data.bank_account_holder_name || '',
         bankName: data.bank_name || '',
+        upiVpa: data.upi_vpa || '',
     };
 }
 
