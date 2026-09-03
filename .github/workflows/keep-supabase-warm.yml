@@ -1,0 +1,29 @@
+name: Keep Supabase warm
+
+# Free-tier Supabase projects pause after 7 days of inactivity. This hits the
+# project's REST API once a day with a tiny public read, which counts as
+# activity and keeps the project awake. Uses the publishable key only (already
+# public, safe to expose) against a public reference table.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # daily at 06:17 UTC (odd minute = less likely to be delayed)
+  workflow_dispatch: {}     # lets you run it manually from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        env:
+          SUPABASE_URL: https://spwijxqlzzqvlopsojrx.supabase.co
+          SUPABASE_KEY: sb_publishable_MJUS1uue5gX1X8w-LbFeMw_M3TrYtex
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_KEY}" \
+            "${SUPABASE_URL}/rest/v1/service_categories?select=code&limit=1")
+          echo "Supabase responded: HTTP $code"
+          # 2xx means the DB was queried (activity registered).
+          [ "$code" -ge 200 ] && [ "$code" -lt 300 ]
